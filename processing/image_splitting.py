@@ -252,7 +252,10 @@ if __name__ == '__main__':
     processed.mkdir(parents=True, exist_ok=True)
 
     # read morpho image
-    if not config.has_option('PATHS', 'sections_dict'):
+    if config.has_option('PATHS', 'sections_dict'):
+        with open(config['PATHS']['sections_dict'], 'r') as f:
+            sections_dict = json.load(f)    
+    else:
         sections_dict = {}
         with tiffFile(img_path)) as tif:
             layers = len(tif.pages)
@@ -303,10 +306,6 @@ if __name__ == '__main__':
         imwrite(processed / 'marked_regions-of-interest.tif',
                 centre_page_scaled
         )
-    
-    else:
-        with open(config['PATHS']['sections_dict'], 'r') as f:
-            sections_dict = json.load(f) 
 
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
