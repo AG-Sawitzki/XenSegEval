@@ -1,0 +1,53 @@
+[xenium_output]:
+    data:
+        transcripts.csv.gz
+        cell_boundaries.parquet
+        nucleus_boundaries.parquet
+        morphology.ome.tif
+        morphology_focus.ome.tif
+        # (H&E)
+[sample]:
+    processed:
+        marked_regions-of-interest.tif
+        sections_px.json
+        [section]:
+            boundaries:
+                cell.csv
+                nucleus.csv
+            morphology:
+                focus:
+                    focus.ome.tif
+                    quartered:
+                        q0[i for {0...chunk}].ome.tif
+                multi_layer:
+                    morphology.ome.tif
+                    quartered:
+                        q0[i for {0...chunk}].ome.tif
+                single_layer:
+                    layer0[i for {0...3}]:
+                        morphology.tif
+                        quatered:
+                            q0[i for {0...chunk}].tif
+            transcripts:
+                relative.csv[.gz]
+                pixel_relative.csv[.gz]
+    results:
+        [method]:
+            count_matrix:
+                [section].mtx.gz
+            outlines:
+                [section]:
+                    [section].npy
+                    quartered:
+                        q0[i for {0...chunk}].npy
+            output:
+                [section]:
+                    {output}            
+            polygons:
+                [section].geojson.gz
+    run:
+        [method]:
+            log:
+                {log}
+            variables.json{?}
+                
