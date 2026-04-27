@@ -26,10 +26,9 @@ import cv2
 
 
 def find_rois(contours, n_roi):
-    """
-    Sort the contours by area
+    """Sort the contours by area.
     Args:
-        contours: The contours from cv2.findContours
+        contours: The contours from cv2.findContours.
         n_roi: Expected # of regions of interest.
                Should be equivalent to the number of tissue-samples on the slide. 
     Returns:
@@ -56,9 +55,44 @@ def find_rois(contours, n_roi):
     return contours_sorted
 
 
-def writeTif(image, section, chunk, layer, resolution, ome=True, focus=False):
+def tif_path(section, p_processed, ome=True, focus=False, chunk=None, layer=None):
+    """Create the path to the tif file.
+    Args:
+        Section: Which sample on the slide is examined.
+        p_processed: The path so the 'processed' directory.
+        ome: Boolean. If file will be ome or not.
+        focus: Boolean. If file contains channels or layers.
+        chunk: the chunk of the section.
+        layer: ome-layer of the source image.
+    Returns:
+        pathlib.Path
     """
-    Write the array into a tif file.
+    
+    f_str = '/'.join(str(section), '/morphology/')
+    
+    if ome:
+        if focus:
+            f_str = '/'.join(f_str, 'focus')
+        else:
+            f_str = '/'.join(f_str, 'multi_layer')
+        ext = 'ome.tif'
+    else:
+        f_str = '/'.join(f_str, 'single_layer/layer0{0}'.format(layer))
+        ext = 'tif'
+    if chunk is not None:
+        f_str = '/'.join(f_str, 'quatered/q0{0}'.format(chunk))
+    
+    path = Path(p_processed / f_str)    
+    path.mkdir(parents=True, exist_ok=True)
+    
+    f_str = '.'.join(f_str, ext)
+    file = Path(p_processed / f_str)
+
+    return file
+
+
+def writeTif(image, section, chunk, layer, resolution, ome=True, focus=False):
+    """Write an array into a tif file.
 
     Args:
         image: numpy.ndarray of the image.
@@ -99,28 +133,17 @@ def writeTif(image, section, chunk, layer, resolution, ome=True, focus=False):
                 'PhysicalSizeYUnit': 'Âµm',
                 'PhysicalSizeZ': 3.0000,
                 'PhysicalSizeZUnit': 'Âµm'
-            }
+        }
         layer = None
-        path = Path(processed / 
-                    '{0}/morphology/{1}/{2}'.format(section,
-                                                    'focus' if focus else 'multi_layer',
-                                                    'quatered/' if chunk is not None else ''))
     else:
         axes = 'YX'
         subresolutions = None
         image_type = 'tif'
         bigtiff = False
         metadata = None
-        path = Path(processed / 
-                    '{0}/morphology/single_layer/layer0{1}/{2}'.format(section,
-                                                                       layer,
-                                                                       'quatered/' if chunk is not None else ''
-                                                                        )
-                    )
+    
+    file = tif_path(section, processed, ome, focus, chunk, layer)
 
-    path.mkdir(parents=True, exist_ok=True)
-    file = path / '{0}.{1}'.format('q0{chunk}'.format(chunk=chunk) if chunk is not None else 'morphology',
-                                   image_type)
     with TiffWriter(file, bigtiff=bigtiff) as tif:
 
         metadata = metadata
@@ -210,20 +233,20 @@ if __name__ == '__main__':
             centre_page_scaled_blur = cv2.GaussianBlur(centre_page_scaled,
                                                        (0, 0),
                                                        1.5
-                                                       )
+            )
 
             # binary image
             ret, thresh = cv2.threshold(centre_page_scaled_blur,
                                         127,
                                         255,
                                         0
-                                        )
+            )
 
             # dilate
             thresh_dilate = cv2.dilate(thresh,
                                        np.ones((5, 5)),
                                        iterations=3
-                                       )
+            )
 
             # rois are now nearly continuous shapes of similar brightness
 
@@ -231,7 +254,7 @@ if __name__ == '__main__':
             contours, _ = cv2.findContours(thresh_dilate,
                                            cv2.RETR_LIST,
                                            cv2.CHAIN_APPROX_SIMPLE
-                                           )
+            )
 
             # keep contours with significant size
             roi_list, _ = find_rois(contours, n_roi)
@@ -246,13 +269,13 @@ if __name__ == '__main__':
                               (x+w, y+h),
                               (255, 255, 255),
                               2
-                              )
+                )
 
                 # adjust for scaling
                 x, y, w, h = x*rf, y*rf, w*rf, h*rf
                 sections_dict[str(section)] = [[y, x],
                                                [y+h, x+w]
-                                               ]
+                ]
 
                 section += 1
 
@@ -278,11 +301,11 @@ if __name__ == '__main__':
             morphology_section = morphology[:,
                                             y_min:y_max,
                                             x_min:x_max
-                                            ] # z,y,x
+            ]
             focus_section = focus[y_min:y_max,
                                   x_min:x_max,
                                   :
-                                  ]
+            ]
 
             z, y, x = morphology_section.shape
 
@@ -294,33 +317,38 @@ if __name__ == '__main__':
                           layer=layer,
                           resolution=resolution,
                           ome=False
-                          )
+                )
             #
             # sub-sections:
             window_shape_morphology = (1,
                                        int(y*(2/chunks+overlap)),
                                        int(x*(2/chunks+overlap))
-                                       )
+            )
             window_shape_focus = window_shape_morphology[1:]+(1,)
             #
             view_morphology = np.lib.stride_tricks.sliding_window_view(morphology_section, window_shape_morphology)
             view_morphology = view_morphology[:, 
                                               ::view_morphology.shape[1]-1,
                                               ::view_morphology.shape[2]-1,
-                                              ...]
+                                              ...
+            ]
             view_morphology = np.reshape(view_morphology,
-                                         (z, chunks)+window_shape_morphology[1:]
-                                         )
+                                         (z,
+                                         chunks
+                                        )
+                                         + window_shape_morphology[1:]
+            )
             #
             view_focus = np.lib.stride_tricks.sliding_window_view(focus_section,
                                                                   window_shape_focus)
             view_focus = view_focus[::view_focus.shape[1]-1,
                                     ::view_focus.shape[2]-1,
                                     ...
-                                    ]
+            ]
             view_focus = np.reshape(view_focus,
-                                    (chunks,)+window_shape_focus[:-1]+(4,)
-                                    )
+                                    (chunks,)
+                                    + window_shape_focus[:-1]+(4,)
+            )
             #
             for chunk in range(chunks):
                 q_m = view_morphology.copy()[:, chunk, ...]
@@ -333,13 +361,14 @@ if __name__ == '__main__':
                 write_tif(q_m,
                           section,
                           chunk=chunk,
-                          resolution=window_shape_morphology[1:])
+                          resolution=window_shape_morphology[1:]
+                )
                 write_tif(q_f,
                           section,
                           chunk=chunk,
                           resolution=window_shape_focus[:-1],
                           focus=True
-                          )
+                )
                 for layer in range(z):
                     write_tif(q_m[layer, ...],
                               section,
@@ -347,4 +376,4 @@ if __name__ == '__main__':
                               layer=layer,
                               resolution=window_shape_morphology[1:],
                               ome=False
-                              )
+                )

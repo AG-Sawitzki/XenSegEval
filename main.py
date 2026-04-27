@@ -21,12 +21,12 @@ if __name__ == '__main':
     results.mkdir(parents=True, exist_ok=True)
 
     # define variables
-    chunks = config['DEFAULT'].getfloat('chunks')
-    min_size = config['DEFAULT'].getfloat('min_size')
-    n_roi = config['DEFAULT'].getfloat('n_roi')
-    overlap = config['DEFAULT'].getfloat('overlap')
-    pixelsize = config['DEFAULT'].getfloat('pixelsize')
-    rf = config['DEFAULT'].getfloat('rf')
+    chunks = config['PREPROCESSING'].getfloat('chunks')
+    min_size = config['PREPROCESSING'].getfloat('min_size')
+    n_roi = config['PREPROCESSING'].getfloat('n_roi')
+    overlap = config['PREPROCESSING'].getfloat('overlap')
+    pixelsize = config['PREPROCESSING'].getfloat('pixelsize')
+    rf = config['PREPROCESSING'].getfloat('rf')
 
     if 'CPSAM' in config.sections():
         path = config_path[:-len('config.ini')]+'start/cpsam.sh'
