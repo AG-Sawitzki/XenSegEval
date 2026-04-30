@@ -11,6 +11,7 @@ import argparse
 import json
 import gzip
 
+from numpy.lib.stride_tricks import sliding_window_view
 import multiprocessing as mp
 import pandas as pd
 import numpy as np
@@ -28,8 +29,8 @@ def find_bins(bins, section):
     """
     y_bins, x_bins = bins
 
-    y_bins_v = np.lib.stride_tricks.sliding_window_view(y_bins, (2,))
-    x_bins_v = np.lib.stride_tricks.sliding_window_view(x_bins, (2,))
+    y_bins_v = sliding_window_view(y_bins, (2,))
+    x_bins_v = sliding_window_view(x_bins, (2,))
 
     coord = np.array(sections_dict[section])*pixelsize
     
@@ -60,8 +61,8 @@ def make_bins(sections_dict):
     x_bins = np.linspace(x_min, x_max, num = 4)
 
     for i in range(len(keys)):
-        y_check = np.lib.stride_tricks.sliding_window_view(y_bins, (2,)) >= values[i,:,0]
-        x_check = np.lib.stride_tricks.sliding_window_view(x_bins, (2,)) >= values[i,:,1]
+        y_check = sliding_window_view(y_bins, (2,)) >= values[i,:,0]
+        x_check = sliding_window_view(x_bins, (2,)) >= values[i,:,1]
         if y_check.any() and x_check.any():
             continue
         else:

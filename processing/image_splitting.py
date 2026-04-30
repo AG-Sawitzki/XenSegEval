@@ -21,6 +21,7 @@ import argparse
 import json
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
+from numpy.lib.stride_tricks import sliding_window_view
 import numpy as np
 import cv2
 
@@ -93,7 +94,14 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
 
 
 def view(image, chunks, shape):
-
+    """
+    Args:
+        image: np.array of the image section
+        chunks: how many chunks the image should end up in
+        shape: the pre-chunks image-section shape
+    Return:
+        An array of shape (chunk, layers, y, x)
+    """
     if shape[-1] >= 4:
         y, x, c = shape
         window_shape = (int(y*(2/chunks+overlap)),
@@ -121,6 +129,8 @@ def view(image, chunks, shape):
         view_shape = view_image.shape
         
         view_image = sliding_window_view(image, window_shape)
+        # this step needs to be changed so it can work with
+        # any amount of chunks
         view_image = view_image[:,
                                 ::view_shape[1]-1,
                                 ::view_shape[2]-1,
