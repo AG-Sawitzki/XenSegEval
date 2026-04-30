@@ -339,7 +339,8 @@ if __name__ == '__main__':
             ]
             write_tif(focus_section, section)
 
-            view_morphology = view(morphology_section, chunks, shape=morphology_section.shape)
+            view_morphology = view(morphology_section, chunks,
+                                   shape=morphology_section.shape)
             view_focus = view(focus_section, chunks, shape=focus_section.shape)
             for chunk in range(chunks):
                 q_m = view_morphology.copy()[:, chunk, ...]
@@ -353,4 +354,5 @@ if __name__ == '__main__':
                 write_tif(q_f, section, chunk=chunk)
 
                 for layer in range(z):
-                    write_tif(q_m[layer, ...], section, chunk=chunk, layer=layer)
+                    write_tif(q_m[layer, ...], section,
+                              chunk=chunk, layer=layer)
