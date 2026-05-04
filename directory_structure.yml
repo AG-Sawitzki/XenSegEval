@@ -4,7 +4,8 @@
         cell_boundaries.parquet
         nucleus_boundaries.parquet
         morphology.ome.tif
-        morphology_focus.ome.tif
+        morphology_focus:
+            morphology_focus_000{0...3}.ome.tif
         # (H&E)
 [sample]:
     processed:
@@ -18,19 +19,19 @@
                 focus:
                     focus.ome.tif
                     quartered:
-                        q0[i for {0...chunk}].ome.tif
+                        q0{0...chunk}.ome.tif
                 multi_layer:
                     morphology.ome.tif
                     quartered:
-                        q0[i for {0...chunk}].ome.tif
+                        q0{0...chunk}.ome.tif
                 single_layer:
-                    layer0[i for {0...3}]:
+                    layer0{0...3}:
                         morphology.tif
                         quatered:
-                            q0[i for {0...chunk}].tif
+                            q0{0...chunk}.tif
             transcripts:
-                relative.csv[.gz]
-                pixel_relative.csv[.gz]
+                relative.csv{.gz}
+                pixel_relative.csv{.gz}
     results:
         [method]:
             count_matrix:
@@ -39,7 +40,7 @@
                 [section]:
                     [section].npy
                     quartered:
-                        q0[i for {0...chunk}].npy
+                        q0{0...chunk}.npy
             output:
                 [section]:
                     {output}            
@@ -48,6 +49,6 @@
     run:
         [method]:
             log:
-                {log}
+                run.log
             variables.json{?}
                 
