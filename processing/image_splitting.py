@@ -319,8 +319,7 @@ if __name__ == '__main__':
 
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
-    with tiffFile(data / 'morphology.ome.tif') as mor,
-         tiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
+    with tiffFile(data / 'morphology.ome.tif') as mor, tiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
 
         layers = len(mor.pages)
         centre_layer = int(layers//2)
