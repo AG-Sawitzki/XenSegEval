@@ -267,7 +267,7 @@ if __name__ == '__main__':
             sections_dict = json.load(f)
     else:
         sections_dict = {}
-        with tiffFile(img_path) as tif:
+        with TiffFile(img_path) as tif:
             layers = len(tif.pages)
             centre_layer = int(layers//2)
             y, x = tif.pages[centre_layer].shape
@@ -319,7 +319,7 @@ if __name__ == '__main__':
 
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
-    with tiffFile(data / 'morphology.ome.tif') as mor, tiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
+    with TiffFile(data / 'morphology.ome.tif') as mor, TiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
 
         layers = len(mor.pages)
         centre_layer = int(layers//2)
