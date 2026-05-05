@@ -143,7 +143,7 @@ def view(image, chunks, shape):
     return view_image
 
 
-def write_tif(image, section, config=config, layer=None, chunk=None):
+def write_tif(image, section, layer=None, chunk=None):
     """Write an array into a tif file.
 
     Args:
