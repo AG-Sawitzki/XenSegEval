@@ -19,6 +19,7 @@ import configparser
 import argparse
 
 import json
+import tqdm
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
 from numpy.lib.stride_tricks import sliding_window_view
@@ -249,7 +250,8 @@ if __name__ == '__main__':
     n_roi = config['PREPROCESSING'].getfloat('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
     pixelsizes = config['PREPROCESSING'].get('pixelsizes')
-    layers = config['PREPROCESSING'].get('layers')
+    planes = config['PREPROCESSING'].get('planes')
+    planes = [int(n) for n in planes if n.isdigit()]
     buffer = config['PREPROCESSING'].getfloat('buffer')
 
     # define paths
@@ -263,9 +265,12 @@ if __name__ == '__main__':
 
     # read morpho image
     if config.has_option('PATHS', 'sections_dict'):
+        print('Has sections_dict') 
         with open(config['PATHS']['sections_dict'], 'r') as f:
             sections_dict = json.load(f)
+        print('Coordinates loaded')
     else:
+        print('Finding ROIs')
         sections_dict = {}
         with TiffFile(img_path) as tif:
             layers = len(tif.pages)
@@ -297,7 +302,7 @@ if __name__ == '__main__':
             # keep contours with significant size
             roi_list, _ = find_rois(contours, n_roi)
 
-            for section, c in enumerate(roi_list):
+            for i, (section, c) in enumerate(tqdm(roi_list)):
                 # add roi to scaled image to check for regions
                 x, y, w, h = cv2.boundingRect(c)
                 cv2.rectangle(centre_page_scaled, (x, y), (x+w, y+h),
@@ -320,13 +325,12 @@ if __name__ == '__main__':
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
     with TiffFile(data / 'morphology.ome.tif') as mor, TiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
-
         layers = len(mor.pages)
         centre_layer = int(layers//2)
-        morphology = np.vstack([mor.pages[i].asarray() for i in layers])
+        morphology = np.vstack([mor.pages[p].asarray() for p in planes])
         focus = np.vstack([page.asarray() for page in foc.pagess])
 
-        for section, bbox in sections_dict.items():
+        for i, (section, bbox) in tqdm(sections_dict.items()):
 
             y_min, x_min = bbox[0]
             y_max, x_max = bbox[1]
@@ -351,7 +355,7 @@ if __name__ == '__main__':
             view_morphology = view(morphology_section, chunks,
                                    shape=morphology_section.shape)
             view_focus = view(focus_section, chunks, shape=focus_section.shape)
-            for chunk in range(chunks):
+            for i, chunk in tqdm(range(chunks)):
                 q_m = view_morphology.copy()[:, chunk, ...]
                 q_f = view_focus.copy()[chunk, ...]
                 if q.ndim != 3:
