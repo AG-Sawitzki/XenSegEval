@@ -83,10 +83,10 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
         ext = 'tif'
     if chunk is not None:
         f_str = '/'.join(f_str, 'quatered/q0{0}'.format(chunk))
-    
-    path = Path(processed / f_str)    
+
+    path = Path(processed / f_str)
     path.mkdir(parents=True, exist_ok=True)
-    
+
     f_str = '.'.join(f_str, ext)
     file = Path(processed / f_str)
 
@@ -111,7 +111,7 @@ def view(image, chunks, shape):
 
         view_image = sliding_window_view(image, window_shape)
         view_shape = view_image.shape
-        
+
         view_image = view_image[::view_shape[1]-1,
                                 ::view_shape[2]-1,
                                 ...
@@ -127,7 +127,7 @@ def view(image, chunks, shape):
         )
         view_image = sliding_window_view(image, window_shape)
         view_shape = view_image.shape
-        
+
         view_image = sliding_window_view(image, window_shape)
         # this step needs to be changed so it can work with
         # any amount of chunks
@@ -168,7 +168,7 @@ def write_tif(image, section, config=config, layer=None, chunk=None):
             compression=None,
             resolutionunit='MICROMETER'
         )
-    
+
     if image.ndim == 3:
         ome = True
         axes = 'ZYX'
@@ -194,7 +194,7 @@ def write_tif(image, section, config=config, layer=None, chunk=None):
         subresolutions = None
         bigtiff = False
         metadata = None
-    
+
     file = tif_path(section, ome, focus, chunk, layer)
 
     with TiffWriter(file, bigtiff=bigtiff) as tif:
@@ -264,10 +264,10 @@ if __name__ == '__main__':
     # read morpho image
     if config.has_option('PATHS', 'sections_dict'):
         with open(config['PATHS']['sections_dict'], 'r') as f:
-            sections_dict = json.load(f)    
+            sections_dict = json.load(f)
     else:
         sections_dict = {}
-        with tiffFile(img_path)) as tif:
+        with tiffFile(img_path) as tif:
             layers = len(tif.pages)
             centre_layer = int(layers//2)
             y, x = tif.pages[centre_layer].shape
@@ -320,13 +320,13 @@ if __name__ == '__main__':
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
     with tiffFile(data / 'morphology.ome.tif') as mor,
-         tiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc: 
-        
+         tiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
+
         layers = len(mor.pages)
         centre_layer = int(layers//2)
         morphology = np.vstack([mor.pages[i].asarray() for i in layers])
         focus = np.vstack([page.asarray() for page in foc.pagess])
-        
+
         for section, bbox in sections_dict.items():
 
             y_min, x_min = bbox[0]
