@@ -1,18 +1,39 @@
-import cv2
-import geopandas as gpd
+from CellSegmentationEvaluator import (
+    single_method_eval,
+    single_method_eval3D,
+    CSE3D
+)
+from pathlib import Path
 
-gdf = gpd.read_file('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/roi.geojson')
-xx, yy = gdf.iloc[0]['geometry'].exterior.xy
+imgpath = Path('''
+               /data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/
+               data_processed/image-data_processed/morphology/36/focus
+               '''
+)
 
-x = np.array(xx)
-y = np.array(yy)
+maskpath = Path('''
+                /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
+                /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
+                '''
+)
 
-x.shape = (len(x),1)
-y.shape = (len(y),1)
+single_method_eval(imgpath, maskpath)
 
-xy = np.hstack((x,y))
+# import cv2
+# import geopandas as gpd
 
-mm = cv2.moments(xy)
+# gdf = gpd.read_file('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/roi.geojson')
+# xx, yy = gdf.iloc[0]['geometry'].exterior.xy
+
+# x = np.array(xx)
+# y = np.array(yy)
+
+# x.shape = (len(x),1)
+# y.shape = (len(y),1)
+
+# xy = np.hstack((x,y))
+
+# mm = cv2.moments(xy)
 
 # source = tifffile.imread('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif')
 # template = tifffile.imread('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-no-overlap_labels.tif')
