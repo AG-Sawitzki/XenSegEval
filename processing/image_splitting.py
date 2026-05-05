@@ -258,7 +258,7 @@ if __name__ == '__main__':
 
     # processed = Path(f'/data/cephfs-2/unmirrored/groups/sawitzki/Juno/{sample}/processed')
     # processed.mkdir(parents=True, exist_ok=True)
-    processed = config['PATHS'].get('processed')
+    processed = Path(config['PATHS'].get('processed'))
     processed.mkdir(parents=True, exist_ok=True)
 
     # read morpho image
