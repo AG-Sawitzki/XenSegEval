@@ -24,6 +24,7 @@ import tqdm
 from tifffile import imread, imwrite, TiffWriter, TiffFile
 from numpy.lib.stride_tricks import sliding_window_view
 import numpy as np
+import zarr
 import cv2
 
 
@@ -263,7 +264,15 @@ if __name__ == '__main__':
     processed = Path(config['PATHS'].get('processed'))
     processed.mkdir(parents=True, exist_ok=True)
 
-    # read morpho image
+    # load morpho and focus:
+    morphology_store = imread(data / 'morphology.ome.tif', aszarr=True)
+    # focus_store = imread(data / 'morphology/morphology_focus_0000.ome.tif',
+    #                      aszarr=True
+    # )
+    
+    morphology_zarr = zarr.open(morphology_store, mode='r')
+    # focus_zarr = zarr.open(focus_store, mode='r')
+    
     if config.has_option('PATHS', 'sections_dict'):
         print('Has sections_dict') 
         with open(config['PATHS']['sections_dict'], 'r') as f:
@@ -272,47 +281,50 @@ if __name__ == '__main__':
     else:
         print('Finding ROIs')
         sections_dict = {}
-        with TiffFile(img_path) as tif:
-            layers = len(tif.pages)
-            centre_layer = int(layers//2)
-            y, x = tif.pages[centre_layer].shape
-            rf = int(y/1000)
-            centre_page = tif.pages[centre_layer].asarray()
-            # convert to CV_8UC1 compatible array,
-            # downscale
-            centre_page_scaled = np.uint8(centre_page[::rf, ::rf])
-            # blur
-            centre_page_scaled_blur = cv2.GaussianBlur(centre_page_scaled,
-                                                       (0, 0), 1.5
-            )
-            # binary image
-            ret, thresh = cv2.threshold(centre_page_scaled_blur,
-                                        127, 255, 0
-            )
-            # dilate
-            thresh_dilate = cv2.dilate(thresh,
-                                       np.ones((5, 5)),
-                                       iterations=3
-            )
-            # find contours
-            contours, _ = cv2.findContours(thresh_dilate,
-                                           cv2.RETR_LIST,
-                                           cv2.CHAIN_APPROX_SIMPLE
-            )
-            # keep contours with significant size
-            roi_list, _ = find_rois(contours, n_roi)
+        l, y, x = morphology_zarr['0'].shape
 
-            for i, (section, c) in enumerate(tqdm(roi_list)):
-                # add roi to scaled image to check for regions
-                x, y, w, h = cv2.boundingRect(c)
-                cv2.rectangle(centre_page_scaled, (x, y), (x+w, y+h),
-                              (255, 255, 255), 2
-                )
-                # adjust for scaling
-                x, y, w, h = x*rf, y*rf, w*rf, h*rf
-                sections_dict[str(section)] = [[y, x],
-                                               [y+h, x+w]
-                ]
+        contours, _ = cv2.findContours(thresh_dilate,
+                                       cv2.RETR_LIST,
+                                       cv2.CHAIN_APPROX_SIMPLE
+        )
+        # keep contours with significant size
+        roi_list, _ = find_rois(contours, n_roi)
+
+        for i, (section, c) in enumerate(tqdm(roi_list)):
+            # add roi to scaled image to check for regions
+            x, y, w, h = cv2.boundingRect(c)
+            cv2.rectangle(centre_page_scaled, (x, y), (x+w, y+h),
+                          (255, 255, 255), 2
+            )
+            # adjust for scaling
+            x, y, w, h = x*rf, y*rf, w*rf, h*rf
+            sections_dict[str(section)] = [[y, x],
+                                           [y+h, x+w]
+            ]
+        
+        # with TiffFile(img_path) as tif:
+        #     layers = len(tif.pages)
+        #     centre_layer = int(layers//2)
+        #     y, x = tif.pages[centre_layer].shape
+        #     rf = int(y/1000)
+        #     centre_page = tif.pages[centre_layer].asarray()
+        #     # convert to CV_8UC1 compatible array,
+        #     # downscale
+        #     centre_page_scaled = np.uint8(centre_page[::rf, ::rf])
+        #     # blur
+        #     centre_page_scaled_blur = cv2.GaussianBlur(centre_page_scaled,
+        #                                                (0, 0), 1.5
+        #     )
+        #     # binary image
+        #     ret, thresh = cv2.threshold(centre_page_scaled_blur,
+        #                                 127, 255, 0
+        #     )
+        #     # dilate
+        #     thresh_dilate = cv2.dilate(thresh,
+        #                                np.ones((5, 5)),
+        #                                iterations=3
+        #     )
+        #     # find contours
 
         # save selected regions
         with open(processed / 'sections_px.json', 'w') as f:
