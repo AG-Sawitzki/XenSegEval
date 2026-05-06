@@ -72,25 +72,25 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
     """
 
     processed = config['PATHS'].get('processed')
-    f_str = '/'.join(str(section), '/morphology/')
+    f_str = '/'.join([str(section), '/morphology/'])
     
     if ome:
         if focus:
-            f_str = '/'.join(f_str, 'focus')
+            f_str = '/'.join([f_str, 'focus'])
         else:
-            f_str = '/'.join(f_str, 'multi_layer')
+            f_str = '/'.join([f_str, 'multi_layer'])
         ext = 'ome.tif'
     else:
-        f_str = '/'.join(f_str, 'single_layer/layer0{0}'.format(layer))
+        f_str = '/'.join([f_str, 'single_layer/layer0{0}'.format(layer)])
         ext = 'tif'
     if chunk is not None:
-        f_str = '/'.join(f_str, 'quatered/q0{0}'.format(chunk))
+        f_str = '/'.join([f_str, 'quatered/q0{0}'.format(chunk)])
 
-    path = Path(processed / f_str)
+    path = Path('/'.join([processed, f_str]))
     path.mkdir(parents=True, exist_ok=True)
 
-    f_str = '.'.join(f_str, ext)
-    file = Path(processed / f_str)
+    f_str = '.'.join([f_str, ext])
+    file = Path('/'.join([processed, f_str]))
 
     return file
 
@@ -104,43 +104,47 @@ def view(image, chunks, shape):
     Return:
         An array of shape (chunk, layers, y, x)
     """
-    if shape[-1] >= 4:
-        y, x, c = shape
-        window_shape = (int(y*(2/chunks+overlap)),
-                        int(x*(2/chunks+overlap)),
-                        1
-        )
+    # if shape[-1] >= 4:
+    #     y, x, c = shape
+    #     window_shape = (int(y*(2/chunks+overlap)),
+    #                     int(x*(2/chunks+overlap)),
+    #                     1
+    #     )
 
-        view_image = sliding_window_view(image, window_shape)
-        view_shape = view_image.shape
+    #     view_image = sliding_window_view(image, window_shape)
+    #     view_shape = view_image.shape
 
-        view_image = view_image[::view_shape[1]-1,
-                                ::view_shape[2]-1,
-                                ...
-        ]
-        view_image = np.reshape(view_image,
-                                (chunks,)+window_shape[:-1]+(4,)
-        )
-    else:
-        z, y, x = shape
-        window_shape = (1,
-                        int(y*(2/chunks+overlap)),
-                        int(x*(2/chunks+overlap))
-        )
-        view_image = sliding_window_view(image, window_shape)
-        view_shape = view_image.shape
+    #     view_image = view_image[::view_shape[1]-1,
+    #                             ::view_shape[2]-1,
+    #                             ...
+    #     ]
+    #     view_image = np.reshape(view_image,
+    #                             (chunks,)+window_shape[:-1]+(4,)
+    #     )
+    # else:
+    z, y, x = shape
+    window_shape = (1,
+                    int(y*(2/chunks+overlap)),
+                    int(x*(2/chunks+overlap))
+    )
+    view_image = sliding_window_view(image, window_shape)
+    view_shape = view_image.shape
 
-        view_image = sliding_window_view(image, window_shape)
-        # this step needs to be changed so it can work with
-        # any amount of chunks
-        view_image = view_image[:,
-                                ::view_shape[1]-1,
-                                ::view_shape[2]-1,
-                                ...
-        ]
-        view_image = np.reshape(view_image,
-                                (z, chunks) + window_shape[1:]
-        )
+    view_image = sliding_window_view(image, window_shape)
+    # this step needs to be changed so it can work with
+    # any amount of chunks
+    view_image = view_image[:,
+                            ::view_shape[1]-1,
+                            ::view_shape[2]-1,
+                            ...
+    ]
+    print(type(view_image))
+    print(z, type(z))
+    print(chunks, type(chunks))
+    print(window_shape, type(window_shape))
+    view_image = np.reshape(view_image,
+                            (z, chunks) + window_shape[1:]
+    )
 
     return view_image
 
@@ -165,7 +169,9 @@ def write_tif(image, section, layer=None, chunk=None):
         {quatered/
         q0{chunk}.extension if chunk, else focus. or morphology.extension}'
     """
-    pixelsizes = config['PREPROCESSING'].get('pixelsizes')
+    pixelsizeXY = config['ImageStats'].getfloat('pixelsizeZ')
+    pixelsizeZ = config['ImageStats'].getfloat('pixelsizeZ')
+
     options = dict(
             compression=None,
             resolutionunit='MICROMETER'
@@ -173,24 +179,27 @@ def write_tif(image, section, layer=None, chunk=None):
 
     if image.ndim == 3:
         ome = True
+        focus = False
         axes = 'ZYX'
         resolution = image.shape[1:]
-        if image.shape[-1] >= 4:
-            focus = True
-            axes = 'YXC'
-            resolution = image.shape[:3]
+        # if image.shape[-1] >= 4:
+        #     focus = True
+        #     axes = 'YXC'
+        #     resolution = image.shape[:3]
         subresolutions = 2
         bigtiff = True
         metadata = {
                 'axes': axes,
-                'PhysicalSizeX': pixelsizes[0],
-                'PhysicalSizeXUnit': 'Âµm',
-                'PhysicalSizeY': pixelsizes[0],
-                'PhysicalSizeYUnit': 'Âµm',
-                'PhysicalSizeZ': pixelsizes[1],
-                'PhysicalSizeZUnit': 'Âµm'
+                'PhysicalSizeX': pixelsizeXY,
+                'PhysicalSizeXUnit': 'Ã‚Âµm',
+                'PhysicalSizeY': pixelsizeXY,
+                'PhysicalSizeYUnit': 'Ã‚Âµm',
+                'PhysicalSizeZ': pixelsizeZ,
+                'PhysicalSizeZUnit': 'Ã‚Âµm'
         }
     else:
+        ome = False
+        focus = False
         axes = 'YX'
         resolution = image.shape
         subresolutions = None
@@ -209,28 +218,30 @@ def write_tif(image, section, layer=None, chunk=None):
             metadata=metadata,
             **options
         )
-        # save pyramid levels to the two subifds
-        # in production use resampling to generate sub-resolution images
-        if ome:
-            if focus:
-                image_ = image[::mag, ::mag, ...]
-            else:
-                image_ = image[..., ::mag, ::mag]
-                # add a thumbnail image as a separate series
-                # it is recognized by QuPath as an associated image
-                thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
-                tif.write(thumbnail, metadata={'Name': 'thumbnail'})
+        # # save pyramid levels to the two subifds
+        # # in production use resampling to generate sub-resolution images
+        # if ome:
+        #     # add a thumbnail image as a separate series
+        #     # it is recognized by QuPath as an associated image
+        #     thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
+        #     tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
-            for level in range(subresolutions):
-                mag = 2 ** (level + 1)
-                tif.write(
-                    image_,
-                    subfiletype=1,
-                    resolution=(resolution[0] / mag,
-                                resolution[1] / mag
-                                ),
-                    **options
-                    )
+        #     for level in range(subresolutions):
+        #         mag = 2 ** (level + 1)
+
+        #         if focus:
+        #             image_ = image[::mag, ::mag, ...]
+        #         else:
+        #             image_ = image[..., ::mag, ::mag]
+
+        #         tif.write(
+        #             image_,
+        #             subfiletype=1,
+        #             resolution=(resolution[0] // mag,
+        #                         resolution[1] // mag
+        #             ),
+        #             **options
+        #         )
 
 
 if __name__ == '__main__':
@@ -246,14 +257,16 @@ if __name__ == '__main__':
     config.read(config_path)
 
     # define variables
-    chunks = config['PREPROCESSING'].getfloat('chunks')
+    chunks = config['PREPROCESSING'].getint('chunks')
     min_size = config['PREPROCESSING'].getfloat('min_size')
     n_roi = config['PREPROCESSING'].getfloat('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
-    pixelsizes = config['PREPROCESSING'].get('pixelsizes')
     planes = config['PREPROCESSING'].get('planes')
     planes = [int(n) for n in planes if n.isdigit()]
     buffer = config['PREPROCESSING'].getfloat('buffer')
+
+    # pixelsizeXY = config['ImageStats'].get('pixelsizeXY')
+    # pixelsizeZ = config['ImageStats'].get('pixelsizeZ')
 
     # define paths
     data = Path(config['PATHS']['data_path'])
@@ -388,12 +401,12 @@ if __name__ == '__main__':
         # view_focus = view(focus_section, chunks, shape=focus_section.shape)
         for chunk in tqdm(range(chunks)):
             q_m = view_morphology.copy()[:, chunk, ...]
-            q_f = view_focus.copy()[chunk, ...]
-            if q.ndim != 3:
-                q = np.squeeze(q)
-                if q.ndim != 3:
-                    print('something is weird')
-                    break
+            # q_f = view_focus.copy()[chunk, ...]
+            # if q.ndim != 3:
+            #     q = np.squeeze(q)
+            #     if q.ndim != 3:
+            #         print('something is weird')
+            #         break
             write_tif(q_m, section, chunk=chunk)
             # write_tif(q_f, section, chunk=chunk)
 
