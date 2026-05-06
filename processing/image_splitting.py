@@ -18,8 +18,8 @@ from pathlib import Path
 import configparser
 import argparse
 
+from tqdm import tqdm
 import json
-import tqdm
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
 from numpy.lib.stride_tricks import sliding_window_view
@@ -273,6 +273,13 @@ if __name__ == '__main__':
     morphology_zarr = zarr.open(morphology_store, mode='r')
     # focus_zarr = zarr.open(focus_store, mode='r')
     
+    subres_lvls = [lvl for lvl in morphology_zarr]
+    subres_max = max(subres_lvls)
+    subres_min = min(subres_lvls)
+
+    morphology_org = morphology_zarr[subres_min]
+
+
     if config.has_option('PATHS', 'sections_dict'):
         print('Has sections_dict') 
         with open(config['PATHS']['sections_dict'], 'r') as f:
@@ -281,23 +288,35 @@ if __name__ == '__main__':
     else:
         print('Finding ROIs')
         sections_dict = {}
-        l, y, x = morphology_zarr['0'].shape
+        
+        morphology_subres = morphology_zarr[subres_max]
+        z, y, x = morphology_org.shape
+        z_, y_, x_ = morphology_subres.shape
 
-        contours, _ = cv2.findContours(thresh_dilate,
+        rf_x = int(x/x_)
+        rf_y = int(y/y_)
+
+        subres_centre = np.uint8(morphology_subres[l//2])
+        subres_dilated = cv2.dilate(subres_centre, np.ones(5, 5),
+                                    iterations=3
+        ) 
+        contours, _ = cv2.findContours(subres_dilated,
                                        cv2.RETR_LIST,
                                        cv2.CHAIN_APPROX_SIMPLE
         )
         # keep contours with significant size
         roi_list, _ = find_rois(contours, n_roi)
 
-        for i, (section, c) in enumerate(tqdm(roi_list)):
+        for section, contour in enumerate(tqdm(roi_list)):
             # add roi to scaled image to check for regions
-            x, y, w, h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(centre_page_scaled, (x, y), (x+w, y+h),
                           (255, 255, 255), 2
             )
             # adjust for scaling
-            x, y, w, h = x*rf, y*rf, w*rf, h*rf
+            x, w = x*rf_x, w*rf_x
+            y, h = y*rf_y, h*rf_y
+
             sections_dict[str(section)] = [[y, x],
                                            [y+h, x+w]
             ]
@@ -336,48 +355,48 @@ if __name__ == '__main__':
 
     # crop images to sections of interest
     # additionally saves overlapping sub-sections
-    with TiffFile(data / 'morphology.ome.tif') as mor, TiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
-        layers = len(mor.pages)
-        centre_layer = int(layers//2)
-        morphology = np.vstack([mor.pages[p].asarray() for p in planes])
-        focus = np.vstack([page.asarray() for page in foc.pagess])
+    # with TiffFile(data / 'morphology.ome.tif') as mor, TiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
+        # layers = len(mor.pages)
+        # centre_layer = int(layers//2)
+        # morphology = np.vstack([mor.pages[p].asarray() for p in planes])
+        # focus = np.vstack([page.asarray() for page in foc.pagess])
 
-        for i, (section, bbox) in tqdm(sections_dict.items()):
+    for section, bbox in tqdm(sections_dict.items()):
 
-            y_min, x_min = bbox[0]
-            y_max, x_max = bbox[1]
-            resolution = (y_max-y_min, x_max-x_min)
+        y_min, x_min = bbox[0]
+        y_max, x_max = bbox[1]
+        resolution = (y_max-y_min, x_max-x_min)
 
-            morphology_section = morphology[:,
+        morphology_section = morphology_org[planes,
                                             y_min:y_max,
                                             x_min:x_max
-            ]
-            write_tif(morphology_section, section)
+        ]
+        write_tif(morphology_section, section)
 
-            z, y, x = morphology_section.shape
-            for layer in range(z):
-                write_tif(morphology_section[layer, ...], section, layer=layer)
+        z, y, x = morphology_section.shape
+        for l, plane in enumerate(planes):
+            write_tif(morphology_section[l, ...], section, layer=plane)
 
-            focus_section = focus[y_min:y_max,
-                                  x_min:x_max,
-                                  :
-            ]
-            write_tif(focus_section, section)
+        # focus_section = focus[y_min:y_max,
+        #                       x_min:x_max,
+        #                       :
+        # ]
+        # write_tif(focus_section, section)
 
-            view_morphology = view(morphology_section, chunks,
-                                   shape=morphology_section.shape)
-            view_focus = view(focus_section, chunks, shape=focus_section.shape)
-            for i, chunk in tqdm(range(chunks)):
-                q_m = view_morphology.copy()[:, chunk, ...]
-                q_f = view_focus.copy()[chunk, ...]
+        view_morphology = view(morphology_section, chunks,
+                               shape=morphology_section.shape)
+        # view_focus = view(focus_section, chunks, shape=focus_section.shape)
+        for chunk in tqdm(range(chunks)):
+            q_m = view_morphology.copy()[:, chunk, ...]
+            q_f = view_focus.copy()[chunk, ...]
+            if q.ndim != 3:
+                q = np.squeeze(q)
                 if q.ndim != 3:
-                    q = np.squeeze(q)
-                    if q.ndim != 3:
-                        print('something is weird')
-                        break
-                write_tif(q_m, section, chunk=chunk)
-                write_tif(q_f, section, chunk=chunk)
+                    print('something is weird')
+                    break
+            write_tif(q_m, section, chunk=chunk)
+            # write_tif(q_f, section, chunk=chunk)
 
-                for layer in range(z):
-                    write_tif(q_m[layer, ...], section,
-                              chunk=chunk, layer=layer)
+            for l, plane in enumerate(planes):
+                write_tif(q_m[l, ...], section,
+                            chunk=chunk, layer=plane)
