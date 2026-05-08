@@ -169,7 +169,7 @@ def write_tif(image, section, layer=None, chunk=None):
         {quatered/
         q0{chunk}.extension if chunk, else focus. or morphology.extension}'
     """
-    pixelsizeXY = config['ImageStats'].getfloat('pixelsizeZ')
+    pixelsizeXY = config['ImageStats'].getfloat('pixelsizeXY')
     pixelsizeZ = config['ImageStats'].getfloat('pixelsizeZ')
 
     options = dict(
