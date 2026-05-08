@@ -47,7 +47,7 @@ def find_rois(contours, n_roi):
 
     values_arr = np.array(values, dtype=dtype)
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
-    smallest_allowed_roi = values_arr_sorted[-n_roi]['area']
+    smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
 
     # sort contours by y,x:
     # values_nroi_argsorted = np.argsort(
@@ -57,9 +57,9 @@ def find_rois(contours, n_roi):
     # )
 
     mask = values_arr['area'] >= smallest_allowed_roi
-    nroi_contours = [contour[index] for index, boolean in enumerate(mask) if boolean]
+    nroi_contours = [contours[index] for index, boolean in enumerate(mask) if boolean]
 
-    return contours[idxs]
+    return nroi_contours
 
 
 def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     # define variables
     chunks = config['PREPROCESSING'].getint('chunks')
     min_size = config['PREPROCESSING'].getfloat('min_size')
-    n_roi = config['PREPROCESSING'].getfloat('n_roi')
+    n_roi = config['PREPROCESSING'].getint('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
     planes = config['PREPROCESSING'].get('planes')
     planes = [int(n) for n in planes if n.isdigit()]
@@ -291,10 +291,10 @@ if __name__ == '__main__':
     # focus_store = imread(data / 'morphology/morphology_focus_0000.ome.tif',
     #                      aszarr=True
     # )
-    
+
     morphology_zarr = zarr.open(morphology_store, mode='r')
     # focus_zarr = zarr.open(focus_store, mode='r')
-    
+
     subres_lvls = [lvl for lvl in morphology_zarr]
     subres_max = max(subres_lvls)
     subres_min = min(subres_lvls)
@@ -310,7 +310,8 @@ if __name__ == '__main__':
     else:
         print('Searching for ROIs')
         sections_dict = {}
-        
+
+        # morphology_subres = morphology_zarr[str(int(subres_max)//2)]
         morphology_subres = morphology_zarr[subres_max]
         z, y, x = morphology_org.shape
         z_, y_, x_ = morphology_subres.shape
@@ -318,36 +319,50 @@ if __name__ == '__main__':
         rf_x = int(x/x_)
         rf_y = int(y/y_)
 
-        subres_centre = np.uint8(morphology_subres[l//2])
+        subres_centre = np.uint8(morphology_subres[z//2])
+        # subres_blur = cv2.GaussianBlur(
+        #     subres_centre,
+        #     (0, 0),
+        #     1.5
+        # )
         subres_dilated = cv2.dilate(
-            subres_centre, np.ones(5, 5),
-            iterations=3
-        ) 
-        contours, _ = cv2.findContours(
+            subres_centre,
+            np.ones((3, 3)),
+            iterations=5
+        )
+        _, subres_binary = cv2.threshold(
             subres_dilated,
+            127,255, 0
+        )
+        imwrite('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/subres7_dil.tif', subres_binary)
+        contours, _ = cv2.findContours(
+            subres_binary,
             cv2.RETR_LIST,
             cv2.CHAIN_APPROX_SIMPLE
         )
         # keep contours with significant size
-        roi_list, _ = find_rois(contours, n_roi)
+        roi_list = find_rois(contours, n_roi)
 
         for section, contour in enumerate(tqdm(roi_list)):
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
-            
+
             cv2.rectangle(
-                centre_page_scaled, (x, y), (x+w, y+h),
+                subres_centre, (x, y), (x+w, y+h),
                 (255, 255, 255), 2
             )
+
             # adjust for scaling
             x, w = x*rf_x, w*rf_x
             y, h = y*rf_y, h*rf_y
-
+            # add buffer
+            x_min, y_min = x*(1-buffer), y*(1-buffer)
+            x_max, y_max = (x+w)*(1+buffer), (y+h)*(1+buffer)
             sections_dict[str(section)] = [
-                [y, x],
-                [y+h, x+w]
+                [y_min, x_min],
+                [y_max, x_max]
             ]
-        
+
         # with TiffFile(img_path) as tif:
         #     layers = len(tif.pages)
         #     centre_layer = int(layers//2)
@@ -378,7 +393,7 @@ if __name__ == '__main__':
 
         imwrite(
             processed / 'marked_regions-of-interest.tif',
-            centre_page_scaled
+            subres_centre
         )
 
     # crop images to sections of interest
