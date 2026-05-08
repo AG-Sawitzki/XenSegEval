@@ -47,15 +47,19 @@ def find_rois(contours, n_roi):
 
     values_arr = np.array(values, dtype=dtype)
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
-    values_nroi = values_arr_sorted[-n_roi:]
+    smallest_allowed_roi = values_arr_sorted[-n_roi]['area']
 
     # sort contours by y,x:
-    values_nroi_argsorted = np.argsort(values_nroi,
-                                       kind='stable',
-                                       order=['y', 'x'])
-    contours_sorted = [contours[i] for i in values_nroi_argsorted]
+    # values_nroi_argsorted = np.argsort(
+    #     values_nroi,
+    #     kind='stable',
+    #     order=['y', 'x']
+    # )
 
-    return contours_sorted
+    mask = values_arr['area'] >= smallest_allowed_roi
+    nroi_contours = [contour[index] for index, boolean in enumerate(mask) if boolean]
+
+    return contours[idxs]
 
 
 def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
@@ -72,8 +76,8 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
     """
 
     processed = config['PATHS'].get('processed')
-    f_str = '/'.join([str(section), '/morphology/'])
-    
+    f_str = '/'.join([str(section), 'morphology'])
+
     if ome:
         if focus:
             f_str = '/'.join([f_str, 'focus'])
@@ -81,18 +85,21 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
             f_str = '/'.join([f_str, 'multi_layer'])
         ext = 'ome.tif'
     else:
-        f_str = '/'.join([f_str, 'single_layer/layer0{0}'.format(layer)])
+        f_str = '/'.join([f_str, f'single_layer/layer0{layer}'])
         ext = 'tif'
     if chunk is not None:
-        f_str = '/'.join([f_str, 'quatered/q0{0}'.format(chunk)])
+        f_str = '/'.join([f_str, 'quatered'])
+        ext = '.'.join([f'q0{chunk}', ext])
+    else:
+        ext = '.'.join(['morphology', ext])
 
-    path = Path('/'.join([processed, f_str]))
-    path.mkdir(parents=True, exist_ok=True)
+    dir_path = Path('/'.join([processed, f_str]))
+    dir_path.mkdir(parents=True, exist_ok=True)
 
-    f_str = '.'.join([f_str, ext])
-    file = Path('/'.join([processed, f_str]))
+    f_str = '/'.join([f_str, ext])
+    file_path = Path('/'.join([processed, f_str]))
 
-    return file
+    return file_path
 
 
 def view(image, chunks, shape):
@@ -123,9 +130,10 @@ def view(image, chunks, shape):
     #     )
     # else:
     z, y, x = shape
-    window_shape = (1,
-                    int(y*(2/chunks+overlap)),
-                    int(x*(2/chunks+overlap))
+    window_shape = (
+        1,
+        int(y*(2/chunks+overlap)),
+        int(x*(2/chunks+overlap))
     )
     view_image = sliding_window_view(image, window_shape)
     view_shape = view_image.shape
@@ -133,17 +141,19 @@ def view(image, chunks, shape):
     view_image = sliding_window_view(image, window_shape)
     # this step needs to be changed so it can work with
     # any amount of chunks
-    view_image = view_image[:,
-                            ::view_shape[1]-1,
-                            ::view_shape[2]-1,
-                            ...
+    view_image = view_image[
+        :,
+        ::view_shape[1]-1,
+        ::view_shape[2]-1,
+        ...
     ]
-    print(type(view_image))
-    print(z, type(z))
-    print(chunks, type(chunks))
-    print(window_shape, type(window_shape))
-    view_image = np.reshape(view_image,
-                            (z, chunks) + window_shape[1:]
+    # print(type(view_image))
+    # print(z, type(z))
+    # print(chunks, type(chunks))
+    # print(window_shape, type(window_shape))
+    view_image = np.reshape(
+        view_image,
+        (z, chunks) + window_shape[1:]
     )
 
     return view_image
@@ -164,18 +174,17 @@ def write_tif(image, section, layer=None, chunk=None):
         'processed/
         {section}/
         morphology/
-        {focus or multi_layer or single_layer/
-                                 layer0{layer}}/
-        {quatered/
-        q0{chunk}.extension if chunk, else focus. or morphology.extension}'
+        {focus or multi_layer or single_layer/layer0{layer}}/
+        {quatered/q0{chunk}.extension if chunk, 
+         else focus. or morphology.extension}'
     """
     pixelsizeXY = config['ImageStats'].getfloat('pixelsizeXY')
     pixelsizeZ = config['ImageStats'].getfloat('pixelsizeZ')
 
     options = dict(
-            compression=None,
-            resolutionunit='MICROMETER'
-        )
+        compression=None,
+        resolutionunit='MICROMETER'
+    )
 
     if image.ndim == 3:
         ome = True
@@ -189,21 +198,13 @@ def write_tif(image, section, layer=None, chunk=None):
         subresolutions = 2
         bigtiff = True
         metadata = {
-                'axes': axes,
-                'PhysicalSizeX': pixelsizeXY,
-<<<<<<< HEAD
-                'PhysicalSizeXUnit': 'Âµm',
-                'PhysicalSizeY': pixelsizeXY,
-                'PhysicalSizeYUnit': 'Âµm',
-                'PhysicalSizeZ': pixelsizeZ,
-                'PhysicalSizeZUnit': 'Âµm'
-=======
-                'PhysicalSizeXUnit': 'Ã‚Âµm',
-                'PhysicalSizeY': pixelsizeXY,
-                'PhysicalSizeYUnit': 'Ã‚Âµm',
-                'PhysicalSizeZ': pixelsizeZ,
-                'PhysicalSizeZUnit': 'Ã‚Âµm'
->>>>>>> f93e1451b5e6400e915be168baed610030c139d1
+            'axes': axes,
+            'PhysicalSizeX': pixelsizeXY,
+        #    'PhysicalSizeXUnit': 'Ã‚Âµm',
+            'PhysicalSizeY': pixelsizeXY,
+        #    'PhysicalSizeYUnit': 'Ã‚Âµm',
+            'PhysicalSizeZ': pixelsizeZ,
+        #    'PhysicalSizeZUnit': 'Ã‚Âµm'
         }
     else:
         ome = False
@@ -229,11 +230,6 @@ def write_tif(image, section, layer=None, chunk=None):
         # # save pyramid levels to the two subifds
         # # in production use resampling to generate sub-resolution images
         # if ome:
-        #     # add a thumbnail image as a separate series
-        #     # it is recognized by QuPath as an associated image
-        #     thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
-        #     tif.write(thumbnail, metadata={'Name': 'thumbnail'})
-
         #     for level in range(subresolutions):
         #         mag = 2 ** (level + 1)
 
@@ -250,6 +246,11 @@ def write_tif(image, section, layer=None, chunk=None):
         #             ),
         #             **options
         #         )
+
+        #     # add a thumbnail image as a separate series
+        #     # it is recognized by QuPath as an associated image
+        #     thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
+        #     tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
 if __name__ == '__main__':
@@ -307,7 +308,7 @@ if __name__ == '__main__':
             sections_dict = json.load(f)
         print('Coordinates loaded')
     else:
-        print('Finding ROIs')
+        print('Searching for ROIs')
         sections_dict = {}
         
         morphology_subres = morphology_zarr[subres_max]
@@ -318,12 +319,14 @@ if __name__ == '__main__':
         rf_y = int(y/y_)
 
         subres_centre = np.uint8(morphology_subres[l//2])
-        subres_dilated = cv2.dilate(subres_centre, np.ones(5, 5),
-                                    iterations=3
+        subres_dilated = cv2.dilate(
+            subres_centre, np.ones(5, 5),
+            iterations=3
         ) 
-        contours, _ = cv2.findContours(subres_dilated,
-                                       cv2.RETR_LIST,
-                                       cv2.CHAIN_APPROX_SIMPLE
+        contours, _ = cv2.findContours(
+            subres_dilated,
+            cv2.RETR_LIST,
+            cv2.CHAIN_APPROX_SIMPLE
         )
         # keep contours with significant size
         roi_list, _ = find_rois(contours, n_roi)
@@ -331,15 +334,18 @@ if __name__ == '__main__':
         for section, contour in enumerate(tqdm(roi_list)):
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
-            cv2.rectangle(centre_page_scaled, (x, y), (x+w, y+h),
-                          (255, 255, 255), 2
+            
+            cv2.rectangle(
+                centre_page_scaled, (x, y), (x+w, y+h),
+                (255, 255, 255), 2
             )
             # adjust for scaling
             x, w = x*rf_x, w*rf_x
             y, h = y*rf_y, h*rf_y
 
-            sections_dict[str(section)] = [[y, x],
-                                           [y+h, x+w]
+            sections_dict[str(section)] = [
+                [y, x],
+                [y+h, x+w]
             ]
         
         # with TiffFile(img_path) as tif:
@@ -370,8 +376,9 @@ if __name__ == '__main__':
         with open(processed / 'sections_px.json', 'w') as f:
             json.dump(sections_dict, f)
 
-        imwrite(processed / 'marked_regions-of-interest.tif',
-                centre_page_scaled
+        imwrite(
+            processed / 'marked_regions-of-interest.tif',
+            centre_page_scaled
         )
 
     # crop images to sections of interest
@@ -388,10 +395,12 @@ if __name__ == '__main__':
         y_max, x_max = bbox[1]
         resolution = (y_max-y_min, x_max-x_min)
 
-        morphology_section = morphology_org[planes,
-                                            y_min:y_max,
-                                            x_min:x_max
+        morphology_section = morphology_org[
+            planes,
+            y_min:y_max,
+            x_min:x_max
         ]
+
         write_tif(morphology_section, section)
 
         z, y, x = morphology_section.shape
