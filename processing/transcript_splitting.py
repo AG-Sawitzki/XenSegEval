@@ -138,7 +138,7 @@ def pixelate(df, pixelsize):
 
     return df
 
-def process_chunk(df):
+def process_chunk(df, regions):
     """Assigns the y/x values to the respective bin. Adds a MultiIndex to the df
     Args:
         df: The dataframe to bin.
@@ -331,7 +331,7 @@ if __name__ == '__main__':
                     process_chunk,
                     regions=regions
                 ),
-                    reader
+                reader
             ) # chunksize = int(20000/mp.cpu_count()-1))
             pool.close()
             pool.join()

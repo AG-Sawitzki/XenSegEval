@@ -92,7 +92,10 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
         f_str = '/'.join([f_str, 'quatered'])
         ext = '.'.join([f'q0{chunk}', ext])
     else:
-        ext = '.'.join(['morphology', ext])
+        if focus:
+            ext = '.'.join(['focus', ext])
+        else:
+            ext = '.'.join(['morphology', ext])
 
     dir_path = Path('/'.join([processed, f_str]))
     dir_path.mkdir(parents=True, exist_ok=True)
@@ -372,7 +375,12 @@ if __name__ == '__main__':
         # keep contours with significant size
         roi_list = find_rois(contours, n_roi)
 
-        for section, contour in enumerate(tqdm(roi_list, desc='Saving Coordinates', ncols=79, leave=True)):
+        for section, contour in enumerate(tqdm(
+            roi_list,
+            desc='Saving Coordinates',
+            ncols=79,
+            leave=True
+        )):
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
 
@@ -402,8 +410,12 @@ if __name__ == '__main__':
             subres_centre
         )
 
-    for section, bbox in tqdm(sections_dict.items(), desc='Saving ROIs', ncols=79, leave=True):
-
+    for section, bbox in tqdm(
+        sections_dict.items(),
+        desc='Saving ROIs',
+        ncols=79,
+        leave=True
+    ):
         y_min, x_min = bbox[0]
         y_max, x_max = bbox[1]
         resolution = (y_max-y_min, x_max-x_min)
@@ -430,7 +442,12 @@ if __name__ == '__main__':
         view_morphology = view(morphology_section, chunks,
                                shape=morphology_section.shape)
         view_focus = view(focus_section, chunks, shape=focus_section.shape)
-        for chunk in tqdm(range(chunks), desc='saving as chunks', ncols=79, leave=False):
+
+        for chunk in tqdm(
+            range(chunks),
+            desc='saving as chunks',
+            ncols=79, leave=False
+        ):
             q_m = view_morphology.copy()[:, chunk, ...]
             q_f = view_focus.copy()[chunk, ...]
             
