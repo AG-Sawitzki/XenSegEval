@@ -103,6 +103,38 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
     return file_path
 
 
+def get_window_shape(image, chunks, overlap):
+    shape = image.shape
+    if shape[-1] == 4:
+        y, x, c = shape
+        window_shape = (
+            int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
+            int(x*(np.sqrt(chunks)/chunks*(1+overlap))),
+            1
+        )
+    else:
+        z, y, x = shape
+        window_shape = (
+            1,
+            int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
+            int(x*(np.sqrt(chunks)/chunks*(1+overlap)))
+        )
+    return window_shape
+
+
+def get_strides(image, window_shape)
+    if window_shape[-1] == 1:
+        y, x, c = image.shape
+        y_w, x_w, c_w = window_shape
+    else:
+        z, y, x = image.shape
+        z_w, y_w, x_w = window_shape
+
+    stride_y = y-y_w
+    stride_x = x-x_w
+
+    return (stride_y, stride_x)
+
 def view(image, chunks, shape):
     """
     Args:
@@ -112,40 +144,31 @@ def view(image, chunks, shape):
     Return:
         An array of shape (chunk, layers, y, x)
     """
-    if shape[-1] >= 4:
-        y, x, c = shape
-        window_shape = (int(y*(2/chunks+overlap)),
-                        int(x*(2/chunks+overlap)),
-                        1
-        )
-
+	window_shape = get_window_shape(image, chunk, overlap)
+	strides = get_strides(image, window_shape)
+    if shape[-1] == 4:
         view_image = sliding_window_view(image, window_shape)
         view_shape = view_image.shape
 
-        view_image = view_image[::view_shape[1]-1,
-                                ::view_shape[2]-1,
-                                ...
+        view_image = view_image[
+            ::strides[0],
+            ::strides[1],
+            ...
         ]
-        view_image = np.reshape(view_image,
-                                (chunks,)+window_shape[:-1]+(4,)
+        view_image = np.reshape(
+            view_image,
+            (chunks,)+window_shape[:-1]+(4,)
         )
     else:
-        z, y, x = shape
-        window_shape = (
-            1,
-            int(y*(2/chunks+overlap)),
-            int(x*(2/chunks+overlap))
-        )
         view_image = sliding_window_view(image, window_shape)
         view_shape = view_image.shape
 
-        view_image = sliding_window_view(image, window_shape)
         # this step needs to be changed so it can work with
         # any amount of chunks
         view_image = view_image[
             :,
-            ::view_shape[1]-1,
-            ::view_shape[2]-1,
+            ::strides[0],
+            ::strides[1],
             ...
         ]
         # print(type(view_image))
@@ -290,7 +313,7 @@ if __name__ == '__main__':
     # load morpho and focus:
     morphology_store = imread(data / 'morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
-    
+
     # load morphology_focus
     focus_org = []
     for file in Path(data / 'morphology_focus').glob('*.ome.tif'):
@@ -306,15 +329,15 @@ if __name__ == '__main__':
     subres_min = min(subres_lvls)
 
     morphology_org = morphology_zarr[subres_min]
-
+    print(type(morphology_org))
 
     if config.has_option('PATHS', 'sections_dict'):
-        print('Has sections_dict') 
+        print('Has sections_dict...') 
         with open(config['PATHS']['sections_dict'], 'r') as f:
             sections_dict = json.load(f)
-        print('Coordinates loaded')
+        print('Coordinates loaded...')
     else:
-        print('Searching for ROIs')
+        print('Searching for ROIs...')
         sections_dict = {}
 
         # morphology_subres = morphology_zarr[str(int(subres_max)//2)]
@@ -362,8 +385,8 @@ if __name__ == '__main__':
             x, w = x*rf_x, w*rf_x
             y, h = y*rf_y, h*rf_y
             # add buffer
-            x_min, y_min = x*(1-buffer), y*(1-buffer)
-            x_max, y_max = (x+w)*(1+buffer), (y+h)*(1+buffer)
+            x_min, y_min = int(x*(1-buffer)), int(y*(1-buffer))
+            x_max, y_max = int((x+w)*(1+buffer)), int((y+h)*(1+buffer))
             # add to dictionary
             sections_dict[str(section)] = [
                 [y_min, x_min],
@@ -378,7 +401,7 @@ if __name__ == '__main__':
             processed / 'marked_regions-of-interest.tif',
             subres_centre
         )
-
+    print('Splitting Images...')
     for section, bbox in tqdm(sections_dict.items()):
 
         y_min, x_min = bbox[0]
