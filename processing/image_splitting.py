@@ -122,7 +122,7 @@ def get_window_shape(image, chunks, overlap):
     return window_shape
 
 
-def get_strides(image, window_shape)
+def get_strides(image, window_shape):
     if window_shape[-1] == 1:
         y, x, c = image.shape
         y_w, x_w, c_w = window_shape
@@ -144,8 +144,8 @@ def view(image, chunks, shape):
     Return:
         An array of shape (chunk, layers, y, x)
     """
-	window_shape = get_window_shape(image, chunk, overlap)
-	strides = get_strides(image, window_shape)
+    window_shape = get_window_shape(image, chunks, overlap)
+    strides = get_strides(image, window_shape)
     if shape[-1] == 4:
         view_image = sliding_window_view(image, window_shape)
         view_shape = view_image.shape
@@ -329,7 +329,7 @@ if __name__ == '__main__':
     subres_min = min(subres_lvls)
 
     morphology_org = morphology_zarr[subres_min]
-    print(type(morphology_org))
+
 
     if config.has_option('PATHS', 'sections_dict'):
         print('Has sections_dict...') 
@@ -372,7 +372,7 @@ if __name__ == '__main__':
         # keep contours with significant size
         roi_list = find_rois(contours, n_roi)
 
-        for section, contour in enumerate(tqdm(roi_list)):
+        for section, contour in enumerate(tqdm(roi_list, desc='Saving Coordinates', ncols=79, leave=True)):
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
 
@@ -401,8 +401,8 @@ if __name__ == '__main__':
             processed / 'marked_regions-of-interest.tif',
             subres_centre
         )
-    print('Splitting Images...')
-    for section, bbox in tqdm(sections_dict.items()):
+
+    for section, bbox in tqdm(sections_dict.items(), desc='Saving ROIs', ncols=79, leave=True):
 
         y_min, x_min = bbox[0]
         y_max, x_max = bbox[1]
@@ -430,16 +430,12 @@ if __name__ == '__main__':
         view_morphology = view(morphology_section, chunks,
                                shape=morphology_section.shape)
         view_focus = view(focus_section, chunks, shape=focus_section.shape)
-        for chunk in tqdm(range(chunks)):
+        for chunk in tqdm(range(chunks), desc='saving as chunks', ncols=79, leave=False):
             q_m = view_morphology.copy()[:, chunk, ...]
-            # q_f = view_focus.copy()[chunk, ...]
-            # if q.ndim != 3:
-            #     q = np.squeeze(q)
-            #     if q.ndim != 3:
-            #         print('something is weird')
-            #         break
+            q_f = view_focus.copy()[chunk, ...]
+            
             write_tif(q_m, section, chunk=chunk)
-            # write_tif(q_f, section, chunk=chunk)
+            write_tif(q_f, section, chunk=chunk)
 
             for l, plane in enumerate(planes):
                 write_tif(q_m[l, ...], section,
