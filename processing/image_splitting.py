@@ -4,12 +4,12 @@ Segment the sample by regions of interest.
 Saves the coordinates of top left and bottom right corner in a dictionary.
 Unit is px.
 
-Theoretically NMS should be added...
+Theoretically NMS should be added... !!!
 
 ToDo:
     +- add path variability
         +- preferably with checks for existence
-    - config-file compatibility?
+    +- config-file compatibility?
     + adaptable roi size?
         (- by checking how many are of sufficient size?!)
 '''
@@ -17,6 +17,7 @@ ToDo:
 from pathlib import Path
 import configparser
 import argparse
+import os
 
 from tqdm import tqdm
 import json
@@ -111,50 +112,50 @@ def view(image, chunks, shape):
     Return:
         An array of shape (chunk, layers, y, x)
     """
-    # if shape[-1] >= 4:
-    #     y, x, c = shape
-    #     window_shape = (int(y*(2/chunks+overlap)),
-    #                     int(x*(2/chunks+overlap)),
-    #                     1
-    #     )
+    if shape[-1] >= 4:
+        y, x, c = shape
+        window_shape = (int(y*(2/chunks+overlap)),
+                        int(x*(2/chunks+overlap)),
+                        1
+        )
 
-    #     view_image = sliding_window_view(image, window_shape)
-    #     view_shape = view_image.shape
+        view_image = sliding_window_view(image, window_shape)
+        view_shape = view_image.shape
 
-    #     view_image = view_image[::view_shape[1]-1,
-    #                             ::view_shape[2]-1,
-    #                             ...
-    #     ]
-    #     view_image = np.reshape(view_image,
-    #                             (chunks,)+window_shape[:-1]+(4,)
-    #     )
-    # else:
-    z, y, x = shape
-    window_shape = (
-        1,
-        int(y*(2/chunks+overlap)),
-        int(x*(2/chunks+overlap))
-    )
-    view_image = sliding_window_view(image, window_shape)
-    view_shape = view_image.shape
+        view_image = view_image[::view_shape[1]-1,
+                                ::view_shape[2]-1,
+                                ...
+        ]
+        view_image = np.reshape(view_image,
+                                (chunks,)+window_shape[:-1]+(4,)
+        )
+    else:
+        z, y, x = shape
+        window_shape = (
+            1,
+            int(y*(2/chunks+overlap)),
+            int(x*(2/chunks+overlap))
+        )
+        view_image = sliding_window_view(image, window_shape)
+        view_shape = view_image.shape
 
-    view_image = sliding_window_view(image, window_shape)
-    # this step needs to be changed so it can work with
-    # any amount of chunks
-    view_image = view_image[
-        :,
-        ::view_shape[1]-1,
-        ::view_shape[2]-1,
-        ...
-    ]
-    # print(type(view_image))
-    # print(z, type(z))
-    # print(chunks, type(chunks))
-    # print(window_shape, type(window_shape))
-    view_image = np.reshape(
-        view_image,
-        (z, chunks) + window_shape[1:]
-    )
+        view_image = sliding_window_view(image, window_shape)
+        # this step needs to be changed so it can work with
+        # any amount of chunks
+        view_image = view_image[
+            :,
+            ::view_shape[1]-1,
+            ::view_shape[2]-1,
+            ...
+        ]
+        # print(type(view_image))
+        # print(z, type(z))
+        # print(chunks, type(chunks))
+        # print(window_shape, type(window_shape))
+        view_image = np.reshape(
+            view_image,
+            (z, chunks) + window_shape[1:]
+        )
 
     return view_image
 
@@ -191,10 +192,10 @@ def write_tif(image, section, layer=None, chunk=None):
         focus = False
         axes = 'ZYX'
         resolution = image.shape[1:]
-        # if image.shape[-1] >= 4:
-        #     focus = True
-        #     axes = 'YXC'
-        #     resolution = image.shape[:3]
+        if image.shape[-1] == 4:
+            focus = True
+            axes = 'YXC'
+            resolution = image.shape[:2]
         subresolutions = 2
         bigtiff = True
         metadata = {
@@ -227,30 +228,30 @@ def write_tif(image, section, layer=None, chunk=None):
             metadata=metadata,
             **options
         )
-        # # save pyramid levels to the two subifds
-        # # in production use resampling to generate sub-resolution images
-        # if ome:
-        #     for level in range(subresolutions):
-        #         mag = 2 ** (level + 1)
+        # save pyramid levels to the two subifds
+        # in production use resampling to generate sub-resolution images
+        if ome:
+            for level in range(subresolutions):
+                mag = 2 ** (level + 1)
 
-        #         if focus:
-        #             image_ = image[::mag, ::mag, ...]
-        #         else:
-        #             image_ = image[..., ::mag, ::mag]
+                if focus:
+                    image_ = image[::mag, ::mag, ...]
+                else:
+                    image_ = image[..., ::mag, ::mag]
 
-        #         tif.write(
-        #             image_,
-        #             subfiletype=1,
-        #             resolution=(resolution[0] // mag,
-        #                         resolution[1] // mag
-        #             ),
-        #             **options
-        #         )
+                tif.write(
+                    image_,
+                    subfiletype=1,
+                    resolution=(resolution[0] // mag,
+                                resolution[1] // mag
+                    ),
+                    **options
+                )
 
-        #     # add a thumbnail image as a separate series
-        #     # it is recognized by QuPath as an associated image
-        #     thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
-        #     tif.write(thumbnail, metadata={'Name': 'thumbnail'})
+            # add a thumbnail image as a separate series
+            # it is recognized by QuPath as an associated image
+            thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
+            tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
 if __name__ == '__main__':
@@ -288,12 +289,17 @@ if __name__ == '__main__':
 
     # load morpho and focus:
     morphology_store = imread(data / 'morphology.ome.tif', aszarr=True)
-    # focus_store = imread(data / 'morphology/morphology_focus_0000.ome.tif',
-    #                      aszarr=True
-    # )
-
     morphology_zarr = zarr.open(morphology_store, mode='r')
-    # focus_zarr = zarr.open(focus_store, mode='r')
+    
+    # load morphology_focus
+    focus_org = []
+    for file in Path(data / 'morphology_focus').glob('*.ome.tif'):
+        focus_store = imread(file,
+            aszarr=True,
+            is_ome=False # to prevent multifile reading
+        )
+        focus_zarr = zarr.open(focus_store, mode='r')
+        focus_org.append(focus_zarr['0'])
 
     subres_lvls = [lvl for lvl in morphology_zarr]
     subres_max = max(subres_lvls)
@@ -332,7 +338,7 @@ if __name__ == '__main__':
         )
         _, subres_binary = cv2.threshold(
             subres_dilated,
-            127,255, 0
+            127, 255, 0
         )
         imwrite('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/subres7_dil.tif', subres_binary)
         contours, _ = cv2.findContours(
@@ -358,34 +364,11 @@ if __name__ == '__main__':
             # add buffer
             x_min, y_min = x*(1-buffer), y*(1-buffer)
             x_max, y_max = (x+w)*(1+buffer), (y+h)*(1+buffer)
+            # add to dictionary
             sections_dict[str(section)] = [
                 [y_min, x_min],
                 [y_max, x_max]
             ]
-
-        # with TiffFile(img_path) as tif:
-        #     layers = len(tif.pages)
-        #     centre_layer = int(layers//2)
-        #     y, x = tif.pages[centre_layer].shape
-        #     rf = int(y/1000)
-        #     centre_page = tif.pages[centre_layer].asarray()
-        #     # convert to CV_8UC1 compatible array,
-        #     # downscale
-        #     centre_page_scaled = np.uint8(centre_page[::rf, ::rf])
-        #     # blur
-        #     centre_page_scaled_blur = cv2.GaussianBlur(centre_page_scaled,
-        #                                                (0, 0), 1.5
-        #     )
-        #     # binary image
-        #     ret, thresh = cv2.threshold(centre_page_scaled_blur,
-        #                                 127, 255, 0
-        #     )
-        #     # dilate
-        #     thresh_dilate = cv2.dilate(thresh,
-        #                                np.ones((5, 5)),
-        #                                iterations=3
-        #     )
-        #     # find contours
 
         # save selected regions
         with open(processed / 'sections_px.json', 'w') as f:
@@ -395,14 +378,6 @@ if __name__ == '__main__':
             processed / 'marked_regions-of-interest.tif',
             subres_centre
         )
-
-    # crop images to sections of interest
-    # additionally saves overlapping sub-sections
-    # with TiffFile(data / 'morphology.ome.tif') as mor, TiffFile(data / 'morphology_focus/morphology_focus_0000.ome.tif') as foc:
-        # layers = len(mor.pages)
-        # centre_layer = int(layers//2)
-        # morphology = np.vstack([mor.pages[p].asarray() for p in planes])
-        # focus = np.vstack([page.asarray() for page in foc.pagess])
 
     for section, bbox in tqdm(sections_dict.items()):
 
@@ -415,22 +390,23 @@ if __name__ == '__main__':
             y_min:y_max,
             x_min:x_max
         ]
+        focus_section = np.dstack((
+            focus_org[0][y_min:y_max, x_min:x_max],
+            focus_org[1][y_min:y_max, x_min:x_max],
+            focus_org[2][y_min:y_max, x_min:x_max],
+            focus_org[3][y_min:y_max, x_min:x_max]
+        ))
 
         write_tif(morphology_section, section)
+        write_tif(focus_section, section)
 
         z, y, x = morphology_section.shape
         for l, plane in enumerate(planes):
             write_tif(morphology_section[l, ...], section, layer=plane)
 
-        # focus_section = focus[y_min:y_max,
-        #                       x_min:x_max,
-        #                       :
-        # ]
-        # write_tif(focus_section, section)
-
         view_morphology = view(morphology_section, chunks,
                                shape=morphology_section.shape)
-        # view_focus = view(focus_section, chunks, shape=focus_section.shape)
+        view_focus = view(focus_section, chunks, shape=focus_section.shape)
         for chunk in tqdm(range(chunks)):
             q_m = view_morphology.copy()[:, chunk, ...]
             # q_f = view_focus.copy()[chunk, ...]
