@@ -20,10 +20,10 @@ def define_regions_to_extract(sections_dict):
         y_max_px, x_max_px = bbox[1]
 
         regions[region] = {
-            "y_min": y_min_px * pixelsize,
-            "x_min": x_min_px * pixelsize,
-            "y_max": y_max_px * pixelsize,
-            "x_max": x_max_px * pixelsize,
+            'y_min': y_min_px * pixelsize,
+            'x_min': x_min_px * pixelsize,
+            'y_max': y_max_px * pixelsize,
+            'x_max': x_max_px * pixelsize,
         }
 
     return regions
@@ -31,24 +31,24 @@ def define_regions_to_extract(sections_dict):
 
 def process_chunk(df):
 
-    regions_mapping = pd.Series(index=df.index, dtype=str).fillna("")
+    regions_mapping = pd.Series(index=df.index, dtype=str).fillna('')
 
     for region_name, region_data in regions.items():
-        y_min = region_data["y_min"]
-        x_min = region_data["x_min"]
-        y_max = region_data["y_max"]
-        x_max = region_data["x_max"]
+        y_min = region_data['y_min']
+        x_min = region_data['x_min']
+        y_max = region_data['y_max']
+        x_max = region_data['x_max']
 
         regions_mapping[
-            (x_min <= df["vertex_x"])
-            & (df["vertex_x"] <= x_max)
-            & (y_min <= df["vertex_y"])
-            & (df["vertex_y"] <= y_max)
+            (x_min <= df['vertex_x'])
+            & (df['vertex_x'] <= x_max)
+            & (y_min <= df['vertex_y'])
+            & (df['vertex_y'] <= y_max)
         ] = region_name
 
     # print(list(set(regions_mapping)))
 
-    df["region"] = regions_mapping
+    df['region'] = regions_mapping
 
     return df
 
@@ -102,7 +102,7 @@ def pixelate(df):
 
 def save_section(region_name, region_data, df):
     # main selection
-    sub_results_df = df[df["region"] == region_name]
+    sub_results_df = df[df['region'] == region_name]
 
     # remove region offset
     sub_results_df = relative(sub_results_df, region_data)
@@ -111,23 +111,27 @@ def save_section(region_name, region_data, df):
     sub_results_df = pixelate(sub_results_df)
 
     # cleanup
-    sub_results_df.drop(columns="region", inplace=True)
+    columns = [
+        c for c in sub_results_df.columns if c is not 'region'
+    ]
+    sub_results_df = sub_results_df.loc[pd.Index(columns)]
+    # subresults_df.drop(columns='region', inplace=True)
 
     if sub_results_df.size == 0:
-        print(f"region {region_name}: no datapoints matching")
+        print(f'region {region_name}: no datapoints matching')
 
     else:
         # save thingy
         sub_results_pq = pa.Table.from_pandas(sub_results_df)
         del sub_results_df
 
-        output_dir = processed / f"{region_name}/boundaries/"
+        output_dir = processed / f'{region_name}/boundaries/'
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        parquet_path = output_dir / "relative.parquet"
+        parquet_path = output_dir / 'relative.parquet'
         pq.write_table(sub_results_pq, parquet_path)
 
-        print(f"region {region_name}: saved results")
+        print(f'region {region_name}: saved results')
 
 
 if __name__ == '__main__':
