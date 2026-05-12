@@ -58,7 +58,7 @@ def relative(df, region_data):
     # df["vertex_x"] = df["vertex_x"].to_numpy() - region_data["x_min"]
     
     df.iloc[:, 1:3] = pd.DataFrame((
-        df.iloc[:, 1:3].to_numpy
+        df.iloc[:, 1:3].to_numpy()
         - [region_data['x_min'],region_data['y_min']]
     ))
     
