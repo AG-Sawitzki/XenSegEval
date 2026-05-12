@@ -39,10 +39,10 @@ def process_chunk(df):
         x_max = region_data["x_max"]
 
         regions_mapping[
-            (x_min <= df["x_location"])
-            & (df["x_location"] <= x_max)
-            & (y_min <= df["y_location"])
-            & (df["y_location"] <= y_max)
+            (x_min <= df["vertex_x"])
+            & (df["vertex_x"] <= x_max)
+            & (y_min <= df["vertex_y"])
+            & (df["vertex_y"] <= y_max)
         ] = region_name
 
     # print(list(set(regions_mapping)))
