@@ -39,16 +39,45 @@ def get_memory_usage_percentage():
     return memory_percentage
 
 
-def find_rois(contours, n_roi):
+def find_rois(image_org, image_subres, n_roi):
     """Sort the contours by area.
     Args:
-        contours: The contours from cv2.findContours.
+        image_org: Image in max resolution.
+        image_subres: Lowest subresolution of image.
         n_roi: Expected # of regions of interest.
                Should be equivalent to the number of tissue-samples on the slide. 
     Returns:
         Contours of significant size.
     """
+    z, y, x = image_org.shape
+    z_, y_, x_ = image_subres.shape
 
+    rf_x = int(x/x_)
+    rf_y = int(y/y_)
+
+    subres_centre = np.uint8(image_subres[z//2])
+    # subres_blur = cv2.GaussianBlur(
+    #     subres_centre,
+    #     (0, 0),
+    #     1.5
+    # )
+    subres_dilated = cv2.dilate(
+        subres_centre,
+        np.ones((3, 3)),
+        iterations=5
+    )
+    _, subres_binary = cv2.threshold(
+        subres_dilated,
+        127, 255, 0
+    )
+    
+    contours, _ = cv2.findContours(
+        subres_binary,
+        cv2.RETR_LIST,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    # keep contours with significant size
     values = []
     dtype = [('area', float), ('y', float), ('x', float)]
 
@@ -70,7 +99,7 @@ def find_rois(contours, n_roi):
     mask = values_arr['area'] >= smallest_allowed_roi
     nroi_contours = [contours[index] for index, boolean in enumerate(mask) if boolean]
 
-    return nroi_contours
+    return nroi_contours, subres_centre
 
 
 def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
@@ -354,37 +383,13 @@ if __name__ == '__main__':
         sections_dict = {}
 
         morphology_subres = morphology_zarr[subres_max]
-        z, y, x = morphology_org.shape
-        z_, y_, x_ = morphology_subres.shape
-
-        rf_x = int(x/x_)
-        rf_y = int(y/y_)
-
-        subres_centre = np.uint8(morphology_subres[z//2])
-        # subres_blur = cv2.GaussianBlur(
-        #     subres_centre,
-        #     (0, 0),
-        #     1.5
-        # )
-        subres_dilated = cv2.dilate(
-            subres_centre,
-            np.ones((3, 3)),
-            iterations=5
+        
+        roi_list, subres_centre = find_rois(
+            morphology_org, morphology_subres,
+            int(preprocessing['n_roi'])
         )
-        _, subres_binary = cv2.threshold(
-            subres_dilated,
-            127, 255, 0
-        )
-        imwrite('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/subres7_dil.tif', subres_binary)
-        contours, _ = cv2.findContours(
-            subres_binary,
-            cv2.RETR_LIST,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
-        # keep contours with significant size
-        roi_list = find_rois(contours, preprocessing['n_roi'])
 
-        buffer = preprocessing['buffer']
+        buffer = float(preprocessing['buffer'])
 
         for section, contour in enumerate(tqdm(
             roi_list,
@@ -430,7 +435,9 @@ if __name__ == '__main__':
 
         planes = preprocessing['planes']
         planes = [int(n) for n in planes if n.isdigit()]
-        
+        chunks = int(preprocessing['chunks'])
+        overlap = float(preprocessing['overlap'])
+
         for section, bbox in sections_dict.items():
             y_min, x_min = bbox[0]
             y_max, x_max = bbox[1]
@@ -464,12 +471,12 @@ if __name__ == '__main__':
                 )
 
             view_morphology = view(
-                morphology_section, preprocessing['chunks'],
-                morphology_section.shape, preprocessing['overlap']
+                morphology_section, chunks,
+                morphology_section.shape, overlap
             )
             view_focus = view(
-                focus_section, preprocessing['chunks'],
-                focus_section.shape, preprocessing['overlap']
+                focus_section, chunks,
+                focus_section.shape, overlap
             )
 
             with tqdm(
