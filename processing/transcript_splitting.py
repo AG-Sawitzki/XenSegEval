@@ -148,7 +148,7 @@ def process_chunk(df, regions):
         Dataframe with additional column of region names.
     """
 
-    regions_mapping = pd.Series(index=df.index, dtype=str). fillna('')
+    region_mapping = pd.Series(index=df.index, dtype=str). fillna('')
 
     for region_name, region_data in regions.items():
         y_min = region_data['y_min']
@@ -163,7 +163,7 @@ def process_chunk(df, regions):
             & (df['y_location'] <= y_max)
         ] = region_name
 
-    df['region'] = regions_mapping
+    df['region'] = region_mapping
 
     # y_binned = pd.cut(df['y_location'], bins[0], labels = ['y0', 'y1', 'y2', 'y3'], include_lowest = True).to_numpy()
     # x_binned = pd.cut(df['x_location'], bins[1], labels = ['x0', 'x1', 'x2'], include_lowest = True).to_numpy()
