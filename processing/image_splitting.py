@@ -221,12 +221,16 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
 
 #     return view_image
 
-def chunk_coords(chunk, var, chunks=chunks, overlap=overlap):
+def chunk_coords(chunk, var, chunks, overlap):
 
     var_low = var*np.sqrt(chunks)/chunks*(1-overlap)*chunk
     var_high = var*np.sqrt(chunks)/chunks*(1+overlap)*chunk
 
+    var_low = int(var_low)
+    var_high = int(var_high)
+    
     return var_low, var_high
+
 
 def write_tif(image, imagestats, section, layer=None, chunk=None):
     """Write an array into a tif file.
@@ -269,11 +273,11 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
         metadata = {
             'axes': axes,
             'PhysicalSizeX': pixelsizeXY,
-        #    'PhysicalSizeXUnit': 'Ã‚Âµm',
+        #    'PhysicalSizeXUnit': 'Âµm',
             'PhysicalSizeY': pixelsizeXY,
-        #    'PhysicalSizeYUnit': 'Ã‚Âµm',
+        #    'PhysicalSizeYUnit': 'Âµm',
             'PhysicalSizeZ': pixelsizeZ,
-        #    'PhysicalSizeZUnit': 'Ã‚Âµm'
+        #    'PhysicalSizeZUnit': 'Âµm'
         }
     else:
         ome = False
@@ -491,8 +495,14 @@ if __name__ == '__main__':
                 leave=False
             ) as chunk_bar:
                 for chunk in range(chunks):
-                    y_low, y_high = chunk_coords(chunk, y)
-                    x_low, x_high = chunk_coords(chunk, x)                     = 
+                    y_low, y_high = chunk_coords(
+                        chunk, y,
+                        chunks, overlap
+                    )
+                    x_low, x_high = chunk_coords(
+                        chunk, x,
+                        chunks, overlap    
+                    )
                     
                     morphology_chunk = morphology_section[
                         :, y_low:y_high, x_low:x_high
