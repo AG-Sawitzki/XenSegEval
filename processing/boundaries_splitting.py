@@ -84,14 +84,14 @@ def pixelate(df):
     vertex_y_arr_p = vertex_y_arr / pixelsize
     vertex_y_arr_p.astype(np.int64)
     vertex_y_arr_p[vertex_y_arr_p == 0] = np.nan
-    df["vertex_y"] = pd.DataFrame(vertex_y_arr_p)
+    df.iloc[:,2] = pd.DataFrame(vertex_y_arr_p)
     
     vertex_x_arr = df['vertex_y'].to_numpy()
     vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
     vertex_x_arr_p = vertex_x_arr / pixelsize
     vertex_x_arr_p.astype(np.int64)
     vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
-    df["vertex_x"] = pd.DataFrame(vertex_x_arr_p)
+    df.iloc[:,1] = pd.DataFrame(vertex_x_arr_p)
     # df.iloc[:, 1:3] = pd.DataFrame((
     #     df.iloc[:, 1:3].to_numpy()
     #     / pixelsize
