@@ -60,7 +60,6 @@ if __name__ == '__main__':
 
     dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
 
-    bins = make_bins(sections_dict)
     print(bins)
 
     # with mp.Pool(processes=mp.cpu_count()-1) as pool:
@@ -77,10 +76,10 @@ if __name__ == '__main__':
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
     for batch in parquet_file.iter_batches():
         batch_df = batch.to_pandas()
-        processed = process_chunk(batch_df)
-        results_df = pd.concat([results_df, processed])
+        processed_df = process_chunk(batch_df)
+        results_df = pd.concat([results_df, processed_df])
     results_df = results_df.astype(dtype_dict)
-    print(results_df.head())
+    print(results_df.head(5))
     #---save section_absolute---
     results_df.to_parquet(
         path / '{0}/{1}_{0}_absolute.parquet'.format(section, typus),
