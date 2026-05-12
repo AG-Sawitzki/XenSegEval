@@ -93,7 +93,7 @@ def save_section(region_name, region_data, df):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         parquet_path = output_dir / "relative.parquet"
-        pq.write_table(sub_results_pq, csv_path)
+        pq.write_table(sub_results_pq, parquet_path)
 
         print(f"region {region_name}: saved results")
 
