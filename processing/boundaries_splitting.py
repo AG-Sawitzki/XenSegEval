@@ -114,7 +114,7 @@ def save_section(region_name, region_data, df):
     columns = [
         c for c in sub_results_df.columns if c is not 'region'
     ]
-    sub_results_df = sub_results_df.loc[columns]
+    sub_results_df = sub_results_df.loc[:,columns]
     # subresults_df.drop(columns='region', inplace=True)
 
     if sub_results_df.size == 0:
