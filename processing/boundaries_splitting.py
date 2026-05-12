@@ -6,7 +6,7 @@ import json
 import gzip
 
 import pyarrow.parquet as pq
-import pyarrow.Table as pT
+import pyarrow as pa
 import pandas as pd
 import numpy as np
 
@@ -86,7 +86,7 @@ def save_section(region_name, region_data, df):
 
     else:
         # save thingy
-        sub_results_pq = pT.from_pandas(sub_results_df)
+        sub_results_pq = pa.Table.from_pandas(sub_results_df)
         del sub_results_df
 
         output_dir = processed / f"{region_name}/boundaries/"
