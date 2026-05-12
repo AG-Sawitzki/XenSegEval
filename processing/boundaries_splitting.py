@@ -54,25 +54,32 @@ def process_chunk(df):
 
 
 def relative(df, region_data):
-    # df["vertex_y"] = df["vertex_y"].to_numpy() - region_data["y_min"]
-    # df["vertex_x"] = df["vertex_x"].to_numpy() - region_data["x_min"]
+    df["vertex_y"] = pd.DataFrame(
+        df["vertex_y"].to_numpy() - region_data["y_min"]
+    )
+    df["vertex_x"] = pd.DataFrame(
+        df["vertex_x"].to_numpy() - region_data["x_min"]
+    )
     
-    df.iloc[:, 1:3] = pd.DataFrame((
-        df.iloc[:, 1:3].to_numpy()
-        - [region_data['x_min'],region_data['y_min']]
-    ))
+    # df.iloc[:, 1:3] = pd.DataFrame((
+    #     df.iloc[:, 1:3].to_numpy()
+    #     - [region_data['x_min'],region_data['y_min']]
+    # ))
     
     return df
 
 
 def pixelate(df):
-    # df["vertex_y"] = (df["vertex_y"].to_numpy() / pixelsize).round(0).astype(np.int64)
-    # df["vertex_x"] = (df["vertex_x"].to_numpy() / pixelsize).round(0).astype(np.int64)
-    
-    df.iloc[:, 1:3] = pd.DataFrame((
-        df.iloc[:, 1:3].to_numpy()
-        / pixelsize
-    ).round(0), dtype='Int64')
+    df["vertex_y"] = pd.DataFrame((
+        df["vertex_y"].to_numpy() / pixelsize).round(0), dtype=np.int64
+    )
+    df["vertex_x"] = pd.DataFrame((
+        df["vertex_x"].to_numpy() / pixelsize).round(0).astype(np.int64)
+    )
+    # df.iloc[:, 1:3] = pd.DataFrame((
+    #     df.iloc[:, 1:3].to_numpy()
+    #     / pixelsize
+    # ).round(0), dtype='Int64')
     
     return df
 
