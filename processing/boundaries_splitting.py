@@ -6,12 +6,10 @@ import json
 import gzip
 
 import pyarrow.parquet as pq
-import pyarrow.Table as pT
 import pandas as pd
 import numpy as np
 
 def process_chunk(df):
-    # df = df.to_pandas()
 
     regions_mapping = pd.Series(index=df.index, dtype=str).fillna("")
 
@@ -52,12 +50,10 @@ if __name__ == '__main__':
     processed.mkdir(parents=True, exist_ok=True)
 
     # define variables
-    chunks = config['DEFAULT'].getfloat('chunks')
-    min_size = config['DEFAULT'].getfloat('min_size')
-    n_roi = config['DEFAULT'].getfloat('n_roi')
-    overlap = config['DEFAULT'].getfloat('overlap')
-    pixelsize = config['DEFAULT'].getfloat('pixelsize')
-    rf = config['DEFAULT'].getfloat('rf')
+    chunks = config['PREPROCESSING'].getfloat('chunks')
+    n_roi = config['PREPROCESSING'].getfloat('n_roi')
+    overlap = config['PREPROCESSING'].getfloat('overlap')
+    # pixelsize = config['PREPROCESSING'].getfloat('pixelsize')
 
     with open(processed / 'sections_px.json', 'r') as f:
         sections_dict = json.load(f)
@@ -75,14 +71,18 @@ if __name__ == '__main__':
     #         pool.join()
     #         results_df = pd.concat(results)
         
+        
+    #     parquet_file
 
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
-        for batch in parquet_file.iter_batches():
-            batch_df = batch.to_pandas()
-            processed = process_chunk(batch_df)
-            results_df = pd.concat([results_df, processed])
-        results_df = results_df.astype(dtype_dict)
-        print(results_df.head(5))
-        #---save section_absolute---
-        results_pq = pT.from_pandas(results_df)
-        results_df.to_parquet(path / '{0}/{1}_{0}_absolute.parquet'.format(section, typus), index = False)
+    for batch in parquet_file.iter_batches():
+        batch_df = batch.to_pandas()
+        processed = process_chunk(batch_df)
+        results_df = pd.concat([results_df, processed])
+    results_df = results_df.astype(dtype_dict)
+    print(results_df.head())
+    #---save section_absolute---
+    results_df.to_parquet(
+        path / '{0}/{1}_{0}_absolute.parquet'.format(section, typus),
+        index=False
+    )

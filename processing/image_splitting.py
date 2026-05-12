@@ -224,35 +224,35 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
         tif.write(
             image,
             subfiletype=None,
-            # subifds=subresolutions,
+            subifds=subresolutions,
             resolution=resolution,
             metadata=metadata,
             **options
         )
-        # save pyramid levels to the two subifds
-        # in production use resampling to generate sub-resolution images
-        # if ome and  not focus:
-        #     for level in range(subresolutions):
-        #         mag = 8 ** (level + 1)
+        save pyramid levels to the two subifds
+        in production use resampling to generate sub-resolution images
+        if ome and not focus:
+            for level in range(subresolutions):
+                mag = 8 ** (level + 1)
                 
-        #         image_ = image[..., ::mag, ::mag]
+                image_ = image[..., ::mag, ::mag]
 
-        #         if image_.size == 0:
-        #             continue
-        #         else:
-        #             tif.write(
-        #                 image_,
-        #                 subfiletype=1,
-        #                 resolution=(resolution[0] // mag,
-        #                             resolution[1] // mag
-        #                 ),
-        #                 **options
-        #             )
+                if image_.size == 0:
+                    continue
+                else:
+                    tif.write(
+                        image_,
+                        subfiletype=1,
+                        resolution=(resolution[0] // mag,
+                                    resolution[1] // mag
+                        ),
+                        **options
+                    )
 
-        #             # add a thumbnail image as a separate series
-        #             # it is recognized by QuPath as an associated image
-        #             thumbnail = (image[0, ::128, ::128] >> 2).astype('uint8')
-        #             tif.write(thumbnail, metadata={'Name': 'thumbnail'})
+                    # add a thumbnail image as a separate series
+                    # it is recognized by QuPath as an associated image
+                    thumbnail = (image[0, ::128, ::128] >> 2).astype('uint8')
+                    tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
 if __name__ == '__main__':
