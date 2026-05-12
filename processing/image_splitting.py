@@ -93,7 +93,9 @@ def find_rois(image_org, image_subres, n_roi):
     # )
 
     mask = values_arr['area'] >= smallest_allowed_roi
-    nroi_contours = [contours[index] for index, boolean in enumerate(mask) if boolean]
+    nroi_contours = [
+        contours[index] for index, boolean in enumerate(mask) if boolean
+    ]
 
     return nroi_contours, subres_centre
 
@@ -111,7 +113,6 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
         pathlib.Path
     """
 
-    processed = config['PATHS'].get('processed')
     f_str = '/'.join([str(section), 'morphology'])
 
     if ome:
@@ -132,11 +133,11 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
         else:
             ext = '.'.join(['morphology', ext])
 
-    dir_path = Path('/'.join([processed, f_str]))
+    dir_path = Path(processed / f_str) # Path('/'.join([processed, f_str]))
     dir_path.mkdir(parents=True, exist_ok=True)
 
     f_str = '/'.join([f_str, ext])
-    file_path = Path('/'.join([processed, f_str]))
+    file_path = Path(processed / f_str)
 
     return file_path
 
@@ -240,8 +241,8 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
         {quatered/q0{chunk}.extension if chunk, 
          else focus. or morphology.extension}'
     """
-    pixelsizeXY = imagestats['pixelsizeXY']
-    pixelsizeZ = imagestats['pixelsizeZ']
+    pixelsizeXY = imagestats['pixelsize_xy']
+    pixelsizeZ = imagestats['pixelsize_z']
 
     options = dict(
         compression=None,
@@ -315,16 +316,6 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
             tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
-def parse_config(config_path):
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    preprocessing = dict(config.items('PREPROCESSING'))
-    paths = dict(config.items('PATHS'))
-
-    return preprocessing, paths
-
-
-
 if __name__ == '__main__':
 
     # define paths
@@ -391,6 +382,14 @@ if __name__ == '__main__':
             ncols=79,
             leave=True
         ) as search_bar:
+            buffer = float(preprocessing['buffer'])
+
+            z, y, x = morphology_org.shape
+            z_, y_, x_ = morphology_subres.shape
+
+            rf_x = int(x/x_)
+            rf_y = int(y/y_)
+            
             for section, contour in enumerate(roi_list):
                 # add roi to scaled image to check for regions
                 x, y, w, h = cv2.boundingRect(contour)
@@ -413,7 +412,7 @@ if __name__ == '__main__':
                 ]
                 memory_percentage = get_memory_usage_percentage()
                 search_bar.set_description(
-                    f'Saving ROIs | %MEM: {memory_percentage:.2f}'
+                    f'Saving Coordinates | %MEM: {memory_percentage:.2f}'
                 )
                 search_bar.update(1)
 
@@ -497,8 +496,11 @@ if __name__ == '__main__':
                     )
 
                     for l, plane in enumerate(planes):
-                        write_tif(q_m[l, ...], section,
-                                    chunk=chunk, layer=plane)
+                        write_tif(
+                            q_m[l, ...], imagestats,
+                            section, chunk=chunk, layer=plane
+                        )
+
                     memory_percentage = get_memory_usage_percentage()
                     chunk_bar.set_description(
                         f'saving as chunks | %MEM: {memory_percentage:.2f}'
