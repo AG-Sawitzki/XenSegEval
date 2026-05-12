@@ -54,12 +54,21 @@ def process_chunk(df):
 
 
 def relative(df, region_data):
-    df["vertex_y"] = pd.DataFrame(
-        df["vertex_y"].to_numpy() - region_data["y_min"]
-    )
-    df["vertex_x"] = pd.DataFrame(
-        df["vertex_x"].to_numpy() - region_data["x_min"]
-    )
+    vertex_y_arr = df['vertex_y'].to_numpy()
+    vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
+    vertex_y_arr_r = vertex_y_arr - region_data['y_min']
+    vertex_y_arr_r.astype(np.int64)
+    vertex_y_arr_r[vertex_y_arr_r == 0] = np.nan
+
+    df['vertex_y'] = pd.DataFrame(vertex_y_arr_r)
+
+    vertex_x_arr = df['vertex_x'].to_numpy()
+    vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
+    vertex_x_arr_r = vertex_x_arr - region_data['x_min']
+    vertex_x_arr_r.astype(np.int64)
+    vertex_x_arr_r[vertex_x_arr_r == 0] = np.nan
+
+    df['vertex_x'] = pd.DataFrame(vertex_x_arr_r)
     
     # df.iloc[:, 1:3] = pd.DataFrame((
     #     df.iloc[:, 1:3].to_numpy()
@@ -69,13 +78,20 @@ def relative(df, region_data):
     return df
 
 
-def pixelate(df):
-    df["vertex_y"] = pd.DataFrame((
-        df["vertex_y"].to_numpy() / pixelsize).round(0), dtype=np.int64
-    )
-    df["vertex_x"] = pd.DataFrame((
-        df["vertex_x"].to_numpy() / pixelsize).round(0).astype(np.int64)
-    )
+def pixelate(df):    
+    vertex_y_arr = df['vertex_y'].to_numpy()
+    vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
+    vertex_y_arr_p = vertex_y_arr / pixelsize
+    vertex_y_arr_p.astype(np.int64)
+    vertex_y_arr_p[vertex_y_arr_p == 0] = np.nan
+    df["vertex_y"] = pd.DataFrame(vertex_y_arr_p)
+    
+    vertex_x_arr = df['vertex_y'].to_numpy()
+    vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
+    vertex_x_arr_p = vertex_x_arr / pixelsize
+    vertex_x_arr_p.astype(np.int64)
+    vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
+    df["vertex_x"] = pd.DataFrame(vertex_x_arr_p)
     # df.iloc[:, 1:3] = pd.DataFrame((
     #     df.iloc[:, 1:3].to_numpy()
     #     / pixelsize
