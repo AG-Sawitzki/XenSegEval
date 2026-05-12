@@ -6,6 +6,7 @@ import json
 import gzip
 
 import pyarrow.parquet as pq
+import pyarrow.Table as pT
 import pandas as pd
 import numpy as np
 
@@ -52,6 +53,51 @@ def process_chunk(df):
     return df
 
 
+def relative(df, region_data):
+    df["vertex_y"] = df["vertex_y"] - region_data["y_min"]
+    df["vertex_x"] = df["vertex_x"] - region_data["x_min"]
+    return df
+
+
+def pixelate(df):
+    df["vertex_y"] = (df["vertex_y"] / pixelsize).round(0).astype(np.int64)
+    df["vertex_x"] = (df["vertex_x"] / pixelsize).round(0).astype(np.int64)
+    return df
+
+
+def save_section(region_name, region_data, df):
+    region_data = regions[region_name]
+
+    # main selection
+    sub_results_df = df[df["region"] == region_name]
+    print(sub_results_df.loc[:10, "vertex_x":"vertex_y"])
+
+    # remove region offset
+    sub_results_df = relative(sub_results_df, region_data)
+
+    # pixelation
+    sub_results_df = pixelate(sub_results_df)
+
+    # cleanup
+    sub_results_df.drop(columns="region", inplace=True)
+
+    if sub_results_df.size == 0:
+        print(f"region {region_name}: no datapoints matching")
+
+    else:
+        # save thingy
+        sub_results_pq = pT.from_pandas(sub_results_df)
+        del sub_results_df
+
+        output_dir = processed / f"{region_name}/boundaries/"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        parquet_path = output_dir / "relative.parquet"
+        pq.write_table(sub_results_pq, csv_path)
+
+        print(f"region {region_name}: saved results")
+
+
 if __name__ == '__main__':
     # define paths
     parser = argparse.ArgumentParser(prog='Image Processing.')
@@ -79,7 +125,7 @@ if __name__ == '__main__':
     with open(processed / 'sections_px.json', 'r') as f:
         sections_dict = json.load(f)
 
-    dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
+    # dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
 
     regions = define_regions_to_extract(sections_dict)
 
@@ -97,10 +143,11 @@ if __name__ == '__main__':
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
     for batch in parquet_file.iter_batches():
         batch_df = batch.to_pandas()
-        print(batch_df.head())
         processed_df = process_chunk(batch_df)
         results_df = pd.concat([results_df, processed_df])
-    results_df = results_df.astype(dtype_dict)
+        for region_name, region_data in regions.items():
+            save_section(region_name, region_data, results_df) 
+    # results_df = results_df.astype(dtype_dict) is not necessary, doesn't have these colums
     print(results_df.head(5))
     #---save section_absolute---
     results_df.to_parquet(
