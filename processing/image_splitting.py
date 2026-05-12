@@ -14,6 +14,7 @@ ToDo:
         (- by checking how many are of sufficient size?!)
 '''
 
+from itertools import product
 from pathlib import Path
 import configparser
 import argparse
@@ -141,19 +142,21 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
 
     return file_path
 
-def chunk_coords(chunk, var, chunks, overlap):
 
-    var_low = var*np.sqrt(chunks)/chunks*(1-overlap)*chunk
-    var_high = var*np.sqrt(chunks)/chunks*(1+overlap)*chunk
+def chunk_size(var, chunks):
 
-    if var < var_high:
-        var_high = var
+    # var_low = var*np.sqrt(chunks)/chunks*(1-overlap)*chunk
+    # var_high = var*np.sqrt(chunks)/chunks*(1+overlap)*chunk
+
+    # if var < var_high:
+    #     var_high = var
     
-    var_low = int(var_low)
-    var_high = int(var_high)
+    # var_low = int(var_low)
+    # var_high = int(var_high)
     
+    # return var_low, var_high
 
-    return var_low, var_high
+    return int(var*np.sqrt(chunks)/chunks)
 
 
 def write_tif(image, imagestats, section, layer=None, chunk=None):
@@ -219,35 +222,35 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
         tif.write(
             image,
             subfiletype=None,
-            subifds=subresolutions,
+            # subifds=subresolutions,
             resolution=resolution,
             metadata=metadata,
             **options
         )
         # save pyramid levels to the two subifds
         # in production use resampling to generate sub-resolution images
-        if ome:
-            for level in range(subresolutions):
-                mag = 2 ** (level + 1)
+        # if ome and  not focus:
+        #     for level in range(subresolutions):
+        #         mag = 8 ** (level + 1)
+                
+        #         image_ = image[..., ::mag, ::mag]
 
-                if focus:
-                    image_ = image[::mag, ::mag, ...]
-                else:
-                    image_ = image[..., ::mag, ::mag]
+        #         if image_.size == 0:
+        #             continue
+        #         else:
+        #             tif.write(
+        #                 image_,
+        #                 subfiletype=1,
+        #                 resolution=(resolution[0] // mag,
+        #                             resolution[1] // mag
+        #                 ),
+        #                 **options
+        #             )
 
-                tif.write(
-                    image_,
-                    subfiletype=1,
-                    resolution=(resolution[0] // mag,
-                                resolution[1] // mag
-                    ),
-                    **options
-                )
-
-            # add a thumbnail image as a separate series
-            # it is recognized by QuPath as an associated image
-            thumbnail = (image[0, ::16, ::16] >> 2).astype('uint8')
-            tif.write(thumbnail, metadata={'Name': 'thumbnail'})
+        #             # add a thumbnail image as a separate series
+        #             # it is recognized by QuPath as an associated image
+        #             thumbnail = (image[0, ::128, ::128] >> 2).astype('uint8')
+        #             tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
 if __name__ == '__main__':
@@ -391,11 +394,10 @@ if __name__ == '__main__':
             write_tif(morphology_section, imagestats, section)
             write_tif(focus_section, imagestats, section)
 
-            z, y, x = morphology_section.shape
             for l, plane in enumerate(planes):
                 write_tif(
-                    morphology_section[l, ...], imagestats,
-                    section, layer=plane
+                    morphology_section[l, ...],
+                    imagestats, section, layer=plane
                 )
                 
                 memory_percentage = get_memory_usage_percentage()
@@ -409,23 +411,31 @@ if __name__ == '__main__':
                 ncols=79,
                 leave=False
             ) as chunk_bar:
-                for chunk in range(chunks):
-                    y_low, y_high = chunk_coords(
-                        chunk, y,
-                        chunks, overlap
-                    )
-                    x_low, x_high = chunk_coords(
-                        chunk, x,
-                        chunks, overlap    
-                    )
-                    
+
+                z, y, x = morphology_section.shape
+
+                y_size = chunk_size(y, chunks)
+                x_size = chunk_size(x, chunks)
+
+                grid = product(
+                    range(0, y-y%y_size, y_size),
+                    range(0, x-x%x_size, x_size)
+                )
+
+                for chunk, (y_c, x_c) in enumerate(grid):
+                    y_low = int(y_c*0.95)
+                    y_high = int((y_c+y_size)*1.05)
+
+                    x_low = int(x_c*0.95)
+                    x_high = int((x_c+x_size)*1.05)
+
                     morphology_chunk = morphology_section[
                         :, y_low:y_high, x_low:x_high
                     ]
                     focus_chunk = focus_section[
                         y_low:y_high, x_low:x_high, :
                     ]
-                    
+
                     write_tif(
                         morphology_chunk, imagestats, section, chunk=chunk
                     )
