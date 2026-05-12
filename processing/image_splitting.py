@@ -20,6 +20,7 @@ import argparse
 import os
 
 from tqdm import tqdm
+import psutil
 import json
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
@@ -27,6 +28,15 @@ from numpy.lib.stride_tricks import sliding_window_view
 import numpy as np
 import zarr
 import cv2
+
+
+def get_memory_usage_percentage():
+    process = psutil.Process()
+    total_memory = psutil.virtual_memory().total  # Total system memory in bytes
+    mem_info = process.memory_info()
+    used_memory = mem_info.rss  # Resident Set Size in bytes
+    memory_percentage = (used_memory / total_memory) * 100  # Calculate percentage
+    return memory_percentage
 
 
 def find_rois(contours, n_roi):
@@ -138,7 +148,7 @@ def get_strides(image, window_shape):
 
     return (stride_y, stride_x)
 
-def view(image, chunks, shape):
+def view(image, chunks, shape, overlap):
     """
     Args:
         image: np.array of the image section
@@ -186,7 +196,7 @@ def view(image, chunks, shape):
     return view_image
 
 
-def write_tif(image, section, layer=None, chunk=None):
+def write_tif(image, imagestats, section, layer=None, chunk=None):
     """Write an array into a tif file.
 
     Args:
@@ -205,8 +215,8 @@ def write_tif(image, section, layer=None, chunk=None):
         {quatered/q0{chunk}.extension if chunk, 
          else focus. or morphology.extension}'
     """
-    pixelsizeXY = config['ImageStats'].getfloat('pixelsizeXY')
-    pixelsizeZ = config['ImageStats'].getfloat('pixelsizeZ')
+    pixelsizeXY = imagestats['pixelsizeXY']
+    pixelsizeZ = imagestats['pixelsizeZ']
 
     options = dict(
         compression=None,
@@ -280,6 +290,16 @@ def write_tif(image, section, layer=None, chunk=None):
             tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
+def parse_config(config_path):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    preprocessing = dict(config.items('PREPROCESSING'))
+    paths = dict(config.items('PATHS'))
+
+    return preprocessing, paths
+
+
+
 if __name__ == '__main__':
 
     # define paths
@@ -292,25 +312,16 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(config_path)
 
-    # define variables
-    chunks = config['PREPROCESSING'].getint('chunks')
-    min_size = config['PREPROCESSING'].getfloat('min_size')
-    n_roi = config['PREPROCESSING'].getint('n_roi')
-    overlap = config['PREPROCESSING'].getfloat('overlap')
-    planes = config['PREPROCESSING'].get('planes')
-    planes = [int(n) for n in planes if n.isdigit()]
-    buffer = config['PREPROCESSING'].getfloat('buffer')
-
-    # pixelsizeXY = config['ImageStats'].get('pixelsizeXY')
-    # pixelsizeZ = config['ImageStats'].get('pixelsizeZ')
+    preprocessing = dict(config.items('PREPROCESSING'))
+    paths = dict(config.items('PATHS'))
+    imagestats = dict(config.items('ImageStats'))
 
     # define paths
-    data = Path(config['PATHS']['data_path'])
-    sample = config['PATHS']['sample_name']
+    home = paths['home']
+    sample = paths['sample_name']
+    data = paths['data_path']
 
-    # processed = Path(f'/data/cephfs-2/unmirrored/groups/sawitzki/Juno/{sample}/processed')
-    # processed.mkdir(parents=True, exist_ok=True)
-    processed = Path(config['PATHS'].get('processed'))
+    processed = Path(home / '{0}/processed'.format(sample_name))
     processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
@@ -333,17 +344,15 @@ if __name__ == '__main__':
 
     morphology_org = morphology_zarr[subres_min]
 
-
-    if config.has_option('PATHS', 'sections_dict'):
+    if 'section_dict' in paths:
         print('Has sections_dict...') 
-        with open(config['PATHS']['sections_dict'], 'r') as f:
+        with open(paths['sections_dict'], 'r') as f:
             sections_dict = json.load(f)
         print('Coordinates loaded...')
     else:
         print('Searching for ROIs...')
         sections_dict = {}
 
-        # morphology_subres = morphology_zarr[str(int(subres_max)//2)]
         morphology_subres = morphology_zarr[subres_max]
         z, y, x = morphology_org.shape
         z_, y_, x_ = morphology_subres.shape
@@ -373,18 +382,16 @@ if __name__ == '__main__':
             cv2.CHAIN_APPROX_SIMPLE
         )
         # keep contours with significant size
-        roi_list = find_rois(contours, n_roi)
+        roi_list = find_rois(contours, preprocessing['n_roi'])
 
-<<<<<<< HEAD
-        for section, contour in enumerate(tqdm(roi_list, desc='Saving Coordinates', ncols=79, leave=True)):
-=======
+        buffer = preprocessing['buffer']
+
         for section, contour in enumerate(tqdm(
             roi_list,
             desc='Saving Coordinates',
             ncols=79,
             leave=True
         )):
->>>>>>> 76d1c641e69072e75c2f1969f113d79d949f04b6
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
 
@@ -413,60 +420,86 @@ if __name__ == '__main__':
             processed / 'marked_regions-of-interest.tif',
             subres_centre
         )
-<<<<<<< HEAD
 
-    for section, bbox in tqdm(sections_dict.items(), desc='Saving ROIs', ncols=79, leave=True):
-=======
->>>>>>> 76d1c641e69072e75c2f1969f113d79d949f04b6
-
-    for section, bbox in tqdm(
-        sections_dict.items(),
+    with tqdm(
+        total=len(sections_dict),
         desc='Saving ROIs',
         ncols=79,
         leave=True
-    ):
-        y_min, x_min = bbox[0]
-        y_max, x_max = bbox[1]
-        resolution = (y_max-y_min, x_max-x_min)
+    ) as section_bar:
 
-        morphology_section = morphology_org[
-            planes,
-            y_min:y_max,
-            x_min:x_max
-        ]
-        focus_section = np.dstack((
-            focus_org[0][y_min:y_max, x_min:x_max],
-            focus_org[1][y_min:y_max, x_min:x_max],
-            focus_org[2][y_min:y_max, x_min:x_max],
-            focus_org[3][y_min:y_max, x_min:x_max]
-        ))
+        planes = preprocessing['planes']
+        planes = [int(n) for n in planes if n.isdigit()]
+        
+        for section, bbox in sections_dict.items():
+            y_min, x_min = bbox[0]
+            y_max, x_max = bbox[1]
+            resolution = (y_max-y_min, x_max-x_min)
 
-        write_tif(morphology_section, section)
-        write_tif(focus_section, section)
+            morphology_section = morphology_org[
+                planes,
+                y_min:y_max,
+                x_min:x_max
+            ]
+            focus_section = np.dstack((
+                focus_org[0][y_min:y_max, x_min:x_max],
+                focus_org[1][y_min:y_max, x_min:x_max],
+                focus_org[2][y_min:y_max, x_min:x_max],
+                focus_org[3][y_min:y_max, x_min:x_max]
+            ))
 
-        z, y, x = morphology_section.shape
-        for l, plane in enumerate(planes):
-            write_tif(morphology_section[l, ...], section, layer=plane)
+            write_tif(morphology_section, imagestats, section)
+            write_tif(focus_section, imagestats, section)
 
-        view_morphology = view(morphology_section, chunks,
-                               shape=morphology_section.shape)
-        view_focus = view(focus_section, chunks, shape=focus_section.shape)
-<<<<<<< HEAD
-        for chunk in tqdm(range(chunks), desc='saving as chunks', ncols=79, leave=False):
-=======
-
-        for chunk in tqdm(
-            range(chunks),
-            desc='saving as chunks',
-            ncols=79, leave=False
-        ):
->>>>>>> 76d1c641e69072e75c2f1969f113d79d949f04b6
-            q_m = view_morphology.copy()[:, chunk, ...]
-            q_f = view_focus.copy()[chunk, ...]
-            
-            write_tif(q_m, section, chunk=chunk)
-            write_tif(q_f, section, chunk=chunk)
-
+            z, y, x = morphology_section.shape
             for l, plane in enumerate(planes):
-                write_tif(q_m[l, ...], section,
-                            chunk=chunk, layer=plane)
+                write_tif(
+                    morphology_section[l, ...], imagestats,
+                    section, layer=plane
+                )
+                
+                memory_percentage = get_memory_usage_percentage()
+                section_bar.set_description(
+                    f'Saving ROIs | %MEM: {memory_percentage:.2f}'
+                )
+
+            view_morphology = view(
+                morphology_section, preprocessing['chunks'],
+                morphology_section.shape, preprocessing['overlap']
+            )
+            view_focus = view(
+                focus_section, preprocessing['chunks'],
+                focus_section.shape, preprocessing['overlap']
+            )
+
+            with tqdm(
+                total=chunks,
+                desc='saving as chunks',
+                ncols=79,
+                leave=False
+            ) as chunk_bar:
+                for chunk range(chunks):
+                    q_m = view_morphology.copy()[:, chunk, ...]
+                    q_f = view_focus.copy()[chunk, ...]
+                    
+                    write_tif(
+                        q_m, imagestats, section, chunk=chunk
+                    )
+                    write_tif(
+                        q_f, imagestats, section, chunk=chunk
+                    )
+
+                    for l, plane in enumerate(planes):
+                        write_tif(q_m[l, ...], section,
+                                    chunk=chunk, layer=plane)
+                    memory_percentage = get_memory_usage_percentage()
+                    chunk_bar.set_description(
+                        f'saving as chunks | %MEM: {memory_percentage:.2f}'
+                    )
+                    chunk_bar.update(1)
+            
+            memory_percentage = get_memory_usage_percentage()
+            section_bar.set_description(
+                f'Saving ROIs | %MEM: {memory_percentage:.2f}'
+            )
+            section_bar.update(1)
