@@ -142,85 +142,91 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
     return file_path
 
 
-def get_window_shape(image, chunks, overlap):
-    shape = image.shape
-    if shape[-1] == 4:
-        y, x, c = shape
-        window_shape = (
-            int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
-            int(x*(np.sqrt(chunks)/chunks*(1+overlap))),
-            1
-        )
-    else:
-        z, y, x = shape
-        window_shape = (
-            1,
-            int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
-            int(x*(np.sqrt(chunks)/chunks*(1+overlap)))
-        )
-    return window_shape
+# def get_window_shape(image, chunks, overlap):
+#     shape = image.shape
+#     if shape[-1] == 4:
+#         y, x, c = shape
+#         window_shape = (
+#             int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
+#             int(x*(np.sqrt(chunks)/chunks*(1+overlap))),
+#             1
+#         )
+#     else:
+#         z, y, x = shape
+#         window_shape = (
+#             1,
+#             int(y*(np.sqrt(chunks)/chunks*(1+overlap))),
+#             int(x*(np.sqrt(chunks)/chunks*(1+overlap)))
+#         )
+#     return window_shape
 
 
-def get_strides(image, window_shape):
-    if window_shape[-1] == 1:
-        y, x, c = image.shape
-        y_w, x_w, c_w = window_shape
-    else:
-        z, y, x = image.shape
-        z_w, y_w, x_w = window_shape
+# def get_strides(image, window_shape):
+#     if window_shape[-1] == 1:
+#         y, x, c = image.shape
+#         y_w, x_w, c_w = window_shape
+#     else:
+#         z, y, x = image.shape
+#         z_w, y_w, x_w = window_shape
 
-    stride_y = y-y_w
-    stride_x = x-x_w
+#     stride_y = y-y_w
+#     stride_x = x-x_w
 
-    return (stride_y, stride_x)
+#     return (stride_y, stride_x)
 
-def view(image, chunks, shape, overlap):
-    """
-    Args:
-        image: np.array of the image section
-        chunks: how many chunks the image should end up in
-        shape: the pre-chunks image-section shape
-    Return:
-        An array of shape (chunk, layers, y, x)
-    """
-    window_shape = get_window_shape(image, chunks, overlap)
-    strides = get_strides(image, window_shape)
-    if shape[-1] == 4:
-        view_image = sliding_window_view(image, window_shape)
-        view_shape = view_image.shape
+# def view(image, chunks, shape, overlap):
+#     """
+#     Args:
+#         image: np.array of the image section
+#         chunks: how many chunks the image should end up in
+#         shape: the pre-chunks image-section shape
+#     Return:
+#         An array of shape (chunk, layers, y, x)
+#     """
+#     window_shape = get_window_shape(image, chunks, overlap)
+#     strides = get_strides(image, window_shape)
+#     if shape[-1] == 4:
+#         view_image = sliding_window_view(image, window_shape)
+#         view_shape = view_image.shape
 
-        view_image = view_image[
-            ::strides[0],
-            ::strides[1],
-            ...
-        ]
-        view_image = np.reshape(
-            view_image,
-            (chunks,)+window_shape[:-1]+(4,)
-        )
-    else:
-        view_image = sliding_window_view(image, window_shape)
-        view_shape = view_image.shape
+#         view_image = view_image[
+#             ::strides[0],
+#             ::strides[1],
+#             ...
+#         ]
+#         view_image = np.reshape(
+#             view_image,
+#             (chunks,)+window_shape[:-1]+(4,)
+#         )
+#     else:
+#         view_image = sliding_window_view(image, window_shape)
+#         view_shape = view_image.shape
 
-        # this step needs to be changed so it can work with
-        # any amount of chunks
-        view_image = view_image[
-            :,
-            ::strides[0],
-            ::strides[1],
-            ...
-        ]
-        # print(type(view_image))
-        # print(z, type(z))
-        # print(chunks, type(chunks))
-        # print(window_shape, type(window_shape))
-        view_image = np.reshape(
-            view_image,
-            (z, chunks) + window_shape[1:]
-        )
+#         # this step needs to be changed so it can work with
+#         # any amount of chunks
+#         view_image = view_image[
+#             :,
+#             ::strides[0],
+#             ::strides[1],
+#             ...
+#         ]
+#         # print(type(view_image))
+#         # print(z, type(z))
+#         # print(chunks, type(chunks))
+#         # print(window_shape, type(window_shape))
+#         view_image = np.reshape(
+#             view_image,
+#             (z, chunks) + window_shape[1:]
+#         )
 
-    return view_image
+#     return view_image
 
+def chunk_coords(chunk, var, chunks=chunks, overlap=overlap):
+
+    var_low = var*np.sqrt(chunks)/chunks*(1-overlap)*chunk
+    var_high = var*np.sqrt(chunks)/chunks*(1+overlap)*chunk
+
+    return var_low, var_high
 
 def write_tif(image, imagestats, section, layer=None, chunk=None):
     """Write an array into a tif file.
@@ -469,14 +475,14 @@ if __name__ == '__main__':
                     f'Saving ROIs | %MEM: {memory_percentage:.2f}'
                 )
 
-            view_morphology = view(
-                morphology_section, chunks,
-                morphology_section.shape, overlap
-            )
-            view_focus = view(
-                focus_section, chunks,
-                focus_section.shape, overlap
-            )
+            # view_morphology = view(
+            #     morphology_section, chunks,
+            #     morphology_section.shape, overlap
+            # )
+            # view_focus = view(
+            #     focus_section, chunks,
+            #     focus_section.shape, overlap
+            # )
 
             with tqdm(
                 total=chunks,
@@ -485,19 +491,29 @@ if __name__ == '__main__':
                 leave=False
             ) as chunk_bar:
                 for chunk in range(chunks):
-                    q_m = view_morphology.copy()[:, chunk, ...]
-                    q_f = view_focus.copy()[chunk, ...]
+                    y_low, y_high = chunk_coords(chunk, y)
+                    x_low, x_high = chunk_coords(chunk, x)                     = 
+                    
+                    morphology_chunk = morphology_section[
+                        :, y_low:y_high, x_low:x_high
+                    ]
+                    focus_chunk = focus_section[
+                        y_low:y_high, x_low:x_high, :
+                    ]
+
+                    # q_m = view_morphology.copy()[:, chunk, ...]
+                    # q_f = view_focus.copy()[chunk, ...]
                     
                     write_tif(
-                        q_m, imagestats, section, chunk=chunk
+                        morphology_chunk, imagestats, section, chunk=chunk
                     )
                     write_tif(
-                        q_f, imagestats, section, chunk=chunk
+                        focus_chunk, imagestats, section, chunk=chunk
                     )
 
                     for l, plane in enumerate(planes):
                         write_tif(
-                            q_m[l, ...], imagestats,
+                            morphology_chunk[l, ...], imagestats,
                             section, chunk=chunk, layer=plane
                         )
 
