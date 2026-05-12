@@ -181,5 +181,5 @@ if __name__ == '__main__':
         batch_df = batch.to_pandas()
         processed_df = process_chunk(batch_df)
         results_df = pd.concat([results_df, processed_df])
-        for region_name, region_data in regions.items():
-            save_section(region_name, region_data, results_df) 
+    for region_name, region_data in regions.items():
+        save_section(region_name, region_data, results_df) 
