@@ -33,9 +33,11 @@ import cv2
 
 def get_memory_usage_percentage():
     process = psutil.Process()
-    total_memory = psutil.virtual_memory().total  # Total system memory in bytes
+    # Total system memory in bytes
+    total_memory = psutil.virtual_memory().total
+    # Resident Set Size in bytes
     mem_info = process.memory_info()
-    used_memory = mem_info.rss  # Resident Set Size in bytes
+    used_memory = mem_info.rss
     memory_percentage = (used_memory / total_memory) * 100  # Calculate percentage
     return memory_percentage
 

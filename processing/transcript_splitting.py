@@ -303,8 +303,8 @@ if __name__ == '__main__':
     n_roi = config['PREPROCESSING'].getfloat('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
 
-    pixelsizeXY = config['ImageStats'].getfloat('pixelsizeXY')
-    pixelsizeZ = config['ImageStats'].getfloat('pixelsizeZ')
+    pixelsizeXY = config['ImageStats'].getfloat('pixelsize_xy')
+    pixelsizeZ = config['ImageStats'].getfloat('pixelsize_z')
 
     with open(processed / 'sections_px.json', 'r') as f:
         sections_dict = json.load(f)
