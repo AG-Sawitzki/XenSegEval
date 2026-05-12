@@ -13,8 +13,7 @@ import numpy as np
 def define_regions_to_extract(sections_dict):
 
     regions = {}
-    color_cycler = cycler.cycler(color=["c", "m", "y", "k", "b"])()
-
+    
     for region, bbox in sections_dict.items():
         y_min_px, x_min_px = bbox[0]
         y_max_px, x_max_px = bbox[1]
@@ -24,25 +23,7 @@ def define_regions_to_extract(sections_dict):
             "x_min": x_min_px * pixelsize,
             "y_max": y_max_px * pixelsize,
             "x_max": x_max_px * pixelsize,
-            "style": next(color_cycler),
         }
-
-    if debug_mode:
-        for region_name, region_data in regions.items():
-            plt.plot(
-                [region_data["y_min"], region_data["y_max"]],
-                [region_data["x_min"], region_data["x_max"]],
-                **region_data["style"],
-            )
-            plt.plot(
-                [region_data["y_max"], region_data["y_min"]],
-                [region_data["x_min"], region_data["x_max"]],
-                **region_data["style"],
-            )
-            y_mean = (region_data["y_min"] + region_data["y_max"]) / 2
-            x_mean = (region_data["x_min"] + region_data["x_max"]) / 2
-            plt.text(y_mean, x_mean, region_name)
-        plt.show()
 
     return regions
 
@@ -92,7 +73,8 @@ if __name__ == '__main__':
     chunks = config['PREPROCESSING'].getfloat('chunks')
     n_roi = config['PREPROCESSING'].getfloat('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
-    # pixelsize = config['PREPROCESSING'].getfloat('pixelsize')
+    
+    pixelsize = config['ImageStats'].getfloat('pixelsize_xy')
 
     with open(processed / 'sections_px.json', 'r') as f:
         sections_dict = json.load(f)
