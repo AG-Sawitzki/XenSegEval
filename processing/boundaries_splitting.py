@@ -70,7 +70,6 @@ def save_section(region_name, region_data, df):
 
     # main selection
     sub_results_df = df[df["region"] == region_name]
-    print(sub_results_df.loc[:10, "vertex_x":"vertex_y"])
 
     # remove region offset
     sub_results_df = relative(sub_results_df, region_data)
