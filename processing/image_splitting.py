@@ -50,10 +50,6 @@ def find_rois(image_org, image_subres, n_roi):
         Contours of significant size.
     """
     z, y, x = image_org.shape
-    z_, y_, x_ = image_subres.shape
-
-    rf_x = int(x/x_)
-    rf_y = int(y/y_)
 
     subres_centre = np.uint8(image_subres[z//2])
     # subres_blur = cv2.GaussianBlur(
@@ -389,33 +385,37 @@ if __name__ == '__main__':
             int(preprocessing['n_roi'])
         )
 
-        buffer = float(preprocessing['buffer'])
-
-        for section, contour in enumerate(tqdm(
-            roi_list,
+        with tqdm(
+            total=len(roi_list),
             desc='Saving Coordinates',
             ncols=79,
             leave=True
-        )):
-            # add roi to scaled image to check for regions
-            x, y, w, h = cv2.boundingRect(contour)
+        ) as search_bar:
+            for section, contour in enumerate(roi_list):
+                # add roi to scaled image to check for regions
+                x, y, w, h = cv2.boundingRect(contour)
 
-            cv2.rectangle(
-                subres_centre, (x, y), (x+w, y+h),
-                (255, 255, 255), 2
-            )
+                cv2.rectangle(
+                    subres_centre, (x, y), (x+w, y+h),
+                    (255, 255, 255), 2
+                )
 
-            # adjust for scaling
-            x, w = x*rf_x, w*rf_x
-            y, h = y*rf_y, h*rf_y
-            # add buffer
-            x_min, y_min = int(x*(1-buffer)), int(y*(1-buffer))
-            x_max, y_max = int((x+w)*(1+buffer)), int((y+h)*(1+buffer))
-            # add to dictionary
-            sections_dict[str(section)] = [
-                [y_min, x_min],
-                [y_max, x_max]
-            ]
+                # adjust for scaling
+                x, w = x*rf_x, w*rf_x
+                y, h = y*rf_y, h*rf_y
+                # add buffer
+                x_min, y_min = int(x*(1-buffer)), int(y*(1-buffer))
+                x_max, y_max = int((x+w)*(1+buffer)), int((y+h)*(1+buffer))
+                # add to dictionary
+                sections_dict[str(section)] = [
+                    [y_min, x_min],
+                    [y_max, x_max]
+                ]
+                memory_percentage = get_memory_usage_percentage()
+                search_bar.set_description(
+                    f'Saving ROIs | %MEM: {memory_percentage:.2f}'
+                )
+                search_bar.update(1)
 
         # save selected regions
         with open(processed / 'sections_px.json', 'w') as f:
