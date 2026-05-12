@@ -6,30 +6,33 @@ import json
 import gzip
 
 import pyarrow.parquet as pq
+import pyarrow.Table as pT
 import pandas as pd
 import numpy as np
 
 def process_chunk(df):
+    # df = df.to_pandas()
 
-    y_binned = pd.cut(df['y_location'], bins[0], labels = ['y0', 'y1', 'y2', 'y3'], include_lowest = True).to_numpy()
-    x_binned = pd.cut(df['x_location'], bins[1], labels = ['x0', 'x1', 'x2'], include_lowest = True).to_numpy()
-    
-    index_ = df.index.to_numpy()
-    index = pd.MultiIndex.from_arrays([y_binned, x_binned, index_], names = ('y_bin', 'x_bin', 'idx'))
-    
-    df.index = index
-    
-    df.reset_index(inplace = True)
-    df.dropna(axis = 0, inplace = True)
-    df.set_index(['y_bin', 'x_bin', 'idx'], inplace = True)
-    df.sort_index(inplace = True)
-    
-    if df.index.is_monotonic_increasing == True:
-        print('sorted')
-        return df
-    else:
-        print('sorting already prob here')
-        return df
+    regions_mapping = pd.Series(index=df.index, dtype=str).fillna("")
+
+    for region_name, region_data in regions.items():
+        y_min = region_data["y_min"]
+        x_min = region_data["x_min"]
+        y_max = region_data["y_max"]
+        x_max = region_data["x_max"]
+
+        regions_mapping[
+            (x_min <= df["x_location"])
+            & (df["x_location"] <= x_max)
+            & (y_min <= df["y_location"])
+            & (df["y_location"] <= y_max)
+        ] = region_name
+
+    # print(list(set(regions_mapping)))
+
+    df["region"] = regions_mapping
+
+    return df
 
 if __name__ == '__main__':
     # define paths
@@ -64,16 +67,14 @@ if __name__ == '__main__':
     bins = make_bins(sections_dict)
     print(bins)
 
-    with mp.Pool(processes=mp.cpu_count()-1) as pool:
-        parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
-        with parquet_file.iter_batches() as reader:
-            results = pool.imap(process_chunk, reader)#, chunksize = int(20000/mp.cpu_count()-1))
-            pool.close()
-            pool.join()
-            results_df = pd.concat(results)
+    # with mp.Pool(processes=mp.cpu_count()-1) as pool:
+    #     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
+    #     with parquet_file.iter_batches() as reader:
+    #         results = pool.imap(process_chunk, reader)#, chunksize = int(20000/mp.cpu_count()-1))
+    #         pool.close()
+    #         pool.join()
+    #         results_df = pd.concat(results)
         
-        
-        parquet_file
 
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
         for batch in parquet_file.iter_batches():
@@ -81,6 +82,7 @@ if __name__ == '__main__':
             processed = process_chunk(batch_df)
             results_df = pd.concat([results_df, processed])
         results_df = results_df.astype(dtype_dict)
-        print(results_df.head())
+        print(results_df.head(5))
         #---save section_absolute---
+        results_pq = pT.from_pandas(results_df)
         results_df.to_parquet(path / '{0}/{1}_{0}_absolute.parquet'.format(section, typus), index = False)
