@@ -73,7 +73,7 @@ if __name__ == '__main__':
     chunks = config['PREPROCESSING'].getfloat('chunks')
     n_roi = config['PREPROCESSING'].getfloat('n_roi')
     overlap = config['PREPROCESSING'].getfloat('overlap')
-    
+
     pixelsize = config['ImageStats'].getfloat('pixelsize_xy')
 
     with open(processed / 'sections_px.json', 'r') as f:
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
     for batch in parquet_file.iter_batches():
         batch_df = batch.to_pandas()
+        print(batch_df.head())
         processed_df = process_chunk(batch_df)
         results_df = pd.concat([results_df, processed_df])
     results_df = results_df.astype(dtype_dict)
