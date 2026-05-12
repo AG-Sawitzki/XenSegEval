@@ -112,7 +112,7 @@ def save_section(region_name, region_data, df):
 
     # cleanup
     columns = [
-        c for c in sub_results_df.columns if c is not 'region'
+        c for c in sub_results_df.columns if c != 'region'
     ]
     sub_results_df = sub_results_df.loc[:,columns]
     # subresults_df.drop(columns='region', inplace=True)
