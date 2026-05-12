@@ -93,7 +93,7 @@ if __name__ == '__main__':
         
         
     #     parquet_file
-
+    results_df = pd.DataFrame()
     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
     for batch in parquet_file.iter_batches():
         batch_df = batch.to_pandas()
