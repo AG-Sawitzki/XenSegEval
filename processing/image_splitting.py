@@ -321,16 +321,16 @@ if __name__ == '__main__':
     sample = paths['sample_name']
     data = paths['data_path']
 
-    processed = Path(home / '{0}/processed'.format(sample_name))
+    processed = Path('{0}/{1}/processed'.format(home, sample))
     processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
-    morphology_store = imread(data / 'morphology.ome.tif', aszarr=True)
+    morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
 
     # load morphology_focus
     focus_org = []
-    for file in Path(data / 'morphology_focus').glob('*.ome.tif'):
+    for file in Path(f'{data}/morphology_focus').glob('*.ome.tif'):
         focus_store = imread(file,
             aszarr=True,
             is_ome=False # to prevent multifile reading
@@ -478,7 +478,7 @@ if __name__ == '__main__':
                 ncols=79,
                 leave=False
             ) as chunk_bar:
-                for chunk range(chunks):
+                for chunk in range(chunks):
                     q_m = view_morphology.copy()[:, chunk, ...]
                     q_f = view_focus.copy()[chunk, ...]
                     
