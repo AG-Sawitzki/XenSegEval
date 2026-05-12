@@ -60,8 +60,6 @@ if __name__ == '__main__':
 
     dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
 
-    print(bins)
-
     # with mp.Pool(processes=mp.cpu_count()-1) as pool:
     #     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
     #     with parquet_file.iter_batches() as reader:
