@@ -54,20 +54,30 @@ def process_chunk(df):
 
 
 def relative(df, region_data):
-    df["vertex_y"] = df["vertex_y"] - region_data["y_min"]
-    df["vertex_x"] = df["vertex_x"] - region_data["x_min"]
+    # df["vertex_y"] = df["vertex_y"].to_numpy() - region_data["y_min"]
+    # df["vertex_x"] = df["vertex_x"].to_numpy() - region_data["x_min"]
+    
+    df.iloc[:, 1:3] = pd.DataFrame((
+        df.iloc[:, 1:3].to_numpy
+        - [region_data['x_min'],region_data['y_min']]
+    ))
+    
     return df
 
 
 def pixelate(df):
-    df["vertex_y"] = (df["vertex_y"] / pixelsize).round(0).astype(np.int64)
-    df["vertex_x"] = (df["vertex_x"] / pixelsize).round(0).astype(np.int64)
+    # df["vertex_y"] = (df["vertex_y"].to_numpy() / pixelsize).round(0).astype(np.int64)
+    # df["vertex_x"] = (df["vertex_x"].to_numpy() / pixelsize).round(0).astype(np.int64)
+    
+    df.iloc[:, 1:3] = pd.DataFrame((
+        df.iloc[:, 1:3].to_numpy()
+        / pixelsize
+    ).round(0), dtype='Int64')
+    
     return df
 
 
 def save_section(region_name, region_data, df):
-    region_data = regions[region_name]
-
     # main selection
     sub_results_df = df[df["region"] == region_name]
 
@@ -146,10 +156,3 @@ if __name__ == '__main__':
         results_df = pd.concat([results_df, processed_df])
         for region_name, region_data in regions.items():
             save_section(region_name, region_data, results_df) 
-    # results_df = results_df.astype(dtype_dict) is not necessary, doesn't have these colums
-    print(results_df.head(5))
-    #---save section_absolute---
-    results_df.to_parquet(
-        path / '{0}/{1}_{0}_absolute.parquet'.format(section, typus),
-        index=False
-    )
