@@ -9,6 +9,44 @@ import pyarrow.parquet as pq
 import pandas as pd
 import numpy as np
 
+
+def define_regions_to_extract(sections_dict):
+
+    regions = {}
+    color_cycler = cycler.cycler(color=["c", "m", "y", "k", "b"])()
+
+    for region, bbox in sections_dict.items():
+        y_min_px, x_min_px = bbox[0]
+        y_max_px, x_max_px = bbox[1]
+
+        regions[region] = {
+            "y_min": y_min_px * pixelsize,
+            "x_min": x_min_px * pixelsize,
+            "y_max": y_max_px * pixelsize,
+            "x_max": x_max_px * pixelsize,
+            "style": next(color_cycler),
+        }
+
+    if debug_mode:
+        for region_name, region_data in regions.items():
+            plt.plot(
+                [region_data["y_min"], region_data["y_max"]],
+                [region_data["x_min"], region_data["x_max"]],
+                **region_data["style"],
+            )
+            plt.plot(
+                [region_data["y_max"], region_data["y_min"]],
+                [region_data["x_min"], region_data["x_max"]],
+                **region_data["style"],
+            )
+            y_mean = (region_data["y_min"] + region_data["y_max"]) / 2
+            x_mean = (region_data["x_min"] + region_data["x_max"]) / 2
+            plt.text(y_mean, x_mean, region_name)
+        plt.show()
+
+    return regions
+
+
 def process_chunk(df):
 
     regions_mapping = pd.Series(index=df.index, dtype=str).fillna("")
@@ -31,6 +69,7 @@ def process_chunk(df):
     df["region"] = regions_mapping
 
     return df
+
 
 if __name__ == '__main__':
     # define paths
@@ -59,6 +98,8 @@ if __name__ == '__main__':
         sections_dict = json.load(f)
 
     dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
+
+    regions = define_regions_to_extract(sections_dict)
 
     # with mp.Pool(processes=mp.cpu_count()-1) as pool:
     #     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
