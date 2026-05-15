@@ -29,7 +29,7 @@ def define_regions_to_extract(sections_dict):
     return regions
 
 
-def process_chunk(df):
+def process_chunk(df, regions):
 
     regions_mapping = pd.Series(index=df.index, dtype=str).fillna('')
 
@@ -114,12 +114,12 @@ def save_section(region_name, region_data, df):
     columns = [
         c for c in sub_results_df.columns if c != 'region'
     ]
+    # alternative: columns = list(sub_results.columns).remove('region')
     sub_results_df = sub_results_df.loc[:,columns]
     # subresults_df.drop(columns='region', inplace=True)
 
     if sub_results_df.size == 0:
         print(f'region {region_name}: no datapoints matching')
-
     else:
         # save thingy
         sub_results_pq = pa.Table.from_pandas(sub_results_df)
@@ -175,11 +175,37 @@ if __name__ == '__main__':
         
         
     #     parquet_file
-    results_df = pd.DataFrame()
-    parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
-    for batch in parquet_file.iter_batches():
-        batch_df = batch.to_pandas()
-        processed_df = process_chunk(batch_df)
-        results_df = pd.concat([results_df, processed_df])
-    for region_name, region_data in regions.items():
-        save_section(region_name, region_data, results_df) 
+    # results_df = pd.DataFrame()
+    # parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
+    # for batch in parquet_file.iter_batches():
+    #     batch_df = batch.to_pandas()
+    #     processed_df = process_chunk(batch_df)
+    #     results_df = pd.concat([results_df, processed_df])
+    # for region_name, region_data in regions.items():
+    #     save_section(region_name, region_data, results_df) 
+
+    for file in Path(data).glob('*_boundaries.parquet'):
+        parquet_file = pq.ParquetFile(file)
+        with mp.Pool(processes=mp.cpu_count()-1) as pool:
+            with parquet_file.iter_batches() as reader:
+                results = pool.imap(
+                    functools.partial(
+                        process_chunk,
+                        regions=regions
+                    ), reader
+                )
+                pool.close()
+                pool.jon()
+                results_df = pd.concat(results)
+
+        with mp.Pool(processes=mp.cpu_count()-1) as pool:
+        pool.imap_unordered(
+            functools.partial(
+                save_section,
+                df=results_df,
+                regions=regions
+            ),
+            regions.keys()
+        )
+        pool.close()
+        pool.join()

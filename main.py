@@ -2,6 +2,7 @@ from pathlib import Path
 import configparser
 import subprocess
 import argparse
+import os
 
 if __name__ == '__main':
 
@@ -28,8 +29,19 @@ if __name__ == '__main':
     pixelsize = config['PREPROCESSING'].getfloat('pixelsize')
     rf = config['PREPROCESSING'].getfloat('rf')
 
+    # preprocess
+    cmd = f'python processing/image_splitting.py -c {config_path}'
+    os.system(cmd)
+
+    cmd = f'python processing/transcript_splitting.py -c {config_path}'
+    os.system(cmd)
+
+    cmd = f'python processing/boundaries_splitting.py -c {config_path}'
+    os.system(cmd)
+
+
     if 'CPSAM' in config.sections():
-        path = config_path[:-len('config.ini')]+'start/cpsam.sh'
+        path = 
         subprocess.run(path,)
 
     for method in config.sections()[2:]:
