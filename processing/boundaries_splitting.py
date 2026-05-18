@@ -1,6 +1,7 @@
 from pathlib import Path
 import configparser
 import argparse
+import tomllib
 
 import json
 import gzip
@@ -46,8 +47,6 @@ def process_chunk(df, regions):
             & (df['vertex_y'] <= y_max)
         ] = region_name
 
-    # print(list(set(regions_mapping)))
-
     df['region'] = regions_mapping
 
     return df
@@ -69,12 +68,7 @@ def relative(df, region_data):
     vertex_x_arr_r[vertex_x_arr_r == 0] = np.nan
 
     df.iloc[:,1] = pd.DataFrame(vertex_x_arr_r)
-    
-    # df.iloc[:, 1:3] = pd.DataFrame((
-    #     df.iloc[:, 1:3].to_numpy()
-    #     - [region_data['x_min'],region_data['y_min']]
-    # ))
-    
+
     return df
 
 
@@ -92,11 +86,7 @@ def pixelate(df):
     vertex_x_arr_p.astype(np.int64)
     vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
     df.iloc[:,1] = pd.DataFrame(vertex_x_arr_p)
-    # df.iloc[:, 1:3] = pd.DataFrame((
-    #     df.iloc[:, 1:3].to_numpy()
-    #     / pixelsize
-    # ).round(0), dtype='Int64')
-    
+
     return df
 
 
@@ -111,12 +101,11 @@ def save_section(region_name, region_data, df, bound='cell'):
     sub_results_df = pixelate(sub_results_df)
 
     # cleanup
-    columns = [
-        c for c in sub_results_df.columns if c != 'region'
-    ]
-    # alternative: columns = list(sub_results.columns).remove('region')
+    # columns = [
+    #     c for c in sub_results_df.columns if c != 'region'
+    # ]
+    columns = list(sub_results.columns).remove('region')
     sub_results_df = sub_results_df.loc[:,columns]
-    # subresults_df.drop(columns='region', inplace=True)
 
     if sub_results_df.size == 0:
         print(f'region {region_name}: no datapoints matching')
@@ -140,54 +129,29 @@ def save_section(region_name, region_data, df, bound='cell'):
 
 
 if __name__ == '__main__':
-    # define paths
     parser = argparse.ArgumentParser(prog='Image Processing.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     args = parser.parse_args()
 
     config_path = args.Config
 
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    with open(config_path, 'rb') as f:
+        config = tomllib.load(f)
 
-    data = Path(config['PATHS']['data_path'])
-    sample = config['PATHS']['sample_name']
+    home = config['paths']['home']
+    data = Path(config['paths']['data_path'])
+    sample = config['paths']['name']
 
-    processed = Path(f'/data/cephfs-2/unmirrored/groups/sawitzki/Juno/{sample}/processed')
+    processed = Path(f'{home}{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
 
     # define variables
-    chunks = config['PREPROCESSING'].getfloat('chunks')
-    n_roi = config['PREPROCESSING'].getfloat('n_roi')
-    overlap = config['PREPROCESSING'].getfloat('overlap')
-
-    pixelsize = config['ImageStats'].getfloat('pixelsize_xy')
+    pixelsize = config['ImageStats']['pixelsize_xy']
 
     with open(processed / 'sections_px.json', 'r') as f:
         sections_dict = json.load(f)
 
-    # dtype_dict = dict(zip(['transcript_id','overlaps_nucleus','codeword_index'],[np.int64]*3))
-
-    regions = define_regions_to_extract(sections_dict)
-
-    # with mp.Pool(processes=mp.cpu_count()-1) as pool:
-    #     parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
-    #     with parquet_file.iter_batches() as reader:
-    #         results = pool.imap(process_chunk, reader)#, chunksize = int(20000/mp.cpu_count()-1))
-    #         pool.close()
-    #         pool.join()
-    #         results_df = pd.concat(results)
-        
-        
-    #     parquet_file
-    # results_df = pd.DataFrame()
-    # parquet_file = pq.ParquetFile(data / 'cell_boundaries.parquet')
-    # for batch in parquet_file.iter_batches():
-    #     batch_df = batch.to_pandas()
-    #     processed_df = process_chunk(batch_df)
-    #     results_df = pd.concat([results_df, processed_df])
-    # for region_name, region_data in regions.items():
-    #     save_section(region_name, region_data, results_df) 
+    regions = define_regions_to_extract(sections_dict) 
 
     for file in Path(data).glob('*_boundaries.parquet'):
         parquet_file = pq.ParquetFile(file)

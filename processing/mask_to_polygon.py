@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import configparser
 import argparse
+import tomllib
 
 # function form cellpose.utils
 def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
@@ -176,23 +177,17 @@ if __name__ == '__main__':
     config_path = args.Config
     labels_path = args.Labels
 
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    sections = config.sections()
+    with open(config_path, 'rb') as f:
+        config = tomllib.load(f)
 
-    data = Path(config['PATHS']['data_path'])
-    sample = config['PATHS']['sample_name']
+    preprocessing = config['precossing']
+    paths = config['paths']
+    imagestats = config['ImageStats']
+
+    home = paths['home']
     
-    results = Path(f'/data/cephfs-2/unmirrored/groups/sawitzki/Juno/{sample}/results')
+    results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
-
-    # define variables
-    chunks = config['DEFAULT'].getfloat('chunks')
-    min_size = config['DEFAULT'].getfloat('min_size')
-    n_roi = config['DEFAULT'].getfloat('n_roi')
-    overlap = config['DEFAULT'].getfloat('overlap')
-    pixelsize = config['DEFAULT'].getfloat('pixelsize')
-    rf = config['DEFAULT'].getfloat('rf')
 
     if labels_path:
         mask = tifffile.imread(labels_path)

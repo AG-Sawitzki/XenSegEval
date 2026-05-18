@@ -18,6 +18,7 @@ from itertools import product
 from pathlib import Path
 import configparser
 import argparse
+import tomllib
 import os
 
 from tqdm import tqdm
@@ -55,11 +56,7 @@ def find_rois(image_org, image_subres, n_roi):
     z, y, x = image_org.shape
 
     subres_centre = np.uint8(image_subres[z//2])
-    # subres_blur = cv2.GaussianBlur(
-    #     subres_centre,
-    #     (0, 0),
-    #     1.5
-    # )
+
     subres_dilated = cv2.dilate(
         subres_centre,
         np.ones((3, 3)),
@@ -87,13 +84,6 @@ def find_rois(image_org, image_subres, n_roi):
     values_arr = np.array(values, dtype=dtype)
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
     smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
-
-    # sort contours by y,x:
-    # values_nroi_argsorted = np.argsort(
-    #     values_nroi,
-    #     kind='stable',
-    #     order=['y', 'x']
-    # )
 
     mask = values_arr['area'] >= smallest_allowed_roi
     nroi_contours = [
@@ -146,18 +136,6 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
 
 
 def chunk_size(var, chunks):
-
-    # var_low = var*np.sqrt(chunks)/chunks*(1-overlap)*chunk
-    # var_high = var*np.sqrt(chunks)/chunks*(1+overlap)*chunk
-
-    # if var < var_high:
-    #     var_high = var
-    
-    # var_low = int(var_low)
-    # var_high = int(var_high)
-    
-    # return var_low, var_high
-
     return int(var*np.sqrt(chunks)/chunks)
 
 
@@ -264,24 +242,30 @@ if __name__ == '__main__':
 
     config_path = args.Config
 
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    with open(config_path, 'rb') as f:
+        config = tomllib.load(f)
 
-    preprocessing = dict(config.items('PREPROCESSING'))
-    paths = dict(config.items('PATHS'))
-    imagestats = dict(config.items('ImageStats'))
+    preprocessing = config['precossing']
+    paths = config['paths']
+    imagestats = config['ImageStats']
 
     # define paths
     home = paths['home']
     sample = paths['sample_name']
     data = paths['data_path']
 
-    processed = Path('{0}/{1}/processed'.format(home, sample))
+    processed = Path(f'{home}/{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
     morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
+
+    subres_lvls = [lvl for lvl in morphology_zarr]
+    subres_max = max(subres_lvls)
+    subres_min = min(subres_lvls)
+
+    morphology_org = morphology_zarr[subres_min]
 
     # load morphology_focus
     focus_org = []
@@ -292,12 +276,6 @@ if __name__ == '__main__':
         )
         focus_zarr = zarr.open(focus_store, mode='r')
         focus_org.append(focus_zarr['0'])
-
-    subres_lvls = [lvl for lvl in morphology_zarr]
-    subres_max = max(subres_lvls)
-    subres_min = min(subres_lvls)
-
-    morphology_org = morphology_zarr[subres_min]
 
     if 'section_dict' in paths:
         print('Has sections_dict...') 
@@ -312,7 +290,7 @@ if __name__ == '__main__':
         
         roi_list, subres_centre = find_rois(
             morphology_org, morphology_subres,
-            int(preprocessing['n_roi'])
+            preprocessing['n_roi']
         )
 
         with tqdm(
@@ -321,7 +299,7 @@ if __name__ == '__main__':
             ncols=79,
             leave=True
         ) as search_bar:
-            buffer = float(preprocessing['buffer'])
+            buffer = preprocessing['buffer']
 
             z, y, x = morphology_org.shape
             z_, y_, x_ = morphology_subres.shape
@@ -372,9 +350,9 @@ if __name__ == '__main__':
     ) as section_bar:
 
         planes = preprocessing['planes']
-        planes = [int(n) for n in planes if n.isdigit()]
-        chunks = int(preprocessing['chunks'])
-        overlap = float(preprocessing['overlap'])
+        # planes = [int(n) for n in planes if n.isdigit()]
+        chunks = preprocessing['chunks']
+        overlap = preprocessing['overlap']
 
         for section, bbox in sections_dict.items():
             y_min, x_min = bbox[0]

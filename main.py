@@ -2,6 +2,7 @@ from pathlib import Path
 import configparser
 import subprocess
 import argparse
+import tomllib
 import os
 
 if __name__ == '__main':
@@ -11,23 +12,22 @@ if __name__ == '__main':
     args = parser.parse_args()
 
     config_path = args.Config
+    
+    with open(config_path, 'rb') as f:
+        config = tomllib.load(f)
 
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    preprocessing = config['precossing']
+    paths = config['paths']
+    imagestats = config['ImageStats']
+    methods = config['methods']
+
+    # define paths
+    home = paths['home']
+    sample = paths['sample_name']
+    data = paths['data_path']
     
-    data = Path(config['PATHS']['data_path'])
-    sample = config['PATHS']['sample_name']
-    
-    results = Path(f'/data/cephfs-2/unmirrored/groups/sawitzki/Juno/{sample}/results')
+    results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
-
-    # define variables
-    chunks = config['PREPROCESSING'].getfloat('chunks')
-    min_size = config['PREPROCESSING'].getfloat('min_size')
-    n_roi = config['PREPROCESSING'].getfloat('n_roi')
-    overlap = config['PREPROCESSING'].getfloat('overlap')
-    pixelsize = config['PREPROCESSING'].getfloat('pixelsize')
-    rf = config['PREPROCESSING'].getfloat('rf')
 
     # preprocess
     cmd = f'python processing/image_splitting.py -c {config_path}'
@@ -44,9 +44,10 @@ if __name__ == '__main':
         path = 
         subprocess.run(path,)
 
-    for method in config.sections()[2:]:
-        path = config_path[:-len('config.ini')]+f'start/{lower(method)}'
-        subprocess.run()
+    for method in methods:
+        path = f'bash start/{method}'
+        os.system(cmd)
+        #subprocess.run()
 
         # perhaps function to start a method
         # thus enabling multiple starts with multiprocessing
