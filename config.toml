@@ -1,0 +1,50 @@
+# TOML for 10XSegEval
+
+[owner]
+name = 'Normann-BPh'
+
+[preprocessing]
+# number chunks a section is split into for faster processing
+# must be 4,9,16,...
+chunks = 4
+# overlap of chunks
+overlap = 0.05
+# layers user is interested
+plane = [5, 6, 7]
+# number of expected sections
+n_roi = 12
+# additional space around the roi
+buffer = 0.1
+
+
+[ImageStats]
+# stats of the morphology.ome.tif
+pixelsize_xy = 0.2125
+pixelsize_z = 3.0000
+
+[paths]
+# home directory the processed data will be saved to
+home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
+# directory of Xenium-results
+data = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022442__Region_1__20240516__110244'
+# give a name to the sample
+name = 'TMA1'
+
+[methods]
+
+    [methods.cellvit]
+    [methods.cpsam]
+
+    [methods.dissect]
+    platform = Xenium
+    config_file = <>
+    weights_file = <>
+
+    [methods.mesmer]
+
+    [methods.proseg]
+
+    [methods.stardist]
+
+    [methods.ucs]
+    
