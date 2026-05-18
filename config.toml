@@ -36,9 +36,9 @@ name = 'TMA1'
     [methods.cpsam]
 
     [methods.dissect]
-    platform = Xenium
-    config_file = <>
-    weights_file = <>
+    platform = 'Xenium'
+    # config_file = 
+    # weights_file = 
 
     [methods.mesmer]
 
