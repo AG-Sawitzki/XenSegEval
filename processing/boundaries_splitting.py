@@ -100,7 +100,7 @@ def pixelate(df):
     return df
 
 
-def save_section(region_name, region_data, df):
+def save_section(region_name, region_data, df, bound='cell'):
     # main selection
     sub_results_df = df[df['region'] == region_name]
 
@@ -128,7 +128,12 @@ def save_section(region_name, region_data, df):
         output_dir = processed / f'{region_name}/boundaries/'
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        parquet_path = output_dir / 'relative.parquet'
+        if bound == 'cell':
+            f_str = 'cell'
+        else:
+            f_str = 'nucleus'
+        
+        parquet_path = output_dir / '{0}_relative.parquet'.format(f_str)
         pq.write_table(sub_results_pq, parquet_path)
 
         print(f'region {region_name}: saved results')
@@ -186,6 +191,7 @@ if __name__ == '__main__':
 
     for file in Path(data).glob('*_boundaries.parquet'):
         parquet_file = pq.ParquetFile(file)
+        bound = file.strip('_boundaries.parquet')
         with mp.Pool(processes=mp.cpu_count()-1) as pool:
             with parquet_file.iter_batches() as reader:
                 results = pool.imap(
@@ -203,7 +209,8 @@ if __name__ == '__main__':
             functools.partial(
                 save_section,
                 df=results_df,
-                regions=regions
+                regions=regions,
+                bound=bound
             ),
             regions.keys()
         )
