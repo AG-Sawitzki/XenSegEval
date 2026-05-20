@@ -217,8 +217,8 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
             metadata=metadata,
             **options
         )
-        save pyramid levels to the two subifds
-        in production use resampling to generate sub-resolution images
+        # save pyramid levels to the two subifds
+        # in production use resampling to generate sub-resolution images
         if ome and not focus:
             for level in range(subresolutions):
                 mag = 8 ** (level + 1)
