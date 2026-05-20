@@ -40,13 +40,13 @@ if __name__ == '__main':
     os.system(cmd)
 
 
-    if 'CPSAM' in config.sections():
-        path = 
-        subprocess.run(path,)
+    # if 'CPSAM' in config.sections():
+    #     path = 
+    #     subprocess.run(path,)
 
-    for method in methods:
-        path = f'bash start/{method}'
-        os.system(cmd)
+    # for method in methods:
+    #     path = f'bash start/{method}'
+    #     os.system(cmd)
         #subprocess.run()
 
         # perhaps function to start a method
