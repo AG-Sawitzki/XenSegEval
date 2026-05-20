@@ -3,7 +3,9 @@ from CellSegmentationEvaluator import (
     single_method_eval3D,
     CSE3D
 )
+
 from pathlib import Path
+
 
 imgpath = Path('''
                /data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/
@@ -17,7 +19,7 @@ maskpath = Path('''
                 '''
 )
 
-single_method_eval(imgpath, maskpath)
+print(single_method_eval(imgpath, maskpath))
 
 # import cv2
 # import geopandas as gpd
