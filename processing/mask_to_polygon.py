@@ -180,7 +180,7 @@ if __name__ == '__main__':
     with open(config_path, 'rb') as f:
         config = tomllib.load(f)
 
-    preprocessing = config['precossing']
+    preprocessing = config['preprocessing']
     paths = config['paths']
     imagestats = config['ImageStats']
 
