@@ -1,17 +1,16 @@
 #!/bin/bash
 #
-source /path/to/lib_ini.sh
-CONFIG_FILE=$1
-home=$(ini_read "$CONFIG_FILE" "PATHS" "home")
-sample=$(ini_read "$CONFIG_FILE" "PATHS" "sample_name")
-mail=$(ini_read "$CONFIG_FILE" "PATHS" "mail)
+source get_toml_value.sh
+CONFIG_FILE=${2-config.toml}
+SECTION=$3
+home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
+sample=$(get_toml_value "$CONFIG_FILE" "paths" "sample_name")
+mail=$(get_toml_value "$CONFIG_FILE" "paths" "mail")
 #
 IN=$1
 IFS='/' read -r -a array <<< "$IN"
-echo "${array[-1]}"
 name=${array[-1]}
 #
-method=$2
 sbatch <<EOT
 #!/bin/bash
 #
@@ -26,6 +25,6 @@ sbatch <<EOT
 #SBATCH --mail-user=$mail
 #
 
-source $1
+source $IN $CONFIG_FILE $SECTION
 
 EOT

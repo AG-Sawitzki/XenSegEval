@@ -13,8 +13,8 @@
         sections_px.json
         [section]:
             boundaries:
-                cell.csv
-                nucleus.csv
+                cell_relative.parquet
+                nucleus_relative.parquet
             morphology:
                 focus:
                     focus.ome.tif

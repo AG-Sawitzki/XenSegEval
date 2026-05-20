@@ -4,17 +4,17 @@
 name = 'Normann-BPh'
 
 [preprocessing]
-# number chunks a section is split into for faster processing
-# must be 4,9,16,...
-chunks = 4
-# overlap of chunks
-overlap = 0.05
-# layers user is interested
+# layers user is interested in
 plane = [5, 6, 7]
 # number of expected sections
 n_roi = 12
 # additional space around the roi
 buffer = 0.1
+# number of chunks a section is split into for faster processing
+# must be 4,9,16,...
+chunks = 4
+# overlap of chunks
+overlap = 0.05
 
 
 [ImageStats]
@@ -29,9 +29,10 @@ home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 data = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022442__Region_1__20240516__110244'
 # give a name to the sample
 name = 'TMA1'
-
+# path to .bashrc
+bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
 [methods]
-
+# parameters for the segmentation algorithms
     [methods.cellvit]
     [methods.cpsam]
 
@@ -47,4 +48,13 @@ name = 'TMA1'
     [methods.stardist]
 
     [methods.ucs]
-    
+    check_gene_map = False
+
+[evaluation]
+# if a evaluation should be performed based on
+    # F1 and related scores
+    F1 = TRUE
+    # principal components
+    PCA = TRUE
+    # probability density
+    PD = TRUE
