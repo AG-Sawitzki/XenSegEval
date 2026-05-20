@@ -1,23 +1,29 @@
 from CellSegmentationEvaluator import (
     single_method_eval,
 )
-
+from aicsimageio.aics_image import imread
 from pathlib import Path
 
 
-imgpath = Path('''
-               /data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/
-               data_processed/image-data_processed/morphology/36/focus
-               '''
+imgpath = imread(Path('''
+                      /data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/
+                      data_processed/image-data_processed/morphology/36/focus
+                      '''
+                )
 )
 
-maskpath = Path('''
-                /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
-                /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
-                '''
+maskpath = imread(Path('''
+                       /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
+                       /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
+                       '''
+                 )
 )
 
-print(single_method_eval(imgpath, maskpath))
+print(single_method_eval(imgpath,
+                         maskpath,
+                         out_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
+      )
+)
 
 # import cv2
 # import geopandas as gpd
