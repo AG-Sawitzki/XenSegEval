@@ -1,7 +1,5 @@
 from CellSegmentationEvaluator import (
     single_method_eval,
-    single_method_eval3D,
-    CSE3D
 )
 
 from pathlib import Path
