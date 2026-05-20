@@ -43,6 +43,11 @@ def get_memory_usage_percentage():
     return memory_percentage
 
 
+def get_weighted_distance(centre, weightx=1, weighty=0.5):
+    x, y = centre
+    return np.sqrt((x*weightx)**2 + (y*weighty)**2)
+
+
 def find_rois(image_org, image_subres, n_roi):
     """Sort the contours by area.
     Args:
@@ -75,19 +80,24 @@ def find_rois(image_org, image_subres, n_roi):
 
     # keep contours with significant size
     values = []
-    dtype = [('area', float), ('y', float), ('x', float)]
+    dtype = [('area', float), ('wd', float), ('y', float), ('x', float)]
 
     for c in contours:
         (x, y), (w, h), a = cv2.minAreaRect(c)
-        values.append((w*h, y, x))
+        wd = get_weighted_distance([x,y])
+        values.append((w*h, wd, y, x))
 
     values_arr = np.array(values, dtype=dtype)
+    # sort by area and find smallest allowed roi
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
     smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
+    # sort by weighted_distance and 
+    values_arr_wd_args = np.argsort(values_arr, kind='stable', order='wd')
+    contours_wd_sorted = [contours[index] for index in values_arr_wd_args]
 
-    mask = values_arr['area'] >= smallest_allowed_roi
+    mask = values_arr.sort(kind='stable', order='wd')['area'] >= smallest_allowed_roi
     nroi_contours = [
-        contours[index] for index, boolean in enumerate(mask) if boolean
+        contours_wd_sorted[index] for index, boolean in enumerate(mask) if boolean
     ]
 
     return nroi_contours, subres_centre
