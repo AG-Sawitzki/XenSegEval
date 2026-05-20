@@ -5,7 +5,7 @@ name = 'Normann-BPh'
 
 [preprocessing]
 # layers user is interested in
-plane = [5, 6, 7]
+planes = [5, 6, 7]
 # number of expected sections
 n_roi = 12
 # additional space around the roi
@@ -26,9 +26,9 @@ pixelsize_z = 3.0000
 # home directory the processed data will be saved to
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 # directory of Xenium-results
-data = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022379__Region_1__20240426__111609'
+data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022379__Region_1__20240426__111609'
 # give a name to the sample
-name = 'TMA4'
+sample_name = 'TMA4'
 # path to .bashrc
 bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
 [methods]

@@ -93,9 +93,10 @@ def find_rois(image_org, image_subres, n_roi):
     smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
     # sort by weighted_distance and 
     values_arr_wd_args = np.argsort(values_arr, kind='stable', order='wd')
+    values_arr_wd_sorted = np.sort(values_arr, kind='stabe', order='wd')
     contours_wd_sorted = [contours[index] for index in values_arr_wd_args]
 
-    mask = values_arr.sort(kind='stable', order='wd')['area'] >= smallest_allowed_roi
+    mask = values_arr_wd_sorted['area'] >= smallest_allowed_roi
     nroi_contours = [
         contours_wd_sorted[index] for index, boolean in enumerate(mask) if boolean
     ]
