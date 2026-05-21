@@ -331,6 +331,7 @@ if __name__ == '__main__':
                     text=f'{section}',
                     org=(x, y+h),
                     fontFace=cv2.FONT_HERSHEY_PLAIN, #int(h/2),
+                    fontScale=2
                     color=(255, 255, 255), 
                     thickness=2,
                     bottomLeftOrigin=True
