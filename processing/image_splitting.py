@@ -43,7 +43,7 @@ def get_memory_usage_percentage():
     return memory_percentage
 
 
-def get_weighted_distance(centre, weightx=1, weighty=0.5):
+def get_weighted_distance(centre, weightx=0.25, weighty=1):
     x, y = centre
     return np.sqrt((x*weightx)**2 + (y*weighty)**2)
 
@@ -328,13 +328,13 @@ if __name__ == '__main__':
                 )
                 cv2.putText(
                     img=subres_centre, 
-                    text=f'{section}',
-                    org=(x, y+h),
+                    text=str(section),
+                    org=(int(x+w/4), int(y+h/2)),
                     fontFace=cv2.FONT_HERSHEY_PLAIN, #int(h/2),
-                    fontScale=2
+                    fontScale=2,
                     color=(255, 255, 255), 
                     thickness=2,
-                    bottomLeftOrigin=True
+                    bottomLeftOrigin=False
                 )
 
                 # adjust for scaling
