@@ -1,7 +1,7 @@
 # TOML for 10XSegEval
-
 [owner]
 name = 'Normann-BPh'
+
 
 [preprocessing]
 # layers user is interested in
@@ -22,6 +22,7 @@ overlap = 0.05
 pixelsize_xy = 0.2125
 pixelsize_z = 3.0000
 
+
 [paths]
 # home directory the processed data will be saved to
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
@@ -31,30 +32,33 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA3'
 # path to .bashrc
 bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
-[methods]
-# parameters for the segmentation algorithms
-    [methods.cellvit]
-    [methods.cpsam]
 
-    [methods.dissect]
-    platform = 'Xenium'
-    # config_file = 
-    # weights_file = 
 
-    [methods.mesmer]
+[methods.cellvit]
 
-    [methods.proseg]
+[methods.cpsam]
 
-    [methods.stardist]
+[methods.dissect]
+platform = 'Xenium'
+# config_file = 
+# weights_file = 
 
-    [methods.ucs]
-    # check_gene_map = False
+[methods.mesmer]
+
+[methods.proseg]
+
+[methods.stardist]
+
+[methods.ucs]
+# check_gene_map = false
+
 
 [evaluation]
 # if a evaluation should be performed based on
-    # F1 and related scores
-    # F1 = TRUE
-    # principal components
-    # PCA = TRUE
-    # probability density
-    # PD = TRUE
+# F1 and related scores
+F1 = true
+# principal components
+PCA = true
+# probability density
+PD = true
+overlay_image = true
