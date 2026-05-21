@@ -330,9 +330,10 @@ if __name__ == '__main__':
                     img=subres_centre, 
                     text=f'{section}',
                     org=(x, y+h),
-                    fontHeight=int(h/2),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, #int(h/2),
                     color=(255, 255, 255), 
-                    thickness=2
+                    thickness=2,
+                    bottomLeftOrigin=True
                 )
 
                 # adjust for scaling
