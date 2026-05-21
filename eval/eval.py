@@ -6,8 +6,8 @@ from pathlib import Path
 
 
 imgpath = imread(Path('''
-                      /data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/
-                      data_processed/image-data_processed/morphology/36/focus
+                      /data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3
+                      /processed/9/morphology/focus/focus.ome.tif
                       '''
                 )
 )
