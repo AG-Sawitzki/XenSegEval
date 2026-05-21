@@ -5,24 +5,25 @@ from aicsimageio.aics_image import imread
 from pathlib import Path
 
 
-imgpath = imread(Path('''
-                      /data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3
-                      /processed/9/morphology/focus/focus.ome.tif
-                      '''
-                )
+img = imread(Path('''
+        /data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3
+        /processed/9/morphology/focus/focus.ome.tif
+        '''
+    )
 )
 
-maskpath = imread(Path('''
-                       /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
-                       /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
-                       '''
-                 )
+mask = imread(Path('''
+        /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
+        /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
+        '''
+    )
 )
 
-print(single_method_eval(imgpath,
-                         maskpath,
-                         out_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
-      )
+print(single_method_eval(
+        img,
+        mask,
+        out_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
+    )
 )
 
 # import cv2

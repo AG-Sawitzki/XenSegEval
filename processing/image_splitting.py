@@ -191,11 +191,11 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
         metadata = {
             'axes': axes,
             'PhysicalSizeX': pixelsizeXY,
-        #    'PhysicalSizeXUnit': 'Âµm',
+            'PhysicalSizeXUnit': 'Âµm',
             'PhysicalSizeY': pixelsizeXY,
-        #    'PhysicalSizeYUnit': 'Âµm',
+            'PhysicalSizeYUnit': 'Âµm',
             'PhysicalSizeZ': pixelsizeZ,
-        #    'PhysicalSizeZUnit': 'Âµm'
+            'PhysicalSizeZUnit': 'Âµm'
         }
     else:
         ome = False
