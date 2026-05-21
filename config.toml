@@ -9,7 +9,7 @@ planes = [5, 6, 7]
 # number of expected sections
 n_roi = 12
 # additional space around the roi
-buffer = 0.1
+buffer = 0.01
 # number of chunks a section is split into for faster processing
 # must be 4,9,16,...
 chunks = 4
