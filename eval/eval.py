@@ -2,15 +2,21 @@ from CellSegmentationEvaluator import (
     single_method_eval,
 )
 from aicsimageio.aics_image import imread
+import tifffile as tf
 from pathlib import Path
 
 
-img = imread(Path('''
-        /data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3
-        /processed/9/morphology/focus/focus.ome.tif
-        '''
-    )
-)
+with tf.TiffFile(Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3/processed/9/morphology/focus/focus.ome.tif')) as tif:
+    frames=[]
+    try:
+        for page in tif.pages:
+            frames.append(page.asarray())
+    except Exception:
+        pass
+
+print(len(frames))
+
+
 
 mask = imread(Path('''
         /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results

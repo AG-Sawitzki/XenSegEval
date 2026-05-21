@@ -11,7 +11,7 @@ n_roi = 12
 # additional space around the roi
 buffer = 0.01
 # number of chunks a section is split into for faster processing
-# must be 4,9,16,...
+# must be 4,9,16,25,...
 chunks = 4
 # overlap of chunks
 overlap = 0.05

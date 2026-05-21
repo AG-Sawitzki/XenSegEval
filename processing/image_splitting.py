@@ -186,7 +186,7 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
             focus = True
             axes = 'YXC'
             resolution = image.shape[:2]
-        subresolutions = 2
+        subresolutions = None
         bigtiff = True
         metadata = {
             'axes': axes,
@@ -218,30 +218,6 @@ def write_tif(image, imagestats, section, layer=None, chunk=None):
             metadata=metadata,
             **options
         )
-        # save pyramid levels to the two subifds
-        # in production use resampling to generate sub-resolution images
-        # if ome and not focus:
-        #     for level in range(subresolutions):
-        #         mag = 8 ** (level + 1)
-                
-        #         image_ = image[..., ::mag, ::mag]
-
-        #         if image_.size == 0:
-        #             continue
-        #         else:
-        #             tif.write(
-        #                 image_,
-        #                 subfiletype=1,
-        #                 resolution=(resolution[0] // mag,
-        #                             resolution[1] // mag
-        #                 ),
-        #                 **options
-        #             )
-
-        #             # add a thumbnail image as a separate series
-        #             # it is recognized by QuPath as an associated image
-        #             thumbnail = (image[0, ::128, ::128] >> 2).astype('uint8')
-        #             tif.write(thumbnail, metadata={'Name': 'thumbnail'})
 
 
 if __name__ == '__main__':
@@ -380,6 +356,7 @@ if __name__ == '__main__':
             y_max, x_max = bbox[1]
             resolution = (y_max-y_min, x_max-x_min)
 
+            # assigning the arrays take ~4min
             morphology_section = morphology_org[
                 planes,
                 y_min:y_max,
@@ -391,6 +368,8 @@ if __name__ == '__main__':
                 focus_org[2][y_min:y_max, x_min:x_max],
                 focus_org[3][y_min:y_max, x_min:x_max]
             ))
+            # print(type(focus_section))
+            # print(type(morphology_section))
 
             write_tif(morphology_section, imagestats, section)
             write_tif(focus_section, imagestats, section)
