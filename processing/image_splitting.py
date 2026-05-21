@@ -326,6 +326,14 @@ if __name__ == '__main__':
                     subres_centre, (x, y), (x+w, y+h),
                     (255, 255, 255), 2
                 )
+                cv2.putText(
+                    img=subres_centre, 
+                    text=f'{section}',
+                    org=(x, y+h),
+                    fontHeight=int(h/2),
+                    color=(255, 255, 255), 
+                    thickness=2
+                )
 
                 # adjust for scaling
                 x, w = x*rf_x, w*rf_x
