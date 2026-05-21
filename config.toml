@@ -26,9 +26,9 @@ pixelsize_z = 3.0000
 # home directory the processed data will be saved to
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 # directory of Xenium-results
-data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022379__Region_1__20240426__111609'
+data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022391__Region_1__20240426__111610'
 # give a name to the sample
-sample_name = 'TMA4'
+sample_name = 'TMA3'
 # path to .bashrc
 bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
 [methods]
