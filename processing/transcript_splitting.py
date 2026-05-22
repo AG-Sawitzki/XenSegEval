@@ -168,6 +168,8 @@ if __name__ == '__main__':
     imagestats = config['ImageStats']
 
     home = paths['home']
+    data = Path(paths['data_path'])
+    sample = paths['sample_name']
 
     # directory for saving!
     processed = Path(f'{home}/{sample}/processed')

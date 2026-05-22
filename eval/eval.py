@@ -1,36 +1,24 @@
-from CellSegmentationEvaluator import (
-    single_method_eval,
-)
-from aicsimageio.aics_image import imread
-import tifffile as tf
 from pathlib import Path
 
-
-with tf.TiffFile(Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3/processed/9/morphology/focus/focus.ome.tif')) as tif:
-    frames=[]
-    try:
-        for page in tif.pages:
-            frames.append(page.asarray())
-    except Exception:
-        pass
-
-print(len(frames))
+from CellSegmentationEvaluator.single_method_eval import single_method_eval
+from skimage.segmentation import find_boundaries
+from aicsimageio.aics_image import imread
+import tifffile as tf
+import numpy as np
 
 
+if PCA:
+    img = imread('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3/processed/9/morphology/focus/focus.ome.tif')
 
-mask = imread(Path('''
-        /data/cephfs-2/unmirrored/groups/sawitzki/Juno/results
-        /res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy
-        '''
+
+    mask = np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy')
+    mask = find_boundaries(mask, connectivity=1, mode='inner')
+    print(type(mask))
+
+    print(single_method_eval(img, mask,
+        output_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
+        )
     )
-)
-
-print(single_method_eval(
-        img,
-        mask,
-        out_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
-    )
-)
 
 # import cv2
 # import geopandas as gpd
