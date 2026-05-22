@@ -44,6 +44,7 @@ platform = 'Xenium'
 # weights_file = 
 
 [methods.mesmer]
+token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
 [methods.proseg]
 
