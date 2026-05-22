@@ -1,15 +1,13 @@
 import os
-import tomllib
 
 from pathlib import Path
 from tifffile import TiffFile, imwrite
-from matplotlib import pyplot as plt
 from deepcell.applications import Mesmer
 
 from skimage.segmentation import find_boundaries
+from tomlkit import parse
 import numpy as np
 import json
-
 
 if __name__ == '__main__':
 
@@ -21,7 +19,7 @@ if __name__ == '__main__':
     labels_path = args.Labels
 
     with open(config_path, 'rb') as f:
-        config = tomllib.load(f)
+        config = parse(f)
 
     preprocessing = config['preprocessing']
     paths = config['paths']
