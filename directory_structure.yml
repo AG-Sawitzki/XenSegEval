@@ -6,7 +6,7 @@
         morphology.ome.tif
         morphology_focus:
             morphology_focus_000{0...3}.ome.tif
-        # (H&E)
+        # (H&E) ?
 [sample]:
     processed:
         marked_regions-of-interest.tif
@@ -51,4 +51,3 @@
             log:
                 run.log
             variables.json{?}
-                
