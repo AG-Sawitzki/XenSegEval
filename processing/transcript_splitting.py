@@ -15,6 +15,7 @@ import gzip
 
 # from numpy.lib.stride_tricks import sliding_window_view
 import multiprocessing as mp
+import pyarrow as pa
 import pandas as pd
 import numpy as np
 
@@ -142,11 +143,16 @@ def save_section(df, region_name, regions):
         output_dir = Path(processed / '{0}/transcripts/'.format(region_name))
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        sub_results_df.to_csv(csv_path / 'relative.csv', index=False)
+        sub_results_df.to_csv(output_dir / 'relative.csv', index=False)
 
         # compress for ProSeg
-        sub_results_df.to_csv(output_dir / 'relative.csv.gz', index=False,
-                              compression='infer'
+        sub_results_df.to_csv(
+            output_dir / 'relative.csv.gz', index=False,
+            compression='infer'
+        )
+        sub_results_pq = pa.Table.from_pandas(sub_results_df)
+        pa.parquet.write_table(
+            sub_results_pq, output_dir / 'relative.parquet'
         )
 
         print(f'region {region_name}: saved restults')
