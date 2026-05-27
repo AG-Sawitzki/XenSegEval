@@ -9,8 +9,6 @@
         # (H&E) ?
 [sample]:
     processed:
-        marked_regions-of-interest.tif
-        sections_px.json
         [section]:
             boundaries:
                 cell_relative.parquet
@@ -32,10 +30,18 @@
             transcripts:
                 relative.csv{.gz}
                 pixel_relative.csv{.gz}
+        marked_regions-of-interest.tif
+        sections_px.json
     results:
         [method]:
             count_matrix:
                 [section].mtx.gz
+            evaluation:
+                [section]:
+                    CS-BENCH.csv
+                    false_negatives.csv
+                    results.csv
+                    split_merges.csv
             outlines:
                 [section]:
                     [section].npy
@@ -50,4 +56,4 @@
         [method]:
             log:
                 run.log
-            variables.json{?}
+            variables.json ?

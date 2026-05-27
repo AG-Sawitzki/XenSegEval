@@ -30,6 +30,8 @@ home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022391__Region_1__20240426__111610'
 # give a name to the sample
 sample_name = 'TMA3'
+# path to ground_truth
+ground_truth = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif'
 # path to .bashrc
 bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
 
@@ -56,8 +58,10 @@ token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
 [evaluation]
 # if a evaluation should be performed based on
-# F1 and related scores
-F1 = true
+# Jaccard and related scores
+JACCARD = true
+# Jaccard but by cs-benchmark
+CS-BENCH = true
 # principal components
 PCA = true
 # probability density
