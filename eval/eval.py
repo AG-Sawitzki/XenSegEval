@@ -1,4 +1,7 @@
 from pathlib import Path
+import argparse
+import tomllib
+import pickle
 
 import tifffile as tf
 import pandas as pd
@@ -9,6 +12,7 @@ from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
 from aicsimageio.aics_image import imread
+from aicsimageio.writers import ome_tiff_writer
 
 # for jaccard
 from unet4nuclei.evaluation import (
@@ -49,25 +53,49 @@ if __name__ == '__main__':
     PD = evaluation['PD']
     PCA = evaluation['PCA']
     JACCARD = evaluation['JACCARD']
-    CS-BENCH = evaluation['CS-BENCH']
+    CS_BENCH = evaluation['CS-BENCH']
 
     mask_path = '<>'
 
-    gt = tf.imread(gt_path)
-    mask = tf.imread(mask_path)
+    #gt = tf.imread(gt_path)
+    #mask = tf.imread(mask_path)
+    focus_path = Path(f'{home}/{sample}/processed/{section}/morphology/focus/')
 
     outdir = Path(f'{sample}/results/{method}/evalueation/{section}/')
 
-    if PCA:
-        img = imread('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA3/processed/9/morphology/focus/focus.ome.tif')
+    if False: #PCA:
+        with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
+            PCA = pickle.load(pkl)
 
+        img = tf.imread(focus_path / 'focus.ome.tif')
+        print(img.shape)
+        img = np.moveaxis(img, -1, 0)
+        print(img.shape)
+        writer=ome_tiff_writer.OmeTiffWriter()
+        channel_names = [
+            'DAPI',
+            'ATP1A1_E-Cadherin_CD45',
+            '18S_rRNA',
+            'alphaSMA_Vimentin'
+        ]
+        writer.save(
+            img,
+            uri=Path(focus_path / 'aics.ome.tif'),
+            dim_order='CYX',
+            channel_names=channel_names,
+            image_name='focus',
+            pixel_physical_size=0.2125,
+            channel_colours=['red', 'green', 'blue', 'yellow'],
+        )
+
+        img = imread(focus_path / 'aics.ome.tif')
 
         mask = np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy')
         print(mask.shape)
         mask = find_boundaries(mask, connectivity=1, mode='inner')
         print(type(mask))
 
-        print(single_method_eval(img, mask,
+        print(single_method_eval(img, mask, PCA_model=PCA,
             output_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
             )
         )
@@ -118,7 +146,7 @@ if __name__ == '__main__':
         false_negative.to_csv(outdir / 'false_negative.csv', index=False)
         split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
-    if CS-BENCH:
+    if CS_BENCH:
         gt = label(gt)
         mask = label(mask)
 
@@ -131,6 +159,8 @@ if __name__ == '__main__':
         results.to_csv(outdir / 'CS-BENCH.csv', index=False)
     
     if PD:
+        # nothing
+        print('nothing')
 
 
 # import cv2

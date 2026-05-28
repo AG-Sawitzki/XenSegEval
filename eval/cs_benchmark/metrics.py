@@ -59,12 +59,12 @@ from skimage.segmentation import relabel_sequential
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
-from utils import erode_edges
+#from utils import erode_edges
 
-import pyximport
-pyximport.install()
-from compute_overlap import compute_overlap  # pylint: disable=E0401
-from compute_overlap import compute_overlap_3D
+#import pyximport
+#pyximport.install()
+#from compute_overlap import compute_overlap  # pylint: disable=E0401
+#from compute_overlap import compute_overlap_3D
 del absolute_import
 del division
 del print_function
@@ -76,6 +76,67 @@ def _cast_to_tuple(x):
     except TypeError:
         tup_x = () if x is None else (x,)
     return tup_x
+
+
+def compute_overlap(boxes, query_boxes):
+    N = boxes.shape[0]
+    K = query_boxes.shape[0]
+    overlaps = np.zeros((N, K), dtype=np.float64)
+    for k in range(K):
+        box_area = ((query_boxes[k, 2] - query_boxes[k, 0] + 1) * (query_boxes[k, 3] - query_boxes[k, 1] + 1))
+        for n in range(N):
+            iw = min(boxes[n, 2], query_boxes[k, 2]) - max(boxes[n, 0], query_boxes[k, 0]) + 1
+            if iw > 0:
+                ih = min(boxes[n, 3], query_boxes[k, 3]) - max(boxes[n, 1], query_boxes[k, 1]) + 1
+                if ih > 0:
+                    ua = (boxes[n, 2] - boxes[n, 0] + 1) * (boxes[n, 3] - boxes[n, 1] + 1) + box_area - iw * ih
+                    overlaps[n, k] = iw * ih / ua
+    return overlaps
+
+
+def compute_overlap_3D(boxes, query_boxes):
+    N = boxes.shape[0]
+    K = query_boxes.shape[0]
+    overlaps = np.zeros((N, K), dtype=np.float64)
+    for k in range(K):
+        box_volume = ((query_boxes[k, 3] - query_boxes[k, 0] + 1) * (query_boxes[k, 4] - query_boxes[k, 1] + 1) * (query_boxes[k, 5] - query_boxes[k, 2] + 1))
+        for n in range(N):
+            id = min(boxes[n, 3], query_boxes[k, 3]) - max(boxes[n, 0], query_boxes[k, 0]) + 1
+            if id > 0:
+                iw = min(boxes[n, 4], query_boxes[k, 4]) - max(boxes[n, 1], query_boxes[k, 1]) + 1
+                if iw > 0:
+                    ih = min(boxes[n, 5], query_boxes[k, 5]) - max(boxes[n, 2], query_boxes[k, 2]) + 1
+                    if ih > 0:
+                        ua = (boxes[n, 3] - boxes[n, 0] + 1) * (boxes[n, 4] - boxes[n, 1] + 1) * (boxes[n, 5] - boxes[n, 2] + 1) + box_volume - iw * ih * id
+                        overlaps[n, k] = iw * ih * id / ua
+    return overlaps
+
+
+def erode_edges(mask, erosion_width):
+    """Erode edge of objects to prevent them from touching
+
+    Args:
+        mask (numpy.array): uniquely labeled instance mask
+        erosion_width (int): integer value for pixel width to erode edges
+
+    Returns:
+        numpy.array: mask where each instance has had the edges eroded
+
+    Raises:
+        ValueError: mask.ndim is not 2 or 3
+    """
+
+    if mask.ndim not in {2, 3}:
+        raise ValueError('erode_edges expects arrays of ndim 2 or 3.'
+                         'Got ndim: {}'.format(mask.ndim))
+    if erosion_width:
+        new_mask = np.copy(mask)
+        for _ in range(erosion_width):
+            boundaries = find_boundaries(new_mask, mode='inner')
+            new_mask[boundaries > 0] = 0
+        return new_mask
+
+    return mask
 
 
 class Detection(object):  # pylint: disable=useless-object-inheritance
