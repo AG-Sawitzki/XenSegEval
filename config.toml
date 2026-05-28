@@ -10,7 +10,7 @@ planes = [5, 6, 7]
 n_roi = 12
 # additional space around the roi
 buffer = 0.01
-# number of chunks a section is split into for faster processing
+# number of chunks a section is spli t into for faster processing
 # must be 4,9,16,25,...
 chunks = 4
 # overlap of chunks
@@ -33,7 +33,7 @@ sample_name = 'TMA3'
 # path to ground_truth
 ground_truth = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif'
 # path to .bashrc
-bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
+# bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
 
 
 [methods.cellvit]

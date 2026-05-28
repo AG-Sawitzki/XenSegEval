@@ -11,7 +11,8 @@ import numpy as np
 from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-from aicsimageio.aics_image import imread
+from aicsimageio.aics_image import imread, AICSImage
+from aicsimageio.readers import ome_tiff_reader, tiff_reader, array_like_reader
 from aicsimageio.writers import ome_tiff_writer
 
 # for jaccard
@@ -60,10 +61,11 @@ if __name__ == '__main__':
     #gt = tf.imread(gt_path)
     #mask = tf.imread(mask_path)
     focus_path = Path(f'{home}/{sample}/processed/{section}/morphology/focus/')
+    test_path = Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/2D_CODEX.ome.tiff')
 
     outdir = Path(f'{sample}/results/{method}/evalueation/{section}/')
 
-    if False: #PCA:
+    if True: #PCA:
         with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
             PCA = pickle.load(pkl)
 
@@ -78,22 +80,30 @@ if __name__ == '__main__':
             '18S_rRNA',
             'alphaSMA_Vimentin'
         ]
+
+        stats = {
+            'dim_order': 'CYX',
+            'channel_names': channel_names,
+            'image_name':'focus',
+            'pixel_physical_size': 0.2125,
+            'channel_colours': ['red', 'green', 'blue', 'yellow']
+        }
+
         writer.save(
             img,
             uri=Path(focus_path / 'aics.ome.tif'),
-            dim_order='CYX',
-            channel_names=channel_names,
-            image_name='focus',
-            pixel_physical_size=0.2125,
-            channel_colours=['red', 'green', 'blue', 'yellow'],
+            **stats
         )
 
-        img = imread(focus_path / 'aics.ome.tif')
+        img = AICSImage(focus_path / 'aics.ome.tif', reader=ome_tiff_reader.OmeTiffReader)
+        print(img)
+        #print(img.data)
+        print(img.metadata)
 
-        mask = np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy')
+        mask = AICSImage(np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy'), reader=array_like_reader.ArrayLikeReader)
         print(mask.shape)
-        mask = find_boundaries(mask, connectivity=1, mode='inner')
-        print(type(mask))
+        #mask = find_boundaries(mask, connectivity=1, mode='inner')
+        #print(type(mask))
 
         print(single_method_eval(img, mask, PCA_model=PCA,
             output_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'

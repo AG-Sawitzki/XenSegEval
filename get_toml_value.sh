@@ -16,7 +16,7 @@
 # access_token = "*******123**********"
 # ---------------------------
 # Does not work for other more complex TOML files.
-
+#
 get_toml_value() {
     # Takes three parameters:
     # - TOML file path ($1)

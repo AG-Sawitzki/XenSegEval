@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-source get_toml_value.sh
+cd /data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/
+. ./get_toml_value.sh
 CONFIG_FILE=${2-config.toml}
 SECTION=$3
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
@@ -17,7 +18,7 @@ sbatch <<EOT
 #SBATCH --job-name=""$name
 #SBATCH --gres=gpu:l40:1
 #SBATCH --time=2-00
-#SBATCH --mem=200G
+#SBATCH --mem=64G
 #SBATCH --cpus-per-task=12
 #SBATCH --output=$home/$sample/run/$method/logs/$name/%N_%j.out
 #SBATCH --error=$home/$sample/run/$method/logs/$name/%N_%j.err
