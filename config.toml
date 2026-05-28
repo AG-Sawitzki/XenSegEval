@@ -27,9 +27,9 @@ pixelsize_z = 3.0000
 # home directory the processed data will be saved to
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 # directory of Xenium-results
-data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022391__Region_1__20240426__111610'
+data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022430__Region_1__20240704__134614'
 # give a name to the sample
-sample_name = 'TMA3'
+sample_name = 'TMA2'
 # path to ground_truth
 ground_truth = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif'
 # path to .bashrc
@@ -59,11 +59,11 @@ token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 [evaluation]
 # if a evaluation should be performed based on
 # Jaccard and related scores
-JACCARD = true
+JACCARD = false
 # Jaccard but by cs-benchmark
-CS-BENCH = true
+CS-BENCH = false
 # principal components
 PCA = true
 # probability density
-PD = true
-overlay_image = true
+PD = false
+overlay_image = false

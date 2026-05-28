@@ -63,6 +63,7 @@ if __name__ == '__main__':
 
 
         mask = np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy')
+        print(mask.shape)
         mask = find_boundaries(mask, connectivity=1, mode='inner')
         print(type(mask))
 
