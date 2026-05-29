@@ -1,17 +1,17 @@
 #!/bin/bash
 #
-echo "$PWD"
 . ./get_toml_value.sh
 CONFIG_FILE=${1-config.toml}
 SECTION=$2
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
 sample=$(get_toml_value "$CONFIG_FILE" "paths" "name")
 mm_path=$(get_toml_value "$CONFIG_FILE" "paths" "mm_path")
+n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
 #
-source ~/.bashrc
 #
-micromamba activate deepcell
+. ~/.bashrc
+micromamba activate dissect
 #
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/deepcell/lib/"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/dissect/lib"
 #
-python segmenting/seg_mesmer.py -c $CONFIG_FILE -s $SECTION
+python segmenting/seg_dissect.py -c $CONFIG_FILE -s $SECTION

@@ -25,7 +25,10 @@ sbatch <<EOT
 #SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50
 #SBATCH --mail-user=$mail
 #
-
-source $IN $CONFIG_FILE $SECTION
-
+if [ "$IN" == "*.sh" ]
+    then
+        source $IN $CONFIG_FILE $SECTION
+    else
+        python $IN -c $CONFIG_FILE -s $SECTION
+fi
 EOT

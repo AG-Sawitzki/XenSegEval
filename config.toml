@@ -24,7 +24,7 @@ pixelsize_z = 3.0000
 
 
 [paths]
-# home directory the processed data will be saved to
+# directory the processed data will be saved to; if undefined: uses git-clone location
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 # directory of Xenium-results
 data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022391__Region_1__20240426__111610'
@@ -32,8 +32,8 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA3'
 # path to ground_truth
 ground_truth = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif'
-# path to micromamba or equivalten 
-mm_path = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/micromamba'
+# path to micromamba or equivalent - relative to home
+mm_path = "/work/micromamba/envs"
 
 
 [methods.cellvit]
@@ -44,6 +44,16 @@ mm_path = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/micromamba'
 platform = 'Xenium'
 # config_file = 
 # weights_file = 
+alpha = 0.5
+expand_by = 5
+gene = True
+#random_seed = No predefined seed
+num_proprosal = 1200
+isslice = false
+# x0 = origin if isslice is true
+# y0 = origin if isslice is true
+# length = length (x-axis) of slice if isslice is true
+# width = width (y-axis) of slice if isslice is true
 
 [methods.mesmer]
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'

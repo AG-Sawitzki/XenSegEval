@@ -14,10 +14,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='Image Processing.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser.add_argument('-s', '--Section', help='Path to the config file.')
     args = parser.parse_args()
 
     config_path = args.Config
-    #labels_path = args.Labels
+    section = args.Section
 
     with open(config_path, 'rb') as f:
         config = load(f)
@@ -34,11 +35,19 @@ if __name__ == '__main__':
     results = Path(f'{home}/{sample}/results/mesmer')
     results.mkdir(parents=True, exist_ok=True)
 
-    with open(processed/'sections_px.json') as f:
+    pixelsize = imagestats['pixelsize_xy']
+
+    if section in range(preprocessing['n_roi']):
+        sections = [int(section)]
+    else:
+        with open(processed / 'sections_px.json') as f:
             section_dictionary = json.load(f)
+        sections = section_dictionary.keys()
 
     app = Mesmer()
-    
+
+    # for an empty membrane channel, using the membrane stain,
+    # or the ribosome stain
     identifiers = ['mt', 'mem', 'ribo']
 
     for section in section_dictionary.keys():
@@ -69,11 +78,11 @@ if __name__ == '__main__':
             identifier = identifiers[i]
             predictions_nuc = app.predict(
                 img,
-                image_mpp=0.2125,
+                image_mpp=pixelsize,
                 compartment='nuclear')
             prediction_cell = app.predict(
                 img,
-                image_mpp=0.2125,
+                image_mpp=pixelsize,
                 compartment='whole-cell'
             )
             # save prediction

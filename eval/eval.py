@@ -63,7 +63,7 @@ if __name__ == '__main__':
     focus_path = Path(f'{home}/{sample}/processed/{section}/morphology/focus/')
     test_path = Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/2D_CODEX.ome.tiff')
 
-    outdir = Path(f'{sample}/results/{method}/evaluation/{section}/')
+    outdir = Path(f'{home}/{sample}/results/{method}/evaluation/{section}/')
     outdir.mkdir(parents=True, exist_ok=True)
 
     if True: #PCA:
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         #print(img.data)
         print(img.metadata)
 
-        mask = AICSImage(f'{home}/resuts/mesmer/output/{section}/prediction_mem.tif', reader=tiff_reader.TiffReader)
+        mask = AICSImage(f'{home}/{sample}/results/mesmer/output/{section}/prediction_mem.tif', reader=tiff_reader.TiffReader)
         print(mask.shape)
         #mask = find_boundaries(mask, connectivity=1, mode='inner')
         #print(type(mask))

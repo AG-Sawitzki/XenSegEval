@@ -29,7 +29,7 @@
                             q0{0...chunk}.tif
             transcripts:
                 relative.csv{.gz}
-                pixel_relative.csv{.gz}
+                relative.parquet
         marked_regions-of-interest.tif
         sections_px.json
     results:

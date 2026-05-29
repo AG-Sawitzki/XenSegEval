@@ -16,6 +16,8 @@
 # access_token = "*******123**********"
 # ---------------------------
 # Does not work for other more complex TOML files.
+# ---------------------------
+# changed to work with single and double quotes
 #
 get_toml_value() {
     # Takes three parameters:
@@ -46,7 +48,7 @@ get_toml_value() {
         sed -n "/^\[$section\]/,/^\[/p" "$file" | sed '$d'
     }
         
-    get_section "$file" "$section" | grep "^$key " | cut -d "=" -f2- | tr -d ' "'
+    get_section "$file" "$section" | grep "^$key " | cut -d "=" -f2- | tr -d  " '" | tr -d ' "'
 }  
 # End Function get_toml_value()
 #####################################################################################
