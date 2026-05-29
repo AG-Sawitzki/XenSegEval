@@ -63,7 +63,8 @@ if __name__ == '__main__':
     focus_path = Path(f'{home}/{sample}/processed/{section}/morphology/focus/')
     test_path = Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/2D_CODEX.ome.tiff')
 
-    outdir = Path(f'{sample}/results/{method}/evalueation/{section}/')
+    outdir = Path(f'{sample}/results/{method}/evaluation/{section}/')
+    outdir.mkdir(parents=True, exist_ok=True)
 
     if True: #PCA:
         with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
@@ -100,7 +101,7 @@ if __name__ == '__main__':
         #print(img.data)
         print(img.metadata)
 
-        mask = AICSImage(np.load('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/results/res_mesmer/36_segmentation_predictions_nuc_dapi-mem.npy'), reader=array_like_reader.ArrayLikeReader)
+        mask = AICSImage(f'{home}/resuts/mesmer/output/{section}/prediction_mem.tif', reader=tiff_reader.TiffReader)
         print(mask.shape)
         #mask = find_boundaries(mask, connectivity=1, mode='inner')
         #print(type(mask))
