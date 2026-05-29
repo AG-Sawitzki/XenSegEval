@@ -32,8 +32,8 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA3'
 # path to ground_truth
 ground_truth = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif'
-# path to .bashrc
-# bashrc_path = '/data/cephfs-1/home/users/juno12_c/.bashrc'
+# path to micromamba or equivalten 
+mm_path = '/data/cephfs-1/work/groups/sawitzki/users/juno12_c/micromamba'
 
 
 [methods.cellvit]

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     for section in section_dictionary.keys():
         with TiffFile(processed / f'{section}/morphology/focus/focus.ome.tif') as tif:
             focus = tif.pages[0].asarray()
-            print(focus.shape)
+            #print(focus.shape)
 
             # add an empty membrane channel
             focus_mt = np.expand_dims(focus[...,0], axis=(0,-1))
@@ -52,15 +52,15 @@ if __name__ == '__main__':
                 (focus_mt, np.zeros(focus_mt.shape)),
                 axis=-1
             )
-            print(focus_mt.shape)
+            #print(focus_mt.shape)
         
             # add ATP1A1/E-Cadherin/CD45 channel
             focus_mem = np.expand_dims(focus[...,0:2], axis=0)
-            print(focus_mem.shape)
+            #print(focus_mem.shape)
         
             # add 18s channel
             focus_ribo = np.expand_dims(focus[...,0:3:2], axis=0)
-            print(focus_ribo.shape)
+            #print(focus_ribo.shape)
 
             del focus
 
