@@ -14,24 +14,27 @@ micromamba activate cpsam
 #
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/cpsam/lib"
 #
-if [ -z ${SECTION} ] 
-    then
-        for s in {0..$((n_roi-1}; do
-            for q in {0..3}; do
-	            python -m cellpose \
-	            --image_path $home/$sample/processed/$s/morphology/multi_layer/quatered/q0$q.ome.tif \
-	            --do_3D --flow3D_smooth 2 \
-	            --save_tif --save_flow --save_outlines --in_folders \
-	            --savedir $home/$sample/results/cpsam/output/$s/ \
-	            --use_gpu --verbose
-            done
-    else
-        for q in {0..3}; do
-	        python -m cellpose \
-	        --image_path $home/$sample/processed/$SECTION/morphology/multi_layer/quatered/q0$q.ome.tif \
-	        --do_3D --flow3D_smooth 2 \
-	        --save_tif --save_flow --save_outlines --in_folders \
-	        --savedir $home/$sample/results/cpsam/output/$SECTION/ \
-	        --use_gpu --verbose
-        done
-fi
+python segmenting/seg_cpsam.py -c $CONFIG_FILE -s $SECTION
+
+# should the script make problems:
+# if [ -z ${SECTION} ] 
+#     then
+#         for s in {0..$((n_roi-1))}; do
+#             for q in {0..3}; do
+# 	            python -m cellpose \
+# 	            --image_path $home/$sample/processed/$s/morphology/multi_layer/quatered/q0$q.ome.tif \
+# 	            --do_3D --flow3D_smooth 2 \
+# 	            --save_tif --save_flow --save_outlines --in_folders \
+# 	            --savedir $home/$sample/results/cpsam/output/$s/ \
+# 	            --use_gpu --verbose
+#             done
+#     else
+#         for q in {0..3}; do
+# 	        python -m cellpose \
+# 	        --image_path $home/$sample/processed/$SECTION/morphology/multi_layer/quatered/q0$q.ome.tif \
+# 	        --do_3D --flow3D_smooth 2 \
+# 	        --save_tif --save_flow --save_outlines --in_folders \
+# 	        --savedir $home/$sample/results/cpsam/output/$SECTION/ \
+# 	        --use_gpu --verbose
+#         done
+# fi

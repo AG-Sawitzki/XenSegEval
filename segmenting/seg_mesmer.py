@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # or the ribosome stain
     identifiers = ['mt', 'mem', 'ribo']
 
-    for section in section_dictionary.keys():
+    for section in sections:
         with TiffFile(processed / f'{section}/morphology/focus/focus.ome.tif') as tif:
             focus = tif.pages[0].asarray()
             #print(focus.shape)
