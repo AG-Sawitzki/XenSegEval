@@ -1,6 +1,19 @@
 # TOML for 10XSegEval
 [owner]
 name = 'Normann-BPh'
+mail = julius.normann@bih-charite.de
+
+[job]
+# job specifications
+gpu = "gpu:l40:1"
+# for computationally heavy tasks
+# the values below will be doubled.
+# days
+time = 1
+# gigabyte
+mem = 64
+# cores
+cpu = 6
 
 
 [preprocessing]
