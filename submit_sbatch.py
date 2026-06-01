@@ -44,25 +44,16 @@ if __name__ == '__main__':
         job_kwargs['cpu'] *= 2
 
     log_path = Path(f"{home}/{sample}/run/{cmd}/logs/")
-    # cmd = f"{Source or Python} {file} {args}"
+
     job_kwargs.update(
         dict(
             cmd=cmd,
-            log_path=Path(f"{home}/{sample}/run/{cmd}/logs/"),
+            log_path=log_path,
             mail=config['owner']['mail']
         )
     )
     tempfile_dir = Path(f'{os.getcwd()}/temp/')
     tempfile_dir.mkdir(parents=True, exist_ok=True)
-
-    temp_kwargs = dict(
-        mode='w',
-        dir=tempfile_dir,
-        delete=False,
-        delete_on_close=False,
-        suffix='.job',
-        prefix='test'
-    )
 
     with open(f'{tempfile_dir}/test.job', 'w') as fh:
         fh.writelines(
@@ -81,4 +72,4 @@ if __name__ == '__main__':
             {cmd}'''.format(**job_kwargs)
         )
 
-        os.system(f'sbatch {os.getcwd()}{fh.name}')#.format(**temp_kwargs))
+        os.system(f'sbatch {tempfile_dir}{fh.name}')
