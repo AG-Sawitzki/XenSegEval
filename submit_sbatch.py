@@ -8,15 +8,18 @@ from tempfile import NamedTemporaryFile
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(prog='Make and start a job on the BIH-HPC-Cluster.')
+    parser = argparse.ArgumentParser(
+        prog='SUBMIT',
+        usage='Make and start a job on the BIH-HPC-Cluster.'
+    )
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     parser.add_argument('-m', '--CMD', help='command.')
     parser.add_argument('-s', '--Section', help='Section.')
-    parser.add_argument('-g', '--GPU', store=False, help='bool. To use a gpu or not.')
-    parser.add_argument('-d', '--Double', store=False, help='bool. If higher mem & cpu should be use.')
+    parser.add_argument('-g', '--GPU', default=False, help='bool. To use a gpu or not.')
+    parser.add_argument('-d', '--Double', default=False, help='bool. If higher mem & cpu should be use.')
     args = parser.parse_args()
 
-    method = args.CMD
+    cmd = args.CMD
     section = args.Section
     config_path = args.Config
     double = args.Double
@@ -33,39 +36,49 @@ if __name__ == '__main__':
     data = paths['data_path']
     job_kwargs = config['job']
 
-    if not GPU:
-        job_kwargs['gpu'] = ""
-    if Double:
+    if not gpu:
+        job_kwargs['gpu'] = ''
+    if double:
         job_kwargs['time'] *= 2
         job_kwargs['mem'] *= 2
         job_kwargs['cpu'] *= 2
 
-    log_path = Path(f"{home}/{sample}/run/{method}/{logs}/{name}")
-    cmd = f"{Source or Python} {file} {args}"
+    log_path = Path(f"{home}/{sample}/run/{cmd}/logs/")
+    # cmd = f"{Source or Python} {file} {args}"
+    job_kwargs.update(
+        dict(
+            cmd=cmd,
+            log_path=Path(f"{home}/{sample}/run/{cmd}/logs/"),
+            mail=config['owner']['mail']
+        )
+    )
+    tempfile_dir = Path(f'{os.getcwd()}/temp/')
+    tempfile_dir.mkdir(parents=True, exist_ok=True)
 
-
-    job_file = NamedTemporaryFile(
-        mode="w+b",
+    temp_kwargs = dict(
+        mode='w',
         dir=tempfile_dir,
         delete=False,
-        delete_on_close=False
+        delete_on_close=False,
+        suffix='.job',
+        prefix='test'
     )
 
-    with open(job_file) as fh:
+    with open(f'{tempfile_dir}/test.job', 'w') as fh:
         fh.writelines(
-            """#!/bin/bash
+            '''#!/bin/bash
             #
-            #SBATCH --job-name={name}
+            #SBATCH --job-name=test
             #SBATCH --gres={gpu}
             #SBATCH --time=2-00
             #SBATCH --mem={mem}
             #SBATCH --cpus-per-task={cpu}
-            #SBATCH --output={output}/%N_%j.out
+            #SBATCH --output={log_path}/%N_%j.out
             #SBATCH --error={log_path}/%N_%j.err
             #SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50
             #SBATCH --mail-user={mail}
             #
-            {cmd}""".format(**kwargs)
+            {cmd}'''.format(**job_kwargs)
         )
 
-        os.system(f"sbatch {job_file}")
+        os.system(f'sbatch {os.getcwd()}{fh.name}')#.format(**temp_kwargs))

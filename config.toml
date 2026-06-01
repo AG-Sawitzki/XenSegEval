@@ -1,7 +1,7 @@
 # TOML for 10XSegEval
 [owner]
 name = 'Normann-BPh'
-mail = julius.normann@bih-charite.de
+mail = 'julius.normann@bih-charite.de'
 
 [job]
 # job specifications
@@ -59,7 +59,7 @@ gpu = true
 pretrained_model = 'cpdino'
 # model_type = not used in v4.0.1+
 # diam_mean = unknown, not used in v4.0.1+
-device = cuda0
+device = 'cuda0'
 use_bfloat16 = true
 [methods.cpsam.eval]
 # consult cellpose/models.py#L163 for description of parameters
