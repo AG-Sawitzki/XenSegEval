@@ -5,9 +5,15 @@ import argparse
 import tomllib
 import os
 
+
+def submit_cmd(config, cmd, section):
+    return f'python submit_sbatch.py -c {config} -d "{cmd}" -s {section}'
+
+
 if __name__ == '__main':
 
-    parser = argparse.ArgumentParser(prog='Image Processing.')
+    parser = argparse.ArgumentParser(prog= 'main', 
+description='Main file for 10xSegEval. Successively starts image, transcript and boundary processing, sepmentation algorithms and evaluation.)
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     args = parser.parse_args()
 
@@ -22,19 +28,20 @@ if __name__ == '__main':
     methods = config['methods']
 
     # define paths
+    cwd = os.getcwd()
     home = paths['home']
     sample = paths['sample_name']
     data = paths['data_path']
-    
     results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
 
     # preprocess
     cmd = f'python processing/image_splitting.py -c {config_path}'
-    os.system(cmd)
+    submit = f'python submit_sbatch.py -c {config_path} -m "{cmd}"'
+    os.system(submit)
 
     cmd = f'python processing/transcript_splitting.py -c {config_path}'
-    os.system(cmd)
+    os.system(submit)
 
     cmd = f'python processing/boundaries_splitting.py -c {config_path}'
     os.system(cmd)
