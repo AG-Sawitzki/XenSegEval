@@ -14,35 +14,39 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--Config',
         help='Path to the config file.'
     )
-    parser.add_argument('-s', '--Section',
-        help='Number of sample-section to segment. Or "all".'
-    )
     args = parser.parse_args()
 
     config_path = args.Config
-    sections = args.Section
-    
+    # config loading    
     with open(config_path, 'rb') as f:
         config = tomllib.load(f)
 
-    home = config['paths']['home']
+    # define paths
+    paths = config['paths']
+    home = paths['home']
     data = Path(config['paths']['data_path'])
-    sample = config['paths']['name']
-    planes = config['processing']['planes']
-
+    sample = paths['name']
+    ## define processed directory    
     processed = Path(f'{home}{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
-
-    if section in range(preprocessing['n_roi']):
-        sections = [int(section)]
+    ## define sections_dictionary path
+    if 'sections_path' in paths:
+        sections_path = paths['sections_path']
     else:
-        with open(processed / 'sections_px.json') as f:
-            section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+        sections_path = processed / 'sections_px.json'
+
+    # planes of interest
+    planes = config['processing']['planes']
+
+    # load sections_dictionary
+    with open(sections_path) as f:
+        section_dictionary = json.load(f)
+    sections = section_dictionary.keys()
 
     # creates a pretrained model
     model = StarDist2D.from_pretrained('2D_versatile_fluo')
 
+    # loop through sections/quaters and segment each
     for section in sections:
         single_layer = Path(processed / f'{section}/morphology/single_layer/')
         for l, layer in enumerate(single_layer.glob('*0*')):

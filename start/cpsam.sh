@@ -2,7 +2,6 @@
 #
 . ./get_toml_value.sh
 CONFIG_FILE=${1-config.toml}
-SECTION=$2
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
 sample=$(get_toml_value "$CONFIG_FILE" "paths" "name")
 mm_path=$(get_toml_value "$CONFIG_FILE" "paths" "mm_path")
@@ -14,7 +13,7 @@ micromamba activate cpsam
 #
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/cpsam/lib"
 #
-python segmenting/seg_cpsam.py -c $CONFIG_FILE -s $SECTION
+python segmenting/seg_cpsam.py -c $CONFIG_FILE
 
 # should the script make problems:
 # if [ -z ${SECTION} ] 

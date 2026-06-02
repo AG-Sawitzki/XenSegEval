@@ -11,38 +11,37 @@ import numpy as np
 import json
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(prog='Image Processing.')
+parser = argparse.ArgumentParser(prog='CPSAM.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
-    parser.add_argument('-s', '--Section', help='Path to the config file.')
+    
     args = parser.parse_args()
 
     config_path = args.Config
-    section = args.Section
 
     with open(config_path, 'rb') as f:
         config = load(f)
 
-    dissect_parameters = config['methods.dissect']
-    imagestats = config['ImageStats']
-    paths = config['paths']
     preprocessing = config['preprocessing']
-
-    pixelsize = imagestats['pixelsize_xy']
+    paths = config['paths']
+    imagestats = config['ImageStats']
 
     home = paths['home']
     sample = paths['sample_name']
+    ## define processed and results directory
     processed = Path(f'{home}/{sample}/processed/')
-
     results = Path(f'{home}/{sample}/results/dissect')
     results.mkdir(parents=True, exist_ok=True)
-
-
-    if section in range(preprocessing['n_roi']):
-        sections = [int(section)]
+    ## define sections_dictionary path
+    if 'sections_path' in paths:
+        sections_path = paths['sections_path']
     else:
-        with open(processed / 'sections_px.json') as f:
-            section_dictionary = json.load(f)
+        sections_path = processed / 'sections_px.json'
+
+    pixelsize = imagestats['pixelsize_xy']
+
+    # load sections_dictionary
+    with open(sections_path) as f:
+        section_dictionary = json.load(f)
         sections = section_dictionary.keys()
 
     for section in sections:

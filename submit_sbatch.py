@@ -10,17 +10,29 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         prog='SUBMIT',
-        usage='Make and start a job on the BIH-HPC-Cluster.'
+        description='Make and start a job on the BIH-HPC-Cluster.'
     )
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
-    parser.add_argument('-m', '--CMD', help='command.')
-    parser.add_argument('-s', '--Section', help='Section.')
-    parser.add_argument('-g', '--GPU', default=False, help='bool. To use a gpu or not.')
-    parser.add_argument('-d', '--Double', default=False, help='bool. If higher mem & cpu should be use.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
+    parser.add_argument('-m', '--CMD', help='Command to run on cluster.')
+    parser.add_argument(
+        '-g', '--GPU',
+        default=False,
+        action='store_true',
+        help='bool. To use a gpu or not.'
+    )
+    parser.add_argument(
+        '-d', '--Double',
+        default=False,
+        action='store_true',
+        help='bool. If higher mem & cpu should be use.'
+    )
     args = parser.parse_args()
 
     cmd = args.CMD
-    section = args.Section
     config_path = args.Config
     double = args.Double
     gpu = args.GPU
@@ -61,8 +73,8 @@ if __name__ == '__main__':
             #
             #SBATCH --job-name=test
             #SBATCH --gres={gpu}
-            #SBATCH --time=2-00
-            #SBATCH --mem={mem}
+            #SBATCH --time={time}-00
+            #SBATCH --mem={mem}G
             #SBATCH --cpus-per-task={cpu}
             #SBATCH --output={log_path}/%N_%j.out
             #SBATCH --error={log_path}/%N_%j.err
