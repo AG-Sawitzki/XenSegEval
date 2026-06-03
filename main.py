@@ -66,6 +66,7 @@ if __name__ == '__main':
 
     # preprocess
     if todo['preprocess']:
+        print('preprocessing')
         if section is None:
             cmd = f'python processing/find_sections.py'
             submit = submit_cmd(cmd=cmd)
@@ -75,20 +76,24 @@ if __name__ == '__main':
         cmd = f'python processing/image_splitting.py'
         submit = submit_cmd(config_path, cmd, section, gpu, double)
         pI = subprocess.Popen(submit, shell=True)
+        print('started image splitting.')
 
         cmd = f'python processing/transcript_splitting.py'
         submit = submit_cmd(config_path, cmd, section, gpu, double)
         pT = subprocess.Popen(submit, shell=True)
+        print('started transcript splitting.')
 
         cmd = f'python processing/boundaries_splitting.py'
         submit = submit_cmd(config_path, cmd, section, gpu, double)
         pB = subprocess.Popen(submit, shell=True)
+        print('started boundary splitting.')
 
         pI.wait()
         pT.wait()
         pB.wait()
 
     if todo['segment']:
+        print('started segmenting')
         seg = []
         for method in config['methods']:
             # if method in ['proseg', 'ucs']:
@@ -101,6 +106,7 @@ if __name__ == '__main':
             p.wait() 
 
     if todo['evaluate']:
+        print('started evaluating')
         evl = []
         for method in config['methods']:
             cmd = f'python eval/eval.py -c {config_path} -m {method}'
