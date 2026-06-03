@@ -7,10 +7,10 @@ import os
 import tomlkit
 
 
-def submit_cmd(config, cmd, section, gpu, double):
+def submit_cmd(cmd, config='config.toml' gpu=False, double=False):
     submit_str = f'python submit_sbatch.py -c {config} -d "{cmd}"'
-    if section is not None:
-        submit_str += f' -s {section}'
+    #f section is not None:
+    #    submit_str += f' -s {section}'
     if gpu:
         submit_str += ' -g'
     if double:

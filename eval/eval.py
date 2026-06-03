@@ -26,11 +26,9 @@ from unet4nuclei.evaluation import (
 from cs_benchmark.metrics import Metrics
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(prog='Image Processing.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     parser.add_argument('-m', '--Method', help='Method to evaluate.')
-    parser.add_argument('-s', '--Section', help='Section to run the evaluation on.')
     args = parser.parse_args()
     
     method = args.Method
