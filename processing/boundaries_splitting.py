@@ -1,6 +1,7 @@
 from pathlib import Path
 import configparser
 import argparse
+import os
 
 import tomlkit
 import json
@@ -193,8 +194,13 @@ def save_section(
 
 
 if __name__ == '__main__':
+    print(os.getcwd())
     parser = argparse.ArgumentParser(prog='Image Processing.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
     args = parser.parse_args()
 
     config_path = args.Config
@@ -203,10 +209,11 @@ if __name__ == '__main__':
         config = tomlkit.load(f)
 
     paths = config['paths']
+    imagestats = config['imagestats']
 
     home = paths['home']
     data = Path(paths['data_path'])
-    sample = paths['name']
+    sample = paths['sample_name']
     ## define processed directory    
     processed = Path(f'{home}{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
@@ -241,14 +248,14 @@ if __name__ == '__main__':
                 results_df = pd.concat(results)
 
         with mp.Pool(processes=mp.cpu_count()-1) as pool:
-        pool.imap_unordered(
-            functools.partial(
-                save_section,
-                df=results_df,
-                regions=regions,
-                bound=bound
-            ),
-            regions.keys()
-        )
-        pool.close()
-        pool.join()
+            pool.imap_unordered(
+                functools.partial(
+                    save_section,
+                    df=results_df,
+                     regions=regions,
+                     bound=bound
+                ),
+                regions.keys()
+            )
+            pool.close()
+            pool.join()

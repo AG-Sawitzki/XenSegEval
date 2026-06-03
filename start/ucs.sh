@@ -4,7 +4,7 @@
 CONFIG_FILE=$1
 SECTION=$2
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
-sample=$(get_toml_value "$CONFIG_FILE" "paths" "name")
+sample=$(get_toml_value "$CONFIG_FILE" "paths" "sample_name")
 n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
 sections_path=$(get_toml_values "$CONFIG_FILE" "paths" "sections")
 CHECK_GENE_MAP=$(get_toml_value "$CONFIG_FILE" "methods.ucs" "check_gene_map")

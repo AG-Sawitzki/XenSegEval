@@ -7,8 +7,8 @@ import os
 import tomlkit
 
 
-def submit_cmd(cmd, config='config.toml' gpu=False, double=False):
-    submit_str = f'python submit_sbatch.py -c {config} -d "{cmd}"'
+def submit_cmd(cmd, config='config.toml', gpu=False, double=False):
+    submit_str = f'python submit_sbatch.py -c {config} -m "{cmd}"'
     #f section is not None:
     #    submit_str += f' -s {section}'
     if gpu:
@@ -74,17 +74,17 @@ if __name__ == '__main__':
             pS.wait()
 
         cmd = f'python processing/image_splitting.py'
-        submit = submit_cmd(config_path, cmd, sections, gpu, double)
+        submit = submit_cmd(cmd, double=True)
         pI = subprocess.Popen(submit, shell=True)
         print('started image splitting.')
 
         cmd = f'python processing/transcript_splitting.py'
-        submit = submit_cmd(config_path, cmd, sections, gpu, double)
+        submit = submit_cmd(cmd, double=True)
         pT = subprocess.Popen(submit, shell=True)
         print('started transcript splitting.')
 
         cmd = f'python processing/boundaries_splitting.py'
-        submit = submit_cmd(config_path, cmd, sections, gpu, double)
+        submit = submit_cmd(cmd, double=True)
         pB = subprocess.Popen(submit, shell=True)
         print('started boundary splitting.')
 

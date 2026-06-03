@@ -19,6 +19,8 @@ import pyarrow as pa
 import pandas as pd
 import numpy as np
 
+from pandas.core.frame import DataFrame
+
 
 def define_regions_to_extract(
     sections_dict: dict,
@@ -189,7 +191,10 @@ def save_section(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Image Processing.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml'
+        help='Path to the config file.')
     args = parser.parse_args()
 
     config_path = args.Config

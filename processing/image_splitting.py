@@ -189,7 +189,7 @@ if __name__ == '__main__':
         description='Split morphology and focus image into defined sections.')
     parser.add_argument(
         '-c', '--Config',
-        default='config.toml'
+        default='config.toml',
         help='Path to the config file.'
     )
     args = parser.parse_args()

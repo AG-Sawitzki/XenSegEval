@@ -5,8 +5,8 @@ mail = 'julius.normann@bih-charite.de'
 
 [ToDo]
 preprocess = true
-segment = true
-eval = true
+segment = false
+evaluate = false
 
 [paths]
 # directory the processed data will be saved to

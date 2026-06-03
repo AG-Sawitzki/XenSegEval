@@ -25,7 +25,7 @@ if __name__ == '__main__':
     paths = config['paths']
     home = paths['home']
     data = Path(config['paths']['data_path'])
-    sample = paths['name']
+    sample = paths['sample_name']
     ## define processed directory    
     processed = Path(f'{home}{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
