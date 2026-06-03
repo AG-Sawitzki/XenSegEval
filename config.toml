@@ -20,6 +20,7 @@ gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole
 # path to micromamba or equivalent - relative to home
 # used to activate the correct environment
 mm_path = "/work/micromamba/envs"
+sections_path = "mem_section.json"
 
 
 [ImageStats]

@@ -18,7 +18,7 @@ def submit_cmd(config, cmd, section, gpu, double):
     return submit_str
 
 
-if __name__ == '__main':
+if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         prog= 'main', 
@@ -59,32 +59,32 @@ if __name__ == '__main':
     results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
     # add custom section_dictionary to paths
-    if section is not None:
+    if sections is not None:
         paths['sections_path'] = sections
-        with open(config_path, 'wb') as f:
+        with open(config_path, 'w') as f:
             tomlkit.dump(config, f)
 
     # preprocess
     if todo['preprocess']:
         print('preprocessing')
-        if section is None:
+        if sections is None:
             cmd = f'python processing/find_sections.py'
             submit = submit_cmd(cmd=cmd)
             pS = subprocess.Popen(submit, shell=True)
             pS.wait()
 
         cmd = f'python processing/image_splitting.py'
-        submit = submit_cmd(config_path, cmd, section, gpu, double)
+        submit = submit_cmd(config_path, cmd, sections, gpu, double)
         pI = subprocess.Popen(submit, shell=True)
         print('started image splitting.')
 
         cmd = f'python processing/transcript_splitting.py'
-        submit = submit_cmd(config_path, cmd, section, gpu, double)
+        submit = submit_cmd(config_path, cmd, sections, gpu, double)
         pT = subprocess.Popen(submit, shell=True)
         print('started transcript splitting.')
 
         cmd = f'python processing/boundaries_splitting.py'
-        submit = submit_cmd(config_path, cmd, section, gpu, double)
+        submit = submit_cmd(config_path, cmd, sections, gpu, double)
         pB = subprocess.Popen(submit, shell=True)
         print('started boundary splitting.')
 

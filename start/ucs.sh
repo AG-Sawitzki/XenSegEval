@@ -6,56 +6,33 @@ SECTION=$2
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
 sample=$(get_toml_value "$CONFIG_FILE" "paths" "name")
 n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
+sections_path=$(get_toml_values "$CONFIG_FILE" "paths" "sections")
 CHECK_GENE_MAP=$(get_toml_value "$CONFIG_FILE" "methods.ucs" "check_gene_map")
 #
 . ~/.bashrc
+sections=$(jq 'keys' $sections_path | jq .[] | tr -d ' "')
 micromamba activate ucs
 #
-if [ -z {$SECTION} ]
-    then
-        for s in {0..$((n_roi-1))}; do
-            # Run the preprocess to get the gene map and official nuclei mask
-            python preprocess/xenium.py \
-                --transcripts $home/$sample/processed/$s/transcripts/relative.parquet \ 
-                --cell_boundary_10X $home/$sample/processed/boundaries/cell_relative.parquet \
-                --nucleus_boundary_10X $home/$sample/processed/boundaries/nucleus_relative.parquet \
-                --out_dir $home/$sample/results/ucs/$s/
-            #
-            if [ CHECK_GENE_MAP == true ]
-                then
-                    python preprocess/check_paired.py \
-                    --gene_map $home/$sample/results/ucs/$s/gene_map.tif \
-                    --segmentation $home/$sample/results/ucs/$s/nuclei_10X_mask.tif \
-                    --region 1000 2000 1000 2000 \
-                    --out_dir $home/$sample/results/ucs/$SECTION
-            fi
-            #
-            # Run UCS
-            python run.py \
-            --gene_map $home/$sample/results/ucs/$s/gene_map.tif \
-            --nuclei_mask $home/$sample/results/ucs/$s/nuclei_10X_mask.tif \
-            --log_dir $home/$sample/run/ucs/log/$s/
-    else
-        # Run the preprocess to get the gene map and official nuclei mask
-        python preprocess/xenium.py \
-            --transcripts $home/$sample/processed/$SECTION/transcripts/relative.parquet \ 
-            --cell_boundary_10X $home/$sample/processed/boundaries/cell_relative.parquet \
-            --nucleus_boundary_10X $home/$sample/processed/boundaries/nucleus_relative.parquet \
-            --out_dir $home/$sample/results/ucs/output/$SECTION/
-        #
-        if [ CHECK_GENE_MAP == true ]
-            then
-                python preprocess/check_paired.py \
-                --gene_map $home/$sample/results/ucs/$SECTION/gene_map.tif \
-                --segmentation $home/$sample/results/ucs/$SECTION/nuclei_10X_mask.tif \
-                --region 1000 2000 1000 2000 \
-                --out_dir $home/$sample/results/ucs/output/$SECTION
-        fi
-        #
-        # Run UCS
-        python run.py \
-        --gene_map $home/$sample/results/ucs/output/$SECTION/gene_map.tif \
-        --nuclei_mask $home/$sample/results/ucs/output/$SECTION/nuclei_10X_mask.tif \
-        --log_dir $home/$sample/run/ucs/log/$SECTION/
-fi
+for s in ${}; do
+    # Run the preprocess to get the gene map and official nuclei mask
+    python preprocess/xenium.py \
+    --transcripts $home/$sample/processed/$s/transcripts/relative.parquet \ 
+    --cell_boundary_10X $home/$sample/processed/boundaries/cell_relative.parquet \
+    --nucleus_boundary_10X $home/$sample/processed/boundaries/nucleus_relative.parquet \
+    --out_dir $home/$sample/results/ucs/$s/
+    #
+    if [ CHECK_GENE_MAP == true ]
+        then
+             python preprocess/check_paired.py \
+             --gene_map $home/$sample/results/ucs/$s/gene_map.tif \
+             --segmentation $home/$sample/results/ucs/$s/nuclei_10X_mask.tif \
+             --region 1000 2000 1000 2000 \
+             --out_dir $home/$sample/results/ucs/$SECTION
+    fi
+    #
+    # Run UCS
+    python run.py \
+    --gene_map $home/$sample/results/ucs/$s/gene_map.tif \
+    --nuclei_mask $home/$sample/results/ucs/$s/nuclei_10X_mask.tif \
+    --log_dir $home/$sample/run/ucs/log/$s/
 
