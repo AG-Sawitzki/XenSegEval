@@ -66,7 +66,7 @@ if __name__ == '__main__':
     outdir = Path(f'{home}/{sample}/results/{method}/evaluation/{section}/')
     outdir.mkdir(parents=True, exist_ok=True)
 
-    if True: #PCA:
+    if PCA:
         with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
             PCA = pickle.load(pkl)
 

@@ -81,6 +81,9 @@ if __name__ == '__main__':
             #SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50
             #SBATCH --mail-user={mail}
             #
+            . ~/bashrc
+            micromamba activate simple
+            #
             {cmd}'''.format(**job_kwargs)
         )
 

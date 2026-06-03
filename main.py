@@ -17,6 +17,7 @@ def submit_cmd(config, cmd, section, gpu, double):
         submit_str += ' -d'
     return submit_str
 
+
 if __name__ == '__main':
 
     parser = argparse.ArgumentParser(
@@ -88,8 +89,16 @@ if __name__ == '__main':
         pB.wait()
 
     if todo['segment']:
+        seg = []
         for method in config['methods']:
-            pass
+            # if method in ['proseg', 'ucs']:
+            cmd = f'source start/{method}.sh'
+            if method != 'proseg':
+                gpu = True
+            submit = submit_cmd(cmd=cmd, gpu=gpu, double=True)
+            seg.append(subprocess.Popen(submit, shell=True))
+        for p in seg:
+            p.wait() 
         # perhaps function to start a method
         # thus enabling multiple starts with multiprocessing
         # include option to disable
@@ -99,5 +108,12 @@ if __name__ == '__main':
         # since the variables are loaded using the config.ini with lib_ini.sh
 
     if todo['evaluate']:
+        evl = []
         for method in config['methods']:
-            
+            cmd = f'python eval/eval.py -c {config_path} -m {method}'
+            submit = submit_cmd(cmd=cmd)
+            evl.append(subprocess.Popen(submit, shell=True))
+        for p in evl:
+            p.wait()
+    
+    print('done :3')
