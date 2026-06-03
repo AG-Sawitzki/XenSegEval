@@ -99,13 +99,6 @@ if __name__ == '__main':
             seg.append(subprocess.Popen(submit, shell=True))
         for p in seg:
             p.wait() 
-        # perhaps function to start a method
-        # thus enabling multiple starts with multiprocessing
-        # include option to disable
-        # since it might be run on a non-cluster system
-        # also: argument or config-var for the cluster submition bash
-        # no need to have arguments except which file to start
-        # since the variables are loaded using the config.ini with lib_ini.sh
 
     if todo['evaluate']:
         evl = []
