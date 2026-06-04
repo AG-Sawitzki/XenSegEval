@@ -48,7 +48,13 @@ def get_memory_usage_percentage() -> float:
     return memory_percentage
 
 
-def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
+def tif_path(
+    section: str,
+    ome: bool=True,
+    focus: bool=False,
+    chunk: int=None,
+    layer: int=None
+) -> Path:
     """Create the path to the tif file.
     Args:
         Section: Which sample on the slide is examined.
@@ -86,7 +92,6 @@ def tif_path(section, ome=True, focus=False, chunk=None, layer=None):
 
     f_str = '/'.join([f_str, ext])
     file_path = Path(processed / f_str)
-
     return file_path
 
 
@@ -182,10 +187,9 @@ def write_tif(
 
 
 if __name__ == '__main__':
-
     # define paths
     parser = argparse.ArgumentParser(
-        prog='img.',
+        prog='img',
         description='Split morphology and focus image into defined sections.')
     parser.add_argument(
         '-c', '--Config',
@@ -208,13 +212,13 @@ if __name__ == '__main__':
     sample = paths['sample_name']
     data = paths['data_path']
     ## define processed directory    
-    processed = Path(f'{home}{sample}/processed')
+    processed = Path(f'{home}/{sample}/processed')
     processed.mkdir(parents=True, exist_ok=True)
     ## define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = paths['sections_path']
-    else:
-        sections_path = processed / 'sections_px.json'
+    sections_path = paths['sections_path']
+
+    with open(sections_path, 'r') as f:
+        sections_dict = json.load(f)
 
     # load morpho and focus:
     morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
@@ -235,10 +239,6 @@ if __name__ == '__main__':
         )
         focus_zarr = zarr.open(focus_store, mode='r')
         focus_org.append(focus_zarr['0'])
-
-    with open(sections_path, 'r') as f:
-        sections_dict = json.load(f)
-    print('Coordinates loaded...')
 
     with tqdm(
         total=len(sections_dict),

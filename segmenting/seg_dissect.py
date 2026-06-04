@@ -11,9 +11,13 @@ import numpy as np
 import json
 
 if __name__ == '__main__':
-parser = argparse.ArgumentParser(prog='CPSAM.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
-    
+    parser = argparse.ArgumentParser(prog='DISSECT.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
+
     args = parser.parse_args()
 
     config_path = args.Config

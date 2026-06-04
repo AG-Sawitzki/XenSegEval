@@ -1,5 +1,7 @@
+import multiprocessing as mp
 from pathlib import Path
 import configparser
+import functools
 import argparse
 import os
 
@@ -13,6 +15,7 @@ import pandas as pd
 import numpy as np
 
 # types
+from typing import Any
 from pandas.core.frame import DataFrame
 
 def define_regions_to_extract(
@@ -43,16 +46,17 @@ def define_regions_to_extract(
 
 
 def process_chunk(
-    df: DataFrame,
+    df: Any,
     regions: dict
 ) -> DataFrame:
     """Assign region to coordniates in DataFrame.
     Args:
-        df: DataFrame with x and y vertex.
+        df: Parquet with x and y vertex.
         regions: Dictionary with coordinates of bbox.
     Returns:
         DataFrame with each row assigned to a region in 'regions'.
     """
+    df = df.to_pandas()
     regions_mapping = pd.Series(index=df.index, dtype=str).fillna('')
 
     for region_name, region_data in regions.items():
@@ -69,13 +73,13 @@ def process_chunk(
         ] = region_name
 
     df['region'] = regions_mapping
-
+    # print(df.head(n=5))
     return df
 
 
 def relative(
-    df: DataFrame,
-    region_data: dict
+    df: Any,
+    region_data: Any
 ) -> DataFrame:
     """Subtract region origin from vertex.
     Args:
@@ -84,31 +88,32 @@ def relative(
     Returns:
         DataFrame with coordinates relative to region origin.
     """
-    y_loc = df.columns.get_loc('vertex_y')
-    x_loc = df.columns.get_loc('vertex_x')
-
-    vertex_y_arr = df['vertex_y'].to_numpy()
-    vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
-    vertex_y_arr_r = vertex_y_arr - region_data['y_min']
-    vertex_y_arr_r.astype(np.int64)
-    vertex_y_arr_r[vertex_y_arr_r == 0] = np.nan
-
-    df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_r)
-
-    vertex_x_arr = df['vertex_x'].to_numpy()
-    vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
-    vertex_x_arr_r = vertex_x_arr - region_data['x_min']
-    vertex_x_arr_r.astype(np.int64)
-    vertex_x_arr_r[vertex_x_arr_r == 0] = np.nan
-
-    df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_r)
-
+    #y_loc = df.columns.get_loc('vertex_y')
+    #x_loc = df.columns.get_loc('vertex_x')
+    #
+    #vertex_y_arr = df['vertex_y'].to_numpy()
+    #vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
+    #vertex_y_arr_r = vertex_y_arr - region_data['y_min']
+    #vertex_y_arr_r.astype(np.int64)
+    #vertex_y_arr_r[vertex_y_arr_r == 0] = np.nan
+    #
+    #df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_r)
+    #
+    #vertex_x_arr = df['vertex_x'].to_numpy()
+    #vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
+    #vertex_x_arr_r = vertex_x_arr - region_data['x_min']
+    #vertex_x_arr_r.astype(np.int64)
+    #vertex_x_arr_r[vertex_x_arr_r == 0] = np.nan
+    #
+    #df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_r)
+    df['vertex_y'] = (df['vertex_y'] - region_data['y_min'])
+    df['vertex_x'] = (df['vertex_x'] - region_data['x_min'])
     return df
 
 
 def pixelate(
-    df: DataFrame,
-    pixelsize: float
+    df: Any,
+    pixelsize: Any
 ) -> DataFrame:
     """Devide by pixelsize.
     Args:
@@ -117,33 +122,41 @@ def pixelate(
     Returns:
         DataFrame with coordinates in pixel coordinates.
     """
-    y_loc = df.columns.get_loc('vertex_y')
-    x_loc = df.columns.get_loc('vertex_x')
-
-    vertex_y_arr = df['vertex_y'].to_numpy()
-    vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
-    vertex_y_arr_p = vertex_y_arr / pixelsize
-    vertex_y_arr_p.astype(np.int64)
-    vertex_y_arr_p[vertex_y_arr_p == 0] = np.nan
-
-    df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_p)
+    #y_loc = df.columns.get_loc('vertex_y')
+    #x_loc = df.columns.get_loc('vertex_x')
+    #
+    #vertex_y_arr = df['vertex_y'].to_numpy()
+    #vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
+    #vertex_y_arr_p = vertex_y_arr / pixelsize
+    #vertex_y_arr_p.astype(np.int64)
+    #vertex_y_arr_p[vertex_y_arr_p == 0] = np.nan
+    #
+    #df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_p)
+    #
+    #vertex_x_arr = df['vertex_x'].to_numpy()
+    #vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
+    #vertex_x_arr_p = vertex_x_arr / pixelsize
+    #vertex_x_arr_p.astype(np.int64)
+    #vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
+    #
+    #df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_p)
+    df['vertex_y'] = (
+        df['vertex_y'] / pixelsizeXY
+    ).round(0).astype(np.int64)
     
-    vertex_x_arr = df['vertex_y'].to_numpy()
-    vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
-    vertex_x_arr_p = vertex_x_arr / pixelsize
-    vertex_x_arr_p.astype(np.int64)
-    vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
-
-    df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_p)
-
+    df['vertex_x'] = (
+        df['vertex_y'] / pixelsizeXY
+    ).round(0).astype(np.int64)   
+    # print(df.head(n=5))
     return df
 
 
 def save_section(
-    region_name: str,
-    region_data: dict,
-    df: DataFrame,
-    bound: str='cell'
+    region_name: Any,
+    regions: Any,
+    df: Any,
+    pixelsizeXY: Any,
+    bound: Any='cell'
 ) -> None:
     """Saves the DataFrame as parquet.
     Args:
@@ -156,46 +169,38 @@ def save_section(
     Returns:
         None.   
     """
-    # main selection
+    region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
 
     # remove region offset
     sub_results_df = relative(sub_results_df, region_data)
 
     # pixelation
-    sub_results_df = pixelate(sub_results_df)
+    sub_results_df = pixelate(sub_results_df, pixelsizeXY)
 
-    # cleanup
-    # columns = [
-    #     c for c in sub_results_df.columns if c != 'region'
-    # ]
-    columns = list(sub_results.columns).remove('region')
-    sub_results_df = sub_results_df.loc[:,columns]
-
+    sub_results_df.drop(columns='region', inplace=True)
     if sub_results_df.size == 0:
         print(f'region {region_name}: no datapoints matching')
     else:
         # save thingy
-        sub_results_pq = pa.Table.from_pandas(sub_results_df)
-        del sub_results_df
+        sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
+        # print(sub_results_pq)
+        # del sub_results_df
 
-        output_dir = processed / f'{region_name}/boundaries/'
+        output_dir = Path(processed / f'{region_name}/boundaries/')
         output_dir.mkdir(parents=True, exist_ok=True)
+        print(output_dir)
+        f_str = str(bound)
 
-        if bound == 'cell':
-            f_str = 'cell'
-        else:
-            f_str = 'nucleus'
-        
-        parquet_path = output_dir / '{0}_relative.parquet'.format(f_str)
-        pq.write_table(sub_results_pq, parquet_path)
+        parquet_path = Path(output_dir / f'{f_str}_relative.parquet')
+        pq.write_table(sub_results_pq, str(parquet_path))
 
         print(f'region {region_name}: saved results')
 
 
 if __name__ == '__main__':
-    print(os.getcwd())
-    parser = argparse.ArgumentParser(prog='Image Processing.')
+    # print(os.getcwd())
+    parser = argparse.ArgumentParser(prog='bound.')
     parser.add_argument(
         '-c', '--Config',
         default='config.toml',
@@ -209,19 +214,19 @@ if __name__ == '__main__':
         config = tomlkit.load(f)
 
     paths = config['paths']
-    imagestats = config['imagestats']
+    imagestats = config['ImageStats']
 
     home = paths['home']
     data = Path(paths['data_path'])
     sample = paths['sample_name']
     ## define processed directory    
-    processed = Path(f'{home}{sample}/processed')
+    processed = Path(f'{home}/{sample}/processed/')
     processed.mkdir(parents=True, exist_ok=True)
     ## define sections_dictionary path
     if 'sections_path' in paths:
-        sections_path = paths['sections_path']
+        sections_path = Path(paths['sections_path'])
     else:
-        sections_path = processed / 'sections_px.json'
+        sections_path = Path(processed / 'sections_px.json')
 
     # define variables
     pixelsizeXY = imagestats['pixelsize_xy']
@@ -234,26 +239,29 @@ if __name__ == '__main__':
 
     for file in Path(data).glob('*_boundaries.parquet'):
         parquet_file = pq.ParquetFile(file)
-        bound = file.strip('_boundaries.parquet')
+        bound = str(file).removesuffix('_boundaries.parquet')
+        bound = str(bound).removeprefix(str(data)+'/')
+        print(bound)
         with mp.Pool(processes=mp.cpu_count()-1) as pool:
-            with parquet_file.iter_batches() as reader:
-                results = pool.imap(
-                    functools.partial(
-                        process_chunk,
-                        regions=regions
-                    ), reader
-                )
-                pool.close()
-                pool.jon()
-                results_df = pd.concat(results)
-
+            # with parquet_file.iter_batches() as reader:
+            results = pool.imap(
+                functools.partial(
+                    process_chunk,
+                    regions=regions
+                ), parquet_file.iter_batches() # reader
+            )
+            pool.close()
+            pool.join()
+            results_df = pd.concat(results)
+        print(results_df.head(n=5))
         with mp.Pool(processes=mp.cpu_count()-1) as pool:
-            pool.imap_unordered(
+            pool.imap(
                 functools.partial(
                     save_section,
                     df=results_df,
-                     regions=regions,
-                     bound=bound
+                    regions=regions,
+                    pixelsizeXY=pixelsizeXY,
+                    bound=bound
                 ),
                 regions.keys()
             )

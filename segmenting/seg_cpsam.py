@@ -5,7 +5,6 @@ from pathlib import Path
 from cellpose import models, io
 from tifffile import TiffFile, imwrite
 
-from skimage.segmentation import find_boundaries
 import numpy as np
 
 import tomlkit

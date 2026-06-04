@@ -42,6 +42,8 @@ if __name__ == '__main__':
         section_dictionary = json.load(f)
         sections = section_dictionary.keys()
 
+    pixelsize = imagestats['pixelsize_xy']
+
     app = Mesmer()
 
     # for an empty membrane channel, using the membrane stain,

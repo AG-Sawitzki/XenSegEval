@@ -4,9 +4,9 @@ name = 'Normann-BPh'
 mail = 'julius.normann@bih-charite.de'
 
 [ToDo]
-preprocess = true
-segment = false
-evaluate = false
+preprocess = false
+segment = true
+evaluate = true
 
 [paths]
 # directory the processed data will be saved to
@@ -45,7 +45,7 @@ time = 1
 # gigabyte
 mem = 64
 # cores
-cpu = 6
+cpu = 12
 
 
 [preprocessing]

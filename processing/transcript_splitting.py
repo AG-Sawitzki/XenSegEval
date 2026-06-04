@@ -1,28 +1,26 @@
-"""
-Section the transcripts.
-Transcripts are saved as csv.gz | relative micrometer coordinates
-# Boundaries as qarquets | relative pixel coordinates
-"""
-
+import multiprocessing as mp
 from pathlib import Path
 import configparser
 import functools
 import argparse
+import os
 
 import tomlkit
 import json
 import gzip
 
 # from numpy.lib.stride_tricks import sliding_window_view
-import multiprocessing as mp
+import pyarrow.parquet as pq
 import pyarrow as pa
 import pandas as pd
 import numpy as np
 
+# types
+from typing import Any
 from pandas.core.frame import DataFrame
 
 
-def define_regions_to_extract(
+def regions_to_extract(
     sections_dict: dict,
     pixelsizeXY: float
 ) -> dict:
@@ -76,13 +74,13 @@ def process_chunk(
         ] = region_name
 
     df['region'] = region_mapping
-
+    # print(df.head(n=5))
     return df
 
 
 def relative(
-    df: DataFrame,
-    region_data: dict
+    df: Any,
+    region_data: Any
 ) -> DataFrame:
     """Subtract region origin from vertex.
     Args:
@@ -91,33 +89,32 @@ def relative(
     Returns:
         DataFrame with coordinates relative to region origin.
     """
-    y_loc = df.columns.get_loc('vertex_y')
-    x_loc = df.columns.get_loc('vertex_x')
-
-    y_arr = df['y_location'].to_numpy()
-    y_arr = np.nan_to_num(y_arr, nan=0, posinf=0, neginf=0)
-    y_arr_r = y_arr - region_data['y_min']
-    y_arr_r.astype(np.int64)
-    y_arr_r[y_arr_r == 0] = np.nan
-
-    df.iloc[:,y_loc] = pd.DataFrame(y_arr_r)
-
-    x_arr = df['x_location'].to_numpy()
-    x_arr = np.nan_to_num(x_arr, nan=0, posinf=0, neginf=0)
-    x_arr_r = x_arr - region_data['x_min']
-    x_arr_r.astype(np.int64)
-    x_arr_r[x_arr_r == 0] = np.nan
-
-    df.iloc[:,x_loc] = pd.DataFrame(x_arr_r)
-
-    #df['y_location'] = (df['y_location'] - region_data['y_min'])
-    #df['x_location'] = (df['x_location'] - region_data['x_min'])
+    #y_loc = df.columns.get_loc('y_location')
+    #x_loc = df.columns.get_loc('x_location')
+    
+    #y_arr = df['y_location'].to_numpy()
+    #y_arr = np.nan_to_num(y_arr, nan=0, posinf=0, neginf=0)
+    #y_arr_r = y_arr - region_data['y_min']
+    #y_arr_r.astype(np.int64)
+    #y_arr_r[y_arr_r == 0] = np.nan
+    
+    #df.iloc[:,y_loc] = pd.DataFrame(y_arr_r)
+    #x_arr = df['x_location'].to_numpy()
+    #x_arr = np.nan_to_num(x_arr, nan=0, posinf=0, neginf=0)
+    #x_arr_r = x_arr - region_data['x_min']
+    #x_arr_r.astype(np.int64)
+    #x_arr_r[x_arr_r == 0] = np.nan
+    
+    #df.iloc[:,x_loc] = pd.DataFrame(x_arr_r)
+    
+    df['y_location'] = (df['y_location'] - region_data['y_min'])
+    df['x_location'] = (df['x_location'] - region_data['x_min'])
 
     return df
 
 def pixelate(
-    df: DataFrame,
-    pixelsize: tuple
+    df: Any,
+    pixelsize: Any
 ) -> DataFrame:
     """Devide by pixelsize.
     Args:
@@ -126,25 +123,45 @@ def pixelate(
     Returns:
         DataFrame with coordinates in pixel coordinates.
     """ 
+    #y_loc = df.columns.get_loc('y_location')
+    #x_loc = df.columns.get_loc('x_location')
+
+    #y_arr = df['y_location'].to_numpy()
+    #y_arr = np.nan_to_num(y_arr, nan=0, posinf=0, neginf=0)
+    #y_arr_p = y_arr / pixelsize
+    #y_arr_p.astype(np.int64)
+    #y_arr_p[y_arr_p == 0] = np.nan
+
+    #df.iloc[:,y_loc] = pd.DataFrame(y_arr_p)
+    #
+    #x_arr = df['x_location'].to_numpy()
+    #x_arr = np.nan_to_num(x_arr, nan=0, posinf=0, neginf=0)
+    #x_arr_p = x_arr / pixelsize
+    #x_arr_p.astype(np.int64)
+    #x_arr_p[x_arr_p == 0] = np.nan
+    #
+    #df.iloc[:,x_loc] = pd.DataFrame(x_arr_p)
+    #
     df['y_location'] = (
         df['y_location'] / pixelsize[0]
     ).round(0).astype(np.int64)
-
+    
     df['x_location'] = (
         df['x_location'] / pixelsize[0]
     ).round(0).astype(np.int64)
-
+    
     df['z_location'] = (
         df['z_location'] / pixelsize[1]
     ).round(0).astype(np.int64)
-
+    
+    # print(df.head(n=5))
     return df
 
 
 def save_section(
-    region_name: str,
-    region_data: dict,
-    df: DataFrame,
+    region_name: Any,
+    regions: Any,
+    df: Any,
 ) -> None:
     """Saves the DataFrame as .csv, gzip compressed and parquet.
     Args:
@@ -155,9 +172,7 @@ def save_section(
         None.
     """
     region_data = regions[region_name]
-
-    sub_results_df = df[df['regions'] == region_name]
-    print(sub_results_df.loc[:10,'x_location':'y_location'])
+    sub_results_df = df[df['region'] == region_name]
 
     sub_results_df = relative(sub_results_df, region_data)
 
@@ -166,34 +181,35 @@ def save_section(
         pixelsize=(pixelsizeXY, pixelsizeZ)
     )
 
-    sub_results_df.drop(columns='regions', inplace=True)
-
+    sub_results_df.drop(columns='region', inplace=True)
+    # print(sub_results_df.head(n=10))
     if sub_results_df.size == 0:
         print(f"region {region_name}: no datapoints matching")
     else:
         # save thingy
-        output_dir = Path(processed / '{0}/transcripts/'.format(region_name))
+        output_dir = Path(processed / f'{region_name}/transcripts/')
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        sub_results_df.to_csv(output_dir / 'relative.csv', index=False)
+        sub_results_df.to_csv(Path(output_dir / 'relative.csv'), index=False)
 
         # compress for ProSeg
         sub_results_df.to_csv(
-            output_dir / 'relative.csv.gz', index=False,
+            Path(output_dir / 'relative.csv.gz'),
+            index=False,
             compression='infer'
         )
-        sub_results_pq = pa.Table.from_pandas(sub_results_df)
-        pa.parquet.write_table(
-            sub_results_pq, output_dir / 'relative.parquet'
+        sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
+        pq.write_table(
+            sub_results_pq, Path(output_dir / 'relative.parquet')
         )
 
         print(f'region {region_name}: saved restults')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Image Processing.')
+    parser = argparse.ArgumentParser(prog='trans.')
     parser.add_argument(
         '-c', '--Config',
-        default='config.toml'
+        default='config.toml',
         help='Path to the config file.')
     args = parser.parse_args()
 
@@ -232,15 +248,14 @@ if __name__ == '__main__':
     )
 
     regions = regions_to_extract(section_dictionary, pixelsizeXY)
-    print(regions)
 
     print('Processing Chunks.')
     with mp.Pool(processes=mp.cpu_count()-1) as pool:
         with pd.read_csv(
             data / 'transcripts.csv.gz',
-            compression = 'infer',
+            compression='infer',
             dtype=dtype_dict,
-            chunksize = 20000
+            chunksize=20000
         ) as reader:
             results = pool.imap(
                 functools.partial(
@@ -248,13 +263,12 @@ if __name__ == '__main__':
                     regions=regions
                 ),
                 reader
-            ) # chunksize = int(20000/mp.cpu_count()-1))
+            )
             pool.close()
             pool.join()
             results_df = pd.concat(results)
-    # results_df.index = results_df.index.sort_values()
+    results_df.index = results_df.index.sort_values()
     print(results_df.head(n=5))
-
     # save the sections
     with mp.Pool(processes=mp.cpu_count()-1) as pool:
         pool.imap_unordered(
