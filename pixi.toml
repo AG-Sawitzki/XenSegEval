@@ -1,0 +1,178 @@
+[workspace]
+channels = ["conda-forge", "nodefaults"]
+platforms = ["linux-64"]
+preview = ["pixi-build"]
+
+[package]
+name = "10xSegEval"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "*" }
+source = { path = "." }
+
+[package.host-dependencies]
+setuptools = "*"
+
+[feature.process]
+channels = ["conda-forge", "nodefaults"]
+
+[feature.process.dependencies]
+python = ">=3.10"
+aicsimageio = "*"
+tomlkit = "*"
+pyarrow = "*"
+numpy = "*"
+pandas = "*"
+tifffile = "2026.6.1.*"
+tqdm = "*"
+scipy = "*"
+scikit-image = "*"
+zarr = "*"
+psutil = "*"
+
+[feature.eval]
+channels = ["conda-forge", "nodefaults"]
+
+[feature.eval.dependencies]
+python = "*"
+opencv = "*"
+tifffile = "2026.6.1.*"
+zarr = "*"
+pandas = "*"
+numpy = "*"
+psutil = "*"
+spatialdata = "*"
+anndata = "*"
+
+[feature.eval.pypi-dependencies]
+CellSegmentationEvaluation = "*"
+
+
+[feature.cpsam]
+channels = ["nvidia", "pytorch", "conda-forge", "nodefaults"]
+
+[feature.cpsam.dependencies]
+cuda = "==12.6.*"
+python = ">=3.8"
+
+[feature.cpsam.pypi-dependencies]
+qtpy = "*"
+numpy = "*"
+scipy = "*"
+torch = ">=1.6"
+torchvision = "*"
+opencv-python-headless = "*"
+pyqtgraph = ">=0.11.0rc0"
+natsort  = "*"
+google-cloud-storage = "*"
+tqdm = "*"
+tifffile = "*"
+fastremap = "*"
+cellpose = "*"
+roifile = "*"
+pyqt5 = "*"
+dask = "*"
+distributed = "*"
+dask-image = "*"
+pyyaml = "*"
+zarr = "*"
+dask-jobqueue = "*"
+bokeh = "*"
+fill-voids = "*"
+
+
+[feature.deepcell]
+channels = ["conda-forge", "nodefaults"]
+
+[feature.deepcell.pypi-dependencies]
+deepcell = "*"
+tqdm = "*"
+numpy = ">=1.16.6"
+scipy = ">=1.2.3,<2"
+scikit-image = ">=0.19.3"
+scikit-learn = ">=0.20.4"
+tensorflow = ">=2.8.0"
+tensorflow_addons = ">=0.16.1"
+spektral = ">=1.0.4"
+jupyterlab = "*"
+matplotlib = "*"
+deepcell-tracking = ">=0.6.5"
+deepcell-toolbox = ">=0.12.1"
+# Required for keras.utils.plot_model
+pydot = ">=1.4.2,<2"
+
+
+[feature.dissect]
+channels = ["nvidia", "pytorch", "conda-forge", "nodefaults"]
+
+[feature.dissect.dependencies]
+cuda = "==12.1.*"
+fvcore = "*"
+joblib = "*"
+numba = "*"
+numpy = "*"
+pandas = "*"
+psutil = "*"
+python = ">=3.9"
+scikit-image = "*"
+scipy = "*"
+shapely = "*"
+tifffile = "*"
+timm = "*"
+tqdm = "*"
+opencv = "*"
+pytorch = "*"
+torchvision = "*"
+torchaudio = "*"
+
+[feature.dissect.pypi-dependencies]
+deepcell-tracking = "*"
+deepcell-toolbox = "*"
+detectron2 = "*"
+dissect = "*"
+
+
+[feature.stardist]
+channels = ["conda-forge", "nodefaults"]
+
+[feature.stardist.pypi-dependencies]
+tensorflow = ">=2.21"
+
+[feature.stardist.dependencies]
+setuptools = "*"
+stardist = "*"
+
+
+[feature.ucs]
+channels = ["conda-forge", "nodefaults"] 
+
+[feature.ucs.pypi-dependencies]
+python = ">=3.7"
+anndata = "==0.10.7"
+cellpose = "==3.0.7"
+h5py = "==3.2.1"
+imgaug = "==0.4.0"
+matplotlib = "==3.7.2"
+natsort = "==8.4.0"
+numpy = "==1.24.4"
+opencv = "==4.8.0.74"
+pandas = "==2.0.3"
+rpy2 = "==3.5.16"
+scanpy = "==1.10.1"
+scikit-image = "==0.18.3"
+scikit-learn = "==0.24.2"
+scipy = "==1.9.0"
+scvi-tools = "==0.6.8"
+shapely = "==2.0.4"
+tables = "==3.6.1"
+tifffile = "==2021.7.2.*"
+torch = "==2.0.1"
+tqdm = "==4.62.3"
+umap-learn = "==0.1.1"
+
+
+[environments]
+default = ["process", "eval"]
+segment = ["cpsam", "deepcell", "dissect", "stardist", "ucs"]
+

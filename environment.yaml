@@ -25,7 +25,7 @@ dependencies:
     - dask-image
     - pyyaml
     - zarr
-    - dask_jobqueue
+    - dask-jobqueue
     - bokeh
     - fill-voids
     # deepcell
@@ -33,7 +33,6 @@ dependencies:
     - scikit-learn
     #- tensorflow
     #- tensorflow_addons
-    - spektral
     - jupyterlab
     - matplotlib
     - pydot
@@ -75,3 +74,4 @@ dependencies:
         - CellSegmentationEvaluator
         - dissect-st
         - stardist
+        - spektral
