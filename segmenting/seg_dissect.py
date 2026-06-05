@@ -6,7 +6,7 @@ from pathlib import Path
 from tifffile import TiffFile, imwrite
 
 from skimage.segmentation import find_boundaries
-from tomli import load
+from tomlkit import load
 import numpy as np
 import json
 

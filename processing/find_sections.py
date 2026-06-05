@@ -2,10 +2,10 @@ from itertools import product
 from pathlib import Path
 import configparser
 import argparse
-import tomllib
 import os
 
 from tqdm import tqdm
+import tomlkit
 import psutil
 import json
 
