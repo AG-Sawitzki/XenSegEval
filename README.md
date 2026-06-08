@@ -2,15 +2,28 @@
 Does Seg and does Eval.
 soon.
 
-# Environments
-Always install cuda and torch separately. Tensorflow propably too.
+### Important! 
+Linux-64 is currently strictly necessary!
 
-cpsam: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
-dissect: 
-    - pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-    - python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
-ucs: for me worked with env-file. but if not:
-    - micromamba install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.8 -c pytorch -c nvidia
+# Getting Started
+To use this repository, clone it
+```
+git clone https://github.com/Normann-BPh/10xSegEval.git
+```
+install pixi
+```
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+or
+```
+wget -q0- https://pixi.sh/install.sh | sh
+```
+then run
+```
+pixi lock
+```
+to update the packages.
+
 
 # proseg
-start/proseg.sh has the flag --overwrite (L22 & L31) active. if you do not want old files to be overwritten then remove this line.
+start/proseg.sh has the flag --overwrite (L18) active. if you do not want old files to be overwritten then remove this line.
