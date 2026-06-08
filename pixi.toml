@@ -174,5 +174,9 @@ umap-learn = "==0.1.1"
 
 [environments]
 default = ["process", "eval"]
-segment = ["cpsam", "deepcell", "dissect", "stardist", "ucs"]
+cpsam = ["cpsam"]
+deepcell = ["deepcell"]
+dissect = ["dissect"]
+stardist = ["stardist"]
+ucs = ["ucs"]
 
