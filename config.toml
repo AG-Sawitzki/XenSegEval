@@ -4,12 +4,13 @@ name = 'Normann-BPh'
 mail = 'julius.normann@bih-charite.de'
 
 [Tasks]
-preprocess = false
+preprocess = true
 segment = true
-evaluate = true
+evaluate = false
 
 [paths]
 # directory the processed data will be saved to
+# as default this will be the cloned directory
 home = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno'
 # directory of Xenium-results
 data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG00046__0022430__Region_1__20240704__134614'
@@ -17,9 +18,9 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA2'
 # path to ground_truth
 gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
-# path to micromamba or equivalent - relative to home
-# used to activate the correct environment
-mm_path = "/work/micromamba/envs"
+# path to the user-defined section
+# one must have the same coordinates
+# as the gt-masks
 sections_path = "mem_section.json"
 
 
@@ -132,8 +133,9 @@ token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 JACCARD = true
 # Jaccard but by cs-benchmark
 CS-BENCH = true
-# principal components
-PCA = false
-# probability density
-PD = false
-overlay_image = false
+# not implemented yet
+	# principal components
+	PCA = false
+	# probability density
+	PD = false
+	overlay_image = false
