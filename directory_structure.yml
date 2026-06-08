@@ -6,7 +6,6 @@
         morphology.ome.tif
         morphology_focus:
             morphology_focus_000{0...3}.ome.tif
-        # (H&E) ?
 [sample]:
     processed:
         [section]:
@@ -53,7 +52,11 @@
             polygons:
                 [section].geojson.gz
     run:
-        [method]:
-            log:
-                run.log
-            variables.json ?
+        methods:
+            [method]:
+                logs:
+                    %N_%j.err
+                    %N_%j.out
+                {parameters.json}
+
+        processing:
