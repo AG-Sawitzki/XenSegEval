@@ -6,30 +6,17 @@ requires = ["setuptools>=80"]
 authors = [{name = "Normann-BPh", email = "normann.julius@bih-charite.de"}]
 description = "Segment XeniumV3 output using CPSAM, DeepCell, DISSECT, Proseg, Stardist, UCS."
 name = "10xSegEval"
-requires-python = ">= 3.9"
+requires-python = ">= 3.7"
 readme = "README.md"
 #license = 
 #license-file
 keywords = ["cell segmentation", "transcriptomics"]
 classifiers = [
-    "Programming Language :: Python"
-    "Intended Audience :: AG Sawitzki"
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only"
 ]
 version = "0.1.0"
-
-[project.scripts]
-# 10xSegEval-cli = "main:main"
-
-[dependencies]
-python = ">=3.8"
-numpy = "*"
-pandas = "*"
-tifffile = "2026.6.1"
-tomlkit = "*"
-pyarrow = "*"
-zarr = "*"
-python-opencv = "*"
-psutil = "*"
 
 [project.scripts]
 segeval = "10xSegEval:main"

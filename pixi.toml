@@ -36,6 +36,7 @@ channels = ["conda-forge", "nodefaults"]
 
 [feature.eval.dependencies]
 python = "*"
+aicsimageio = "*"
 opencv = "*"
 tifffile = "2026.6.1.*"
 zarr = "*"
@@ -44,17 +45,19 @@ numpy = "*"
 psutil = "*"
 spatialdata = "*"
 anndata = "*"
+tomlkit = "*"
 
 [feature.eval.pypi-dependencies]
-CellSegmentationEvaluation = "*"
+CellSegmentationEvaluator = "*"
 
 
 [feature.cpsam]
 channels = ["nvidia", "pytorch", "conda-forge", "nodefaults"]
 
 [feature.cpsam.dependencies]
-cuda = "==12.6.*"
+cuda = "12.6.*"
 python = ">=3.8"
+tomlkit = "*"
 
 [feature.cpsam.pypi-dependencies]
 qtpy = "*"
@@ -85,29 +88,32 @@ fill-voids = "*"
 [feature.deepcell]
 channels = ["conda-forge", "nodefaults"]
 
+[feature.deepcell.dependencies]
+python = ">=3.7,<3.11"
+tomlkit = "*"
+
 [feature.deepcell.pypi-dependencies]
-deepcell = "*"
-tqdm = "*"
-numpy = ">=1.16.6"
-scipy = ">=1.2.3,<2"
-scikit-image = ">=0.19.3"
-scikit-learn = ">=0.20.4"
-tensorflow = ">=2.8.0"
-tensorflow_addons = ">=0.16.1"
-spektral = ">=1.0.4"
-jupyterlab = "*"
-matplotlib = "*"
-deepcell-tracking = ">=0.6.5"
-deepcell-toolbox = ">=0.12.1"
+DeepCell = "==0.12.10"
+#tqdm = "*"
+#numpy = ">1.23.5"
+#scipy = ">=1.2.3,<2"
+#scikit-image = ">=0.19.3"
+#scikit-learn = ">=0.20.4"
+#tensorflow = ">=2.8.0"
+#tensorflow_addons = ">=0.16.1"
+#spektral = ">=1.0.4"
+#jupyterlab = "*"
+#matplotlib = "*"
 # Required for keras.utils.plot_model
-pydot = ">=1.4.2,<2"
+#pydot = ">=1.4.2,<2"
 
 
 [feature.dissect]
 channels = ["nvidia", "pytorch", "conda-forge", "nodefaults"]
 
 [feature.dissect.dependencies]
-cuda = "==12.1.*"
+cuda = "12.1.*"
+tomlkit = "*"
 fvcore = "*"
 joblib = "*"
 numba = "*"
@@ -121,55 +127,164 @@ shapely = "*"
 tifffile = "*"
 timm = "*"
 tqdm = "*"
-opencv = "*"
 pytorch = "*"
 torchvision = "*"
 torchaudio = "*"
+detectron2 = "*"
+#pixi add --pypi 'detectron2@git+https://github.com/facebookresearch/detectron2.git'
 
 [feature.dissect.pypi-dependencies]
+opencv-python-headless = "*"
 deepcell-tracking = "*"
 deepcell-toolbox = "*"
-detectron2 = "*"
 dissect = "*"
 
 
 [feature.stardist]
 channels = ["conda-forge", "nodefaults"]
 
-[feature.stardist.pypi-dependencies]
-tensorflow = ">=2.21"
-
 [feature.stardist.dependencies]
+python = "*"
+tomlkit = "*"
 setuptools = "*"
 stardist = "*"
+protobuf = "*"
+
+[feature.stardist.pypi-dependencies]
+tensorflow = ">=2.18"
 
 
 [feature.ucs]
-channels = ["conda-forge", "nodefaults"] 
+channels = ["conda-forge", "nodefaults", "pytorch", "nvidia"] 
 
-[feature.ucs.pypi-dependencies]
-python = ">=3.7"
+[feature.ucs.dependencies]
+python = ">=3.7,<3.11"
+R = "*"
+pyarrow = "*"
+tomlkit = "*"
+pytorch = "==2.2.2"
+pytorch-cuda = "12.*"
+torchaudio= "==2.2.2"
+torchtriton= "==2.2.0"
+torchvision= "==0.17.2"
 anndata = "==0.10.7"
-cellpose = "==3.0.7"
 h5py = "==3.2.1"
 imgaug = "==0.4.0"
-matplotlib = "==3.7.2"
 natsort = "==8.4.0"
 numpy = "==1.24.4"
-opencv = "==4.8.0.74"
 pandas = "==2.0.3"
+matplotlib = "==3.7.2"
+scipy = "==1.9.0"
+shapely = "==2.0.4"
+tifffile = "2021.7.2.*"
+tqdm = "==4.62.3"
+
+[feature.ucs.pypi-dependencies]
+cellpose = "==3.0.7"
+opencv-python = "==4.8.0.74"
 rpy2 = "==3.5.16"
 scanpy = "==1.10.1"
-scikit-image = "==0.18.3"
-scikit-learn = "==0.24.2"
-scipy = "==1.9.0"
-scvi-tools = "==0.6.8"
-shapely = "==2.0.4"
+# scikit-image = "==0.18.3"
+# scikit-learn = "==0.24.2"
+scvi = "==0.6.8"
 tables = "==3.6.1"
-tifffile = "==2021.7.2.*"
-torch = "==2.0.1"
-tqdm = "==4.62.3"
-umap-learn = "==0.1.1"
+# torch = "==2.0.1"
+umap-learn = "*"
+
+
+[feature.dinocell]
+channels = ["conda-forge", "nodefaults"]
+platforms = ["linux-64"]
+
+[feature.dinocell.dependencies]
+python = "*"
+
+[feature.dinocell.pypi-dependencies]
+annotated-doc = "==0.0.4"
+anyio = "==4.12.1"
+appnope = "==0.1.4"
+asttokens = "==3.0.1"
+cellpose = "==4.0.9"
+certifi = "==2026.2.25"
+click = "==8.3.1"
+comm = "==0.2.3"
+contourpy = "==1.3.3"
+cycler = "==0.12.1"
+debugpy = "==1.8.20"
+decorator = "==5.2.1"
+executing = "==2.2.1"
+fastremap = "==1.17.7"
+filelock = "==3.25.2"
+fill-voids = "==2.1.1"
+fonttools = "==4.62.1"
+fsspec = "==2026.2.0"
+h11 = "==0.16.0"
+hf-xet = "==1.4.2"
+httpcore = "==1.0.9"
+httpx = "==0.28.1"
+huggingface-hub = "==1.7.1"
+idna = "==3.11"
+imagecodecs = "==2026.3.6"
+imageio = "==2.37.3"
+ipykernel = "==7.2.0"
+ipython = "==9.11.0"
+ipython-pygments-lexers = "==1.1.1"
+jedi = "==0.19.2"
+jinja2 = "==3.1.6"
+jupyter-client = "==8.8.0"
+jupyter-core = "==5.9.1"
+kiwisolver = "==1.5.0"
+lazy-loader = "==0.5"
+markdown-it-py = "==4.0.0"
+markupsafe = "==3.0.3"
+matplotlib = "==3.10.8"
+matplotlib-inline = "==0.2.1"
+mdurl = "==0.1.2"
+mpmath = "==1.3.0"
+natsort = "==8.4.0"
+nest-asyncio = "==1.6.0"
+networkx = "==3.6.1"
+numpy = "==2.4.3"
+opencv-python = "==4.13.0.92"
+opencv-python-headless = "==4.13.0.92"
+packaging = "==26.0"
+parso = "==0.8.6"
+pexpect = "==4.9.0"
+pillow = "==12.1.1"
+platformdirs = "==4.9.4"
+prompt-toolkit = "==3.0.52"
+psutil = "==7.2.2"
+ptyprocess = "==0.7.0"
+pure-eval = "==0.2.3"
+pygments = "==2.19.2"
+pyparsing = "==3.3.2"
+python-dateutil = "==2.9.0.post0"
+pyyaml = "==6.0.3"
+pyzmq = "==27.1.0"
+regex = "==2026.2.28"
+rich = "==14.3.3"
+roifile = "==2026.2.10"
+safetensors = "==0.7.0"
+scikit-image = "==0.26.0"
+scipy = "==1.17.1"
+segment-anything = "==1.0"
+setuptools = "==82.0.1"
+shellingham = "==1.5.4"
+six = "==1.17.0"
+stack-data = "==0.6.3"
+sympy = "==1.14.0"
+tifffile = "==2026.3.3"
+tokenizers = "==0.22.2"
+torch = "==2.10.0"
+torchvision = "==0.25.0"
+tornado = "==6.5.5"
+tqdm = "==4.67.3"
+traitlets = "==5.14.3"
+transformers = "==5.3.0"
+typer = "==0.24.1"
+typing-extensions = "==4.15.0"
+wcwidth = "==0.6.0"
+dinocell = ">=0.74, <0.75"
 
 
 [environments]
@@ -179,4 +294,5 @@ deepcell = ["deepcell"]
 dissect = ["dissect"]
 stardist = ["stardist"]
 ucs = ["ucs"]
+dinocell = ["dinocell"]
 
