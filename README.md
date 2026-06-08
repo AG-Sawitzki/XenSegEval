@@ -10,9 +10,9 @@ Segments on Xenium v2 output and Evaluates the results if a ground-truth is prov
 
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
-| pre-trained |  | $$\color{green}\text{CellposeSAM}$$ $$\color{green}\text{StarDist}$$ $$\color{green}\text{Mesmer}$$ $$\color{green}\text{DinoCell}$$ | $$\color{red}\text{SCS}$$ $$\color{green}\text{DISSECT}$$ |
-| un-trained |  |  | $$\color{red}\text{segger}$$ $$\color{green}\text{UCS}$$ |
-| no-training | $$\color{green}\text{Proseg}$$ |  | $$\color{red}\text{ComSeg}$$ $$\color{red}\text{RNA2Seg}$$ |
+| pre-trained |  | $$\color{green}\text{CellposeSAM}$$ <br> $$\color{green}\text{StarDist}$$ <br> $$\color{green}\text{Mesmer}$$ <br> $$\color{green}\text{DinoCell}$$ | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$ |
+| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{green}\text{UCS}$$ |
+| no-training | $$\color{green}\text{Proseg}$$ |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
 
 All those in green are currently working. Those in red have been tried and were either uninstallable (segger & SCS) or could not work with the data (ComSeg & RNA2Seg).  
 "SRT based" includes those that require only the transcriptomics data.  
