@@ -62,9 +62,6 @@ chunks = 4
 overlap = 0.05
 
 
-[methods.cellvit]
-
-[methods.cpsam]
 [methods.cpsam.model]
 # consult cellpose/models.py#L100 for description of parameters
 gpu = true
