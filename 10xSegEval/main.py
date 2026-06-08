@@ -46,7 +46,7 @@ if __name__ == '__main__':
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
 
-    todo = config['ToDo']
+    tasks = config['tasks']
     preprocessing = config['preprocessing']
     paths = config['paths']
     imagestats = config['ImageStats']
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     )
 
     # preprocess
-    if todo['preprocess']:
+    if tasks['preprocess']:
         print('preprocessing')
         if sections is None:
             cmd = f'python processing/find_sections.py'
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         pT.wait()
         pB.wait()
 
-    if todo['segment']:
+    if tasks['segment']:
         print('started segmenting')
         seg = []
         for method in config['methods']:
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         for p in seg:
             p.wait() 
 
-    if todo['evaluate']:
+    if tasks['evaluate']:
         print('started evaluating')
         evl = []
         for method in config['methods']:

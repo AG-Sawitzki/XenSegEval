@@ -3,7 +3,7 @@
 name = 'Normann-BPh'
 mail = 'julius.normann@bih-charite.de'
 
-[ToDo]
+[Tasks]
 preprocess = false
 segment = true
 evaluate = true
@@ -96,6 +96,9 @@ tile_overlap = 0.1
 # interp = not available for 3D
 compute_masks = true
 # progress = requires pyqt bar, which opens in external window
+
+[methods.dinocell]
+
 
 [methods.dissect]
 platform = 'Xenium'
