@@ -54,7 +54,11 @@ pixi lock
 in the directory to update the packages.
 
 ### Proseg
-For now Proseg is, as a rust package, installed using the `install_proseg.sh` file. This should change in the future and be included in one of the pixi environments.
+Install Proseg by running the commands below
+```
+pixi shell -e proseg
+cargo install proseg
+```
 
 # Pipeline
 This repository can prepare and segment on Xenium v2, and soon v3, output. If a ground-truth is provided, it evaluates the results using basic Jaccard values. [PCA](https://github.com/murphygroup/CellSegmentationEvaluator) or [probability density](https://github.com/lstrgar/seg) based evaluation are in work.
