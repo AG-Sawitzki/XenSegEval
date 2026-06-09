@@ -76,7 +76,7 @@ Under `[paths]` the scripts find the path to the raw data, the name of the sampl
 After configuring the paths in `config.toml` you can start the pipeline using
 ```
 pixi shell
-python 10xSegEval/main.py
+python XenSegEval/main.py
 ```
 
 ## Preprocessing
