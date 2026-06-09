@@ -251,6 +251,13 @@ deepcell-toolbox = "*"
 dissect = "*"
 
 
+[feature.proseg]
+platforms = ["linux-64"]
+
+[feature.proseg.dependencies]
+rust = ">=1.77.2"
+
+
 [feature.stardist]
 platforms = ["linux-64"]
 channels = ["conda-forge", "nodefaults"]
@@ -312,6 +319,7 @@ cpsam = ["cpsam"]
 deepcell = ["deepcell"]
 dinocell = ["dinocell"]
 dissect = ["dissect"]
+proseg = ["proseg"]
 stardist = ["stardist"]
 ucs = ["ucs"]
 

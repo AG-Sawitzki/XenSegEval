@@ -4,8 +4,8 @@ requires = ["setuptools>=80"]
 
 [project]
 authors = [{name = "Normann-BPh", email = "normann.julius@bih-charite.de"}]
-description = "Segment XeniumV3 output using CPSAM, DeepCell, DINOCell, DISSECT, Proseg, Stardist, UCS."
-name = "10xSegEval"
+description = "Segment XeniumV2/V3 output using CPSAM, DeepCell, DINOCell, DISSECT, Proseg, Stardist, UCS."
+name = "XenSegEval"
 requires-python = ">= 3.7"
 readme = "README.md"
 #license = 
