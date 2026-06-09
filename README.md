@@ -1,5 +1,5 @@
-# 10xSegEval
-Segments on Xenium v2 output and Evaluates the results if a ground-truth is provided.
+# XenSegEval
+Segments on Xenium v2 output and evaluates the results if a ground-truth is provided.
 
 $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
