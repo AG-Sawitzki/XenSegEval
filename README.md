@@ -23,7 +23,7 @@ $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC c
     - [ ] Evaluation
     - [ ] Xenium by 10xGenomics
 
-### Overview - Segmentation Algorithms
+## Overview - Segmentation Algorithms
 
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
