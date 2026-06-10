@@ -12,7 +12,7 @@ $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC c
 - [X] proseg in pixi.toml
 - [ ] add PCA
 - [ ] add PD
-- add sources for
+- [ ] add sources
     - [ ] CPSAM
     - [ ] DeepCell
     - [ ] DINOCell
