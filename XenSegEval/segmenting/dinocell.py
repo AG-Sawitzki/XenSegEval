@@ -12,14 +12,7 @@ from dinocell import segment
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='DCell')
-    parser.add_argument('-c', '--Config', default='config.toml', help='Path to the config file.')
-
-    args = parser.parse_args()
-
-    config_path = args.Config
-
-    with open(config_path, 'rb') as f:
+    with open('config.toml', 'rb') as f:
          config = tomlkit.load(f)
 
     preprocessing = config['preprocessing']

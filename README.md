@@ -53,6 +53,14 @@ pixi lock
 ```
 in the directory to update the packages.
 
+### Dissect
+To install dissect-st run the following commads
+```
+pixi shell -e deepcell
+uv pip install --prerelease=allow deterctron2 -f \
+    https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
+```
+
 ### Proseg
 Install Proseg by running the commands below
 ```
