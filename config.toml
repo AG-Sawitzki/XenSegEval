@@ -1,10 +1,10 @@
-# TOML for 10XSegEval
+# TOML for XenSegEval
 [owner]
 name = 'Normann-BPh'
 mail = 'julius.normann@bih-charite.de'
 
 [Tasks]
-preprocess = true
+preprocess = false
 segment = true
 evaluate = false
 
@@ -42,11 +42,11 @@ gpu = "gpu:l40:1"
 # the values below will be doubled.
 # --------------
 # days
-time = 1
+time = 2
 # gigabyte
 mem = 64
 # cores
-cpu = 12
+cpu = 24
 
 
 [preprocessing]

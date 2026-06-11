@@ -32,6 +32,8 @@ import numpy as np
 import zarr
 import cv2
 
+print(os.getcwd())
+
 
 def get_memory_usage_percentage() -> float:
     """Get the memory usage as percantage.

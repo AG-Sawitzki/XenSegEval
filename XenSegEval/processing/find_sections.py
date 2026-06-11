@@ -16,6 +16,8 @@ import numpy as np
 import zarr
 import cv2
 
+# types
+from numpy import ndarray
 
 def get_weighted_distance(
     centre: tuple | list,
@@ -39,7 +41,7 @@ def find_rois(
     shape_org: tuple,
     image_subres: ArrayLike ,
     n_roi: int
-) ->:
+) -> list | ndarray:
     """Sort the contours by area.
     Args:
         shape_org: Max resolution of img.
@@ -109,7 +111,7 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomllib.load(f)
+        config = tomlkit.load(f)
 
     preprocessing = config['preprocessing']
     paths = config['paths']
@@ -124,6 +126,7 @@ if __name__ == '__main__':
     processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
+    print('to load')
     morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
 

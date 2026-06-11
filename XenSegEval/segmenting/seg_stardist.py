@@ -36,7 +36,7 @@ if __name__ == '__main__':
         sections_path = processed / 'sections_px.json'
 
     # planes of interest
-    planes = config['processing']['planes']
+    planes = config['preprocessing']['planes']
 
     # load sections_dictionary
     with open(sections_path) as f:

@@ -6,24 +6,14 @@ import os
 
 import tomlkit
 
-from 10xSegEval.submit_sbatch import submit_sbatch
-
-def submit_cmd(cmd, config='config.toml', gpu=False, double=False):
-    submit_str = f'python submit_sbatch.py -c {config} -m "{cmd}"'
-    #if section is not None:
-    #    submit_str += f' -s {section}'
-    if gpu:
-        submit_str += ' -g'
-    if double:
-        submit_str += ' -d'
-    return submit_str
+from submit_sbatch import submit_sbatch
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        prog= 'main', 
-        description='''Main file for 10xSegEval. 
+        prog= 'main',
+        description='''Main file for XenSegEval.
             Successively starts image, transcript and boundary processing,
             segmentation algorithms and evaluation.
             '''
@@ -42,11 +32,11 @@ if __name__ == '__main__':
 
     config_path = args.Config
     sections = args.Section
-    
+
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
 
-    tasks = config['tasks']
+    tasks = config['Tasks']
     preprocessing = config['preprocessing']
     paths = config['paths']
     imagestats = config['ImageStats']
@@ -59,17 +49,21 @@ if __name__ == '__main__':
     data = paths['data_path']
     results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
-    log_path = Path(f'{home}/sample/run/logs/{name}/')
+
+    tempfile_dir = Path(f'{home}/{sample}/jobs/')
+    tempfile_dir.mkdir(parents=True, exist_ok=True)
+    log_path = Path(f'{home}/{sample}/run/logs/')
     log_path.mkdir(parents=True, exist_ok=True)
     # add custom section_dictionary to paths
     if sections is not None:
-        paths['sections_path'] = sections
+        paths['sections_path'] = str(sections)
         with open(config_path, 'w') as f:
             tomlkit.dump(config, f)
     # define job arguments
     job_kwargs = config['job']
-    job_kwargs. update(
-        log_path=log_path,
+    job_kwargs.update(
+        log_path=str(log_path),
+        tempfile_dir=str(tempfile_dir),
         mail=config['owner']['mail'],
     )
 
@@ -78,27 +72,23 @@ if __name__ == '__main__':
         print('preprocessing')
         if sections is None:
             cmd = f'python processing/find_sections.py'
-            #submit = submit_cmd(cmd=cmd)
             job_kwargs['cmd'] = cmd
             pS = subprocess.Popen(submit_sbatch(job_kwargs), shell=True)
             pS.wait()
 
-        cmd = f'python processing/image_splitting.py'
-        #submit = submit_cmd(cmd, double=True)
+        cmd = f'python XenSegEval/processing/image_splitting.py'
         job_kwargs['cmd'] = cmd
-        pI = subprocess.Popen(submit_sbatch(job_kwargs, double=True), shell=True)
+        pI = subprocess.Popen(submit_sbatch(job_kwargs), shell=True)
         print('started image splitting.')
 
-        cmd = f'python processing/transcript_splitting.py'
-        #submit = submit_cmd(cmd, double=True)
+        cmd = f'python XenSegEval/processing/transcript_splitting.py'
         job_kwargs['cmd'] = cmd
-        pT = subprocess.Popen(submit_sbatch(job_kwargs, double=True), shell=True)
+        pT = subprocess.Popen(submit_sbatch(job_kwargs), shell=True)
         print('started transcript splitting.')
 
-        cmd = f'python processing/boundaries_splitting.py'
-        #submit = submit_cmd(cmd, double=True)
+        cmd = f'python XenSegEval/processing/boundaries_splitting.py'
         job_kwargs['cmd'] = cmd
-        pB = subprocess.Popen(submit_sbatch(job_kwargs, double=True), shell=True)
+        pB = subprocess.Popen(submit_sbatch(job_kwargs), shell=True)
         print('started boundary splitting.')
 
         pI.wait()
@@ -110,14 +100,13 @@ if __name__ == '__main__':
         seg = []
         for method in config['methods']:
             # if method in ['proseg', 'ucs']:
-            cmd = f'source start/{method}.sh'
+            cmd = f'bash XenSegEval/start/{method}.sh'
             if method != 'proseg':
                 gpu = True
-            #submit = submit_cmd(cmd=cmd, gpu=gpu, double=True)
             job_kwargs['cmd'] = cmd
             seg.append(
                 subprocess.Popen(
-                    submit_sbatch(job_kwargs, gpu=gpu, double=True),
+                    submit_sbatch(job_kwargs, gpu=gpu),
                     shell=True
                 )
             )
@@ -128,8 +117,7 @@ if __name__ == '__main__':
         print('started evaluating')
         evl = []
         for method in config['methods']:
-            cmd = f'python eval/eval.py -c {config_path} -m {method}'
-            #submit = submit_cmd(cmd=cmd)
+            cmd = f'python XenSegEval/eval/eval.py -c {config_path} -m {method}'
             job_kwargs['cmd'] = cmd
             evl.append(
                 subprocess.Popen(

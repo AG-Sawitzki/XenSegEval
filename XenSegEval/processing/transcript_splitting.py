@@ -19,6 +19,8 @@ import numpy as np
 from typing import Any
 from pandas.core.frame import DataFrame
 
+print(os.getcwd())
+
 
 def regions_to_extract(
     sections_dict: dict,

@@ -5,15 +5,14 @@ CONFIG_FILE=${1-config.toml}
 home=$(get_toml_value "$CONFIG_FILE" "paths" "home")
 sample=$(get_toml_value "$CONFIG_FILE" "paths" "sample_name")
 mm_path=$(get_toml_value "$CONFIG_FILE" "paths" "mm_path")
-n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
+n_roi=$(get_toml_value "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 #
 . ~/.bashrc
-pixi shell -e cpsam
 #
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/cpsam/lib"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./.pixi/envs/cpsam/lib"
 #
-python segmenting/seg_cpsam.py -c $CONFIG_FILE
+pixi run -e cpsam python XenSegEval/segmenting/seg_cpsam.py -c $CONFIG_FILE
 
 # should the script make problems:
 # if [ -z ${SECTION} ] 
