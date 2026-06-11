@@ -7,7 +7,17 @@ from pathlib import Path
 # types
 from typing import Any
 
-def submit_sbatch(job_kwargs, gpu=False):
+def submit_sbatch(
+    job_kwargs: dict,
+    gpu: bool = False
+) -> str:
+    '''Writes a job-file for sbatch akd retruns the command to submit it.
+    Args:
+        job_kwargs: a dictionary containing the variables used for formatting. --should be split up and then used via **job_kwargr--
+        gpu: wether to run on a gpu node or not.
+    Returns:
+        string with which the job can be submitted
+    '''
     cmd = job_kwargs['cmd']
     name = cmd[cmd.find('/')+1:cmd.find('.')]
     with open(f'{tempfile_dir}/{name}.sh'.format(**job_kwargs), 'w+') as fh:
@@ -34,6 +44,8 @@ def submit_sbatch(job_kwargs, gpu=False):
 
 
 def submit_cmd(cmd, config='config.toml', gpu=False, double=False):
+    '''DO NOT USE.
+    '''
     submit_str = f'python submit_sbatch.py -c {config} -m "{cmd}"'
     #if section is not None:
     #    submit_str += f' -s {section}'
@@ -50,7 +62,7 @@ def get_config_args(
 ) -> dict:
     '''Return config
     Args:
-        config: string or path to config.toml or dict.
+        config: string or path to config.toml or dict of parsed config.
         method(optional): string of segmentation method.
     '''
     tasks = config['Tasks']
