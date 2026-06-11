@@ -11,7 +11,7 @@ CHECK_GENE_MAP=$(get_toml_value "$CONFIG_FILE" "methods.ucs" "check_gene_map")
 #
 . ~/.bashrc
 sections=$(jq 'keys' $sections_path | jq .[] | tr -d ' "')
-micromamba activate ucs
+pixi shell -e ucs
 #
 for s in ${}; do
     # Run the preprocess to get the gene map and official nuclei mask

@@ -9,7 +9,7 @@ n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 #
 . ~/.bashrc
-micromamba activate dissect
+pixi shell -e dissect
 #
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/dissect/lib"
 #

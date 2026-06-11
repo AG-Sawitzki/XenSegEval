@@ -9,7 +9,7 @@ n_roi=$(get_toml_values "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 #
 . ~/.bashrc
-micromamba activate cpsam
+pixi shell -e cpsam
 #
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/"$mm_path/cpsam/lib"
 #
