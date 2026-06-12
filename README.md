@@ -1,5 +1,5 @@
 # XenSegEval
-Segments on XeniumV2-output[[0]](#0) and evaluates the results if a ground-truth is provided.
+Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates the results if a ground-truth is provided.
 
 $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
@@ -168,12 +168,12 @@ Cell simulation as cell segmentation.<br>
 [DOI:10.1038/s41592-025-02697-0](doi.org/10.1038/s41592-025-02697-0)
 
 ## Evaluation-Methods
-<a id="12">[10]</a>
+<a id="12">[12]</a>
 Caicedo, Juan C., et al. (2019)<br>
 Evaluation of Deep Learning Strategies for Nucleus Segmentation in Fluorescence Images.<br>
 [DOI:10.1002/cyto.a.23863](doi.org/10.1002/cyto.a.23863)
 
-<a id="13">[11]</a>
+<a id="13">[13]</a>
 Can Shi, Jinghong Fan, Zhonghan Deng, Huanlin Liu, Qiang Kang, Yumei Li, Jing Guo, Jingwen Wang, Jinjiang Gong, Sha Liao, Ao Chen, Ying Zhang, Mei Li (2025)<br>
 CellBinDB: a large-scale multimodal annotated dataset for cell segmentation with benchmarking of universal models.<br>
 [DOI:10.1101/2024.11.20.619750](doi.org/10.1101/2024.11.20.619750)
