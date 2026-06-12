@@ -5,6 +5,7 @@ $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
 
 ## ToDo
+- [ ] license
 - [X] make chunks optional
 - [X] make single-layer optional
 - [ ] make boundaries optional (only used by UCS)
@@ -87,24 +88,20 @@ pixi run python XenSegEval/main.py
 ```
 
 ## Preprocessing
-...
-### `find_sections.py`
-As mentioned each function of the script can be run with user defined regions, but if those are not providied for the preprocessing and segmentation, then run this script to find the tissue-samples and number them 0-_n<sub>roi<sub>_ from top left to bottom right. <br>
-The script tries to use the lowest subresolution of the `morphology.ome.tif`.
-
-### `image_splitting.py`
-As seen in the [Overview](#overview---segmentation-algorithms) most algorithms use the `morphology.ome.tif` or `morpholog_focus.ome.tif` image. To prepare them for the segmentation run `image_splitting.py`, which crops to the defined regions, with a default margin of 1% of the ROI's size. Additionally the regions are also saved as single-layer images, and both, multi-layer and single-layer, are by default split into 4 chunks.
-
-### `transcript_splitting.py`
-For the "SRT based" and "Mixed" algorithms the `transcript.csv.gz` (later `transcripts.parquet`) is seperated into smaller tables containing only one section each. The process uses pythons multiprocessing.
-
-### `boundaries_splitting.py`
-Xenium provides boundaries of cells and nuclei, saved in the `_boundaries.parquet` files. They are seperated into smaller tables just like the SRT data.
+Finds coordinates of ROIs if not provided. Splits morphology.ome.tif and morphology_focus.ome.tif, transcripts.csv, and boundaries.parquet accordingly.<br>
+Run `main.py` with `[Tasks.preprocess]` set to `true` in the config.toml.<br>
+Or run the scripts seperately.
 
 ## Segmenting
-...
+The Algorithms marked in [green](#overview---segmentation-algorithms) are started if they appear in the config.toml as
+```
+[methods.<method-name>]
+# parameters
+``` 
+and `[Tasks.segment]` is set to `true`.<br>
+Alternatively start them with their bash or python script.
 ## Evaluating
-...
+If `[Tasks.evaluate] = true` all those procedures set to `true` under `[evaluation]` will be used to evaluate the segmentation of all available segmentation methods.
 
 # References
 ## Xenium
