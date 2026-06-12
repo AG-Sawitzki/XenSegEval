@@ -10,9 +10,16 @@ from tomlkit import load
 import numpy as np
 import json
 
+from XenSegEval.utils import get_config_args
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Image Processing.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser = argparse.ArgumentParser(prog='DeepCell')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
     
     args = parser.parse_args()
 
@@ -21,28 +28,31 @@ if __name__ == '__main__':
     with open(config_path, 'rb') as f:
         config = load(f)
 
-    preprocessing = config['preprocessing']
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    home = paths['home']
-    sample = paths['sample_name']
-    ## define processed and results directory
-    processed = Path(f'{home}/{sample}/processed/')
-    results = Path(f'{home}/{sample}/results/mesmer')
-    results.mkdir(parents=True, exist_ok=True)
-    ## define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = paths['sections_path']
-    else:
-        sections_path = processed / 'sections_px.json'
+    # preprocessing = config['preprocessing']
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    # home = paths['home']
+    # sample = paths['sample_name']
+    # ## define processed and results directory
+    # processed = Path(f'{home}/{sample}/processed/')
+    # results = Path(f'{home}/{sample}/results/mesmer')
+    # results.mkdir(parents=True, exist_ok=True)
+    # ## define sections_dictionary path
+    # if 'sections_path' in paths:
+    #     sections_path = paths['sections_path']
+    # else:
+    #     sections_path = processed / 'sections_px.json'
 
-    pixelsize = imagestats['pixelsize_xy']
+    # # load sections_dictionary
+    # with open(sections_path) as f:
+    #     section_dictionary = json.load(f)
+    #     sections = section_dictionary.keys()
+
+    # pixelsize = imagestats['pixelsize_xy']
 
     app = Mesmer()
 

@@ -10,42 +10,54 @@ import numpy as np
 import tomlkit
 import json
 
+from XenSegEval.utils import get_config_args
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='CPSAM.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
     
     args = parser.parse_args()
 
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = load(f)
+        config = tomlkit.load(f)
 
-    preprocessing = config['preprocessing']
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'cpsam')
+    globals().update()
 
-    home = paths['home']
-    sample = paths['sample_name']
-    ## define processed and results directory
-    processed = Path(f'{home}/{sample}/processed/')
-    results = Path(f'{home}/{sample}/results/cpsam')
-    results.mkdir(parents=True, exist_ok=True)
-    ## define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = paths['sections_path']
-    else:
-        sections_path = processed / 'sections_px.json'
+    # preprocessing = config['preprocessing']
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    pixelsize = imagestats['pixelsize_xy']
+    # home = paths['home']
+    # sample = paths['sample_name']
+    # ## define processed and results directory
+    # processed = Path(f'{home}/{sample}/processed/')
+    # results = Path(f'{home}/{sample}/results/cpsam')
+    # results.mkdir(parents=True, exist_ok=True)
+    # ## define sections_dictionary path
+    # if 'sections_path' in paths:
+    #     sections_path = paths['sections_path']
+    # else:
+    #     sections_path = processed / 'sections_px.json'
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    # pixelsize = imagestats['pixelsize_xy']
+
+    # # load sections_dictionary
+    # with open(sections_path) as f:
+    #     section_dictionary = json.load(f)
+    #     sections = section_dictionary.keys()
     
-    cpsam_model = config['methods']['cpsam']['model']
-    cpsam_eval = config['methods']['cpsam']['eval']
+    # cpsam_model = config['methods']['cpsam']['model']
+    # cpsam_eval = config['methods']['cpsam']['eval']
+
+    cpsam_model = method['model']
+    cpsam_eval = method['eval']
 
     io.logger_setup()
 

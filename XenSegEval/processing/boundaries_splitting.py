@@ -18,6 +18,8 @@ import numpy as np
 from typing import Any
 from pandas.core.frame import DataFrame
 
+from XenSegEval.utils import get_config_args
+
 print(os.getcwd())
 
 
@@ -202,37 +204,40 @@ def save_section(
 
 
 if __name__ == '__main__':
-    # print(os.getcwd())
-    parser = argparse.ArgumentParser(prog='bound.')
+    parser = argparse.ArgumentParser(prog='boundaries')
     parser.add_argument(
         '-c', '--Config',
         default='config.toml',
         help='Path to the config file.'
     )
+    
     args = parser.parse_args()
 
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomlkit.load(f)
+        config = load(f)
 
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    home = paths['home']
-    data = Path(paths['data_path'])
-    sample = paths['sample_name']
-    ## define processed directory    
-    processed = Path(f'{home}/{sample}/processed/')
-    processed.mkdir(parents=True, exist_ok=True)
-    ## define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = Path(paths['sections_path'])
-    else:
-        sections_path = Path(processed / 'sections_px.json')
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    # define variables
-    pixelsizeXY = imagestats['pixelsize_xy']
+    # home = paths['home']
+    # data = Path(paths['data_path'])
+    # sample = paths['sample_name']
+    # ## define processed directory    
+    # processed = Path(f'{home}/{sample}/processed/')
+    # processed.mkdir(parents=True, exist_ok=True)
+    # ## define sections_dictionary path
+    # if 'sections_path' in paths:
+    #     sections_path = Path(paths['sections_path'])
+    # else:
+    #     sections_path = Path(processed / 'sections_px.json')
+
+    # # define variables
+    # pixelsizeXY = imagestats['pixelsize_xy']
 
     # load sections_dictionary
     with open(sections_path) as f:

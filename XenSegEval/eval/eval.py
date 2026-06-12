@@ -1,11 +1,13 @@
 from pathlib import Path
 import argparse
-import tomllib
 import pickle
 
 import tifffile as tf
 import pandas as pd
 import numpy as np
+import tomlkit
+
+from XenSegEval.utils import get_config_args
 
 # for pca
 from CellSegmentationEvaluator.single_method_eval import single_method_eval
@@ -25,6 +27,7 @@ from unet4nuclei.evaluation import (
 # for cs-bench
 from cs_benchmark.metrics import Metrics
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Image Processing.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
@@ -36,30 +39,26 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomllib.load(f)
+        config = tomlkit.load(f)
 
-    paths = config['paths']
-    imagestats = config['ImageStats']
-    evaluation = config['evaluation']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    # define paths
-    home = paths['home']
-    sample = paths['sample_name']
-    data = paths['data_path']
-    gt_path = paths['ground_truth']
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
+    # evaluation = config['evaluation']
 
-    #
-    PD = evaluation['PD']
-    PCA = evaluation['PCA']
-    JACCARD = evaluation['JACCARD']
-    CS_BENCH = evaluation['CS-BENCH']
+    # # define paths
+    # home = paths['home']
+    # sample = paths['sample_name']
+    # data = paths['data_path']
+    # gt_path = paths['ground_truth']
 
-    mask_path = '<>'
-
-    #gt = tf.imread(gt_path)
-    #mask = tf.imread(mask_path)
-    focus_path = Path(f'{home}/{sample}/processed/{section}/morphology/focus/')
-    test_path = Path('/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/2D_CODEX.ome.tiff')
+    # #
+    # PD = evaluation['PD']
+    # PCA = evaluation['PCA']
+    # JACCARD = evaluation['JACCARD']
+    # CS_BENCH = evaluation['CS-BENCH']
 
     outdir = Path(f'{home}/{sample}/results/{method}/evaluation/{section}/')
     outdir.mkdir(parents=True, exist_ok=True)
@@ -170,33 +169,3 @@ if __name__ == '__main__':
     if PD:
         # nothing
         print('nothing')
-
-
-# import cv2
-# import geopandas as gpd
-
-# gdf = gpd.read_file('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/roi.geojson')
-# xx, yy = gdf.iloc[0]['geometry'].exterior.xy
-
-# x = np.array(xx)
-# y = np.array(yy)
-
-# x.shape = (len(x),1)
-# y.shape = (len(y),1)
-
-# xy = np.hstack((x,y))
-
-# mm = cv2.moments(xy)
-
-# source = tifffile.imread('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-overlap_labels.tif')
-# template = tifffile.imread('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/segmentation/labels/13-membrane-reordered-no-overlap_labels.tif')
-
-# contours_src, _ = cv2.findContours(np.uint8(source), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-# contours_tmp, _2 = cv2.findContours(np.uint8(template), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-# print(len(contours_src))
-# print(len(contours_tmp))
-
-# for i, c in enumerate(contours_src):
-#     similarity = cv2.matchShapes(c, contours_tmp[i], 1, 0.0)
-#     print(similarity)

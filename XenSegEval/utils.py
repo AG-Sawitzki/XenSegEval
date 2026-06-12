@@ -8,52 +8,50 @@ from pathlib import Path
 from typing import Any
 
 def submit_sbatch(
-    job_kwargs: dict,
-    gpu: bool = False
+    tempfile_dir: str | os.PathLike,
+    time: str | int,
+    log_path: str | os.PathLike,
+    cmd: str,
+    gpu: str | None = None,
+    mail: str | None = None,
 ) -> str:
     '''Writes a job-file for sbatch akd retruns the command to submit it.
     Args:
-        job_kwargs: a dictionary containing the variables used for formatting. --should be split up and then used via **job_kwargr--
-        gpu: wether to run on a gpu node or not.
+        tempfile_dir: path to a directory 
+                      where the sbatch files will be saved.
+        time: days to reserve the node for.
+        log_path: path to directory
+                  where the logs will be saved.
+        cmd: the command to run on the node.
+        gpu(optional): wether to run on a gpu node or not.
+        mail(optional): the mail-address to send sbatch updates to.
     Returns:
         string with which the job can be submitted
     '''
-    cmd = job_kwargs['cmd']
+    cmd = sbatch_kwargs['cmd']
     name = cmd[cmd.find('/')+1:cmd.find('.')]
-    with open(f'{tempfile_dir}/{name}.sh'.format(**job_kwargs), 'w+') as fh:
+    with open(f'{tempfile_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
-        fh.writelines('#SBATCH --job-name={name}\n'.format(**job_kwargs))
+        fh.writelines(f'#SBATCH --job-name={name}\n')
         fh.writelines('#SBATCH --wait')
-        if gpu:
-            fh.writelines('#SBATCH --gres={gpu}\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --time={time}-00\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --mem={mem}G\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --cpus-per-task={cpu}\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --output={log_path}/%N_%j.out\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --error={log_path}/%N_%j.err\n'.format(**job_kwargs))
-        fh.writelines('#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50\n')
-        fh.writelines('#SBATCH --mail-user={mail}\n'.format(**job_kwargs))
+        if gpu is not None:
+            fh.writelines(f'#SBATCH --gres={gpu}\n')
+        fh.writelines(f'#SBATCH --time={time}-00\n')
+        fh.writelines(f'#SBATCH --mem={mem}G\n')
+        fh.writelines(f'#SBATCH --cpus-per-task={cpu}\n')
+        fh.writelines(f'#SBATCH --output={log_path}/%N_%j.out\n')
+        fh.writelines(f'#SBATCH --error={log_path}/%N_%j.err\n')
+        if mail is not None:
+            fh.writelines(f'#SBATCH --mail-user={mail}\n')
+            fh.writelines(f'#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50\n')
         fh.writelines('#\n')
         fh.writelines('. ~/.bashrc\n')
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
         fh.writelines('#\n')
-        fh.writelines('pixi run {cmd}\n'.format(**job_kwargs))
+        fh.writelines(f'pixi run {cmd}\n')
 
     return f'sbatch {fh.name}'
-
-
-def submit_cmd(cmd, config='config.toml', gpu=False, double=False):
-    '''DO NOT USE.
-    '''
-    submit_str = f'python submit_sbatch.py -c {config} -m "{cmd}"'
-    #if section is not None:
-    #    submit_str += f' -s {section}'
-    if gpu:
-        submit_str += ' -g'
-    if double:
-        submit_str += ' -d'
-    return submit_str
 
 
 def get_config_args(
@@ -63,9 +61,17 @@ def get_config_args(
     '''Return config
     Args:
         config: string or path to config.toml or dict of parsed config.
-        method(optional): string of segmentation method.
+        method: string of pipeline step.
+    Returns:
+        dictionary of parsed config.
     '''
-    tasks = config['Tasks']
+    variables = dict()
+
+    if type(config) is not dict:
+            with open(config, 'rb') as f:
+                config = tomlkit.load(f)
+
+    owner = config['owner']
     paths = config['paths']
     imagestats = config['ImageStats']
     sbatch_kwargs = config['sbatch']
@@ -73,10 +79,10 @@ def get_config_args(
     methods = config['methods']
     evaluation = config['evaluation']
 
-    if method is not None:
-        method=methods[method]
+    if 'mail' in owner:
+        mail = owner['mail']
     else:
-        method = None
+        mail = None
 
     home = paths['home']
     data_path = paths['data_path']
@@ -99,25 +105,45 @@ def get_config_args(
     sbatch_kwargs.update(
         log_path=str(log_path),
         tempfile_dir=str(tempfile_dir),
-        mail=config['owner']['mail'],
+        mail=mail,
     )
 
-    args = dict(
-        tasks=tasks,
+    variables.update(dict(
         home=home,
         data_path=data_path,
         sample_name=sample_name,
-        gt_path=gt_path,
         sections_path=sections_path,
         processed=processed,
         results=resutls,
-        log_path=log_path,
         sbatch_kwargs=sbatch_kwargs,
-        method=method,
-        PD = evaluation['PD'],
-        PCA = evaluation['PCA'],
-        JACCARD = evaluation['JACCARD'],
-        CS_BENCH = evaluation['CS-BENCH'],
-    )
+    ))
 
-    return args
+    if method is in methods:
+        variables.update(dict(
+            method=methods[method],
+            pixelsizeXY = imagestats['pixelsize_xy']
+        ))
+    else:
+        if method == 'eval':
+            variables.update(dict(
+                gt_path=paths['gt_path'],
+                PD=evaluation['PD'],
+                PCA=evaluation['PCA'],
+                JACCARD=evaluation['JACCARD'],
+                CS_BENCH=evaluation['CS-BENCH'],
+            ))
+        elif method in [
+            'transcripts',
+            'images',
+            'boundaries'
+        ]:
+            variables.update(dict(
+                pixelsizeXY=imagestats['pixelsize_xy'],
+                pixelsizeZ=imagestats['pixelsize_z'],
+            ))
+        elif method == 'main':
+            variables.update(dict(
+                tasks=config['Tasks']
+            ))
+
+    return variables

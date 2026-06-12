@@ -19,6 +19,8 @@ import numpy as np
 from typing import Any
 from pandas.core.frame import DataFrame
 
+from XenSegEval.utils import get_config_args
+
 print(os.getcwd())
 
 
@@ -208,36 +210,41 @@ def save_section(
         print(f'region {region_name}: saved restults')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='trans.')
+    parser = argparse.ArgumentParser(prog='transcripts')
     parser.add_argument(
         '-c', '--Config',
         default='config.toml',
-        help='Path to the config file.')
+        help='Path to the config file.'
+    )
+    
     args = parser.parse_args()
 
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomlkit.load(f)
+        config = load(f)
 
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    home = paths['home']
-    data = Path(paths['data_path'])
-    sample = paths['sample_name']
-    ## define processed directory 
-    processed = Path(f'{home}/{sample}/processed')
-    processed.mkdir(parents=True, exist_ok=True)
-    ## define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = paths['sections_path']
-    else:
-        sections_path = processed / 'sections_px.json'
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    # define variables
-    pixelsizeXY = imagestats['pixelsize_xy']
-    pixelsizeZ = imagestats['pixelsize_z']
+    # home = paths['home']
+    # data = Path(paths['data_path'])
+    # sample = paths['sample_name']
+    # ## define processed directory 
+    # processed = Path(f'{home}/{sample}/processed')
+    # processed.mkdir(parents=True, exist_ok=True)
+    # ## define sections_dictionary path
+    # if 'sections_path' in paths:
+    #     sections_path = paths['sections_path']
+    # else:
+    #     sections_path = processed / 'sections_px.json'
+
+    # # define variables
+    # pixelsizeXY = imagestats['pixelsize_xy']
+    # pixelsizeZ = imagestats['pixelsize_z']
 
     # load sections_dictionary
     with open(sections_path) as f:

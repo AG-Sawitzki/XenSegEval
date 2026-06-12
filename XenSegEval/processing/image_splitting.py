@@ -1,19 +1,4 @@
 
-'''
-Segment the sample by regions of interest.
-Saves the coordinates of top left and bottom right corner in a dictionary.
-Unit is px.
-
-Theoretically NMS should be added... !!!
-
-ToDo:
-    +- add path variability
-        +- preferably with checks for existence
-    +- config-file compatibility?
-    + adaptable roi size?
-        (- by checking how many are of sufficient size?!)
-'''
-
 from itertools import product
 from pathlib import Path
 import configparser
@@ -31,6 +16,8 @@ from numpy.typing import ArrayLike
 import numpy as np
 import zarr
 import cv2
+
+from XenSegEval.utils import get_config_args
 
 print(os.getcwd())
 
@@ -134,10 +121,11 @@ def write_tif(
         {quatered/q0{chunk}.extension if chunk
          else focus. or morphology.extension}'
     """
-    try:
-        pixelsizeXY = imagestats['pixelsize_xy']
-        pixelsizeZ = imagestats['pixelsize_z']
-    except:
+    if pixelsizeXY in globals():
+        print('all there :)')
+        # pixelsizeXY = imagestats['pixelsize_xy']
+        # pixelsizeZ = imagestats['pixelsize_z']
+    else:
         print('Imagestats are missing "pixelsize_xy" | "pixelsize_z".')
     
     options = dict(
@@ -189,38 +177,39 @@ def write_tif(
 
 
 if __name__ == '__main__':
-    # define paths
-    parser = argparse.ArgumentParser(
-        prog='img',
-        description='Split morphology and focus image into defined sections.')
+    parser = argparse.ArgumentParser(prog='IMGs')
     parser.add_argument(
         '-c', '--Config',
         default='config.toml',
         help='Path to the config file.'
     )
+    
     args = parser.parse_args()
 
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomlkit.load(f)
+        config = load(f)
 
-    preprocessing = config['preprocessing']
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    # define paths
-    home = paths['home']
-    sample = paths['sample_name']
-    data = paths['data_path']
-    ## define processed directory    
-    processed = Path(f'{home}/{sample}/processed')
-    processed.mkdir(parents=True, exist_ok=True)
-    ## define sections_dictionary path
-    sections_path = paths['sections_path']
+    # preprocessing = config['preprocessing']
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    with open(sections_path, 'r') as f:
-        sections_dict = json.load(f)
+    # # define paths
+    # home = paths['home']
+    # sample = paths['sample_name']
+    # data = paths['data_path']
+    # ## define processed directory    
+    # processed = Path(f'{home}/{sample}/processed')
+    # processed.mkdir(parents=True, exist_ok=True)
+    # ## define sections_dictionary path
+    # sections_path = paths['sections_path']
+
+    # with open(sections_path, 'r') as f:
+    #     sections_dict = json.load(f)
 
     # load morpho and focus:
     morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
@@ -288,55 +277,56 @@ if __name__ == '__main__':
                     f'Saving ROIs | %MEM: {memory_percentage:.2f}'
                 )
 
-            with tqdm(
-                total=chunks,
-                desc='saving as chunks',
-                ncols=79,
-                leave=False
-            ) as chunk_bar:
+            if chunks > 0:
+                with tqdm(
+                    total=chunks,
+                    desc='saving as chunks',
+                    ncols=79,
+                    leave=False
+                ) as chunk_bar:
 
-                z, y, x = morphology_section.shape
+                    z, y, x = morphology_section.shape
 
-                y_size = chunk_size(y, chunks)
-                x_size = chunk_size(x, chunks)
+                    y_size = chunk_size(y, chunks)
+                    x_size = chunk_size(x, chunks)
 
-                grid = product(
-                    range(0, y-y%y_size, y_size),
-                    range(0, x-x%x_size, x_size)
-                )
-
-                for chunk, (y_c, x_c) in enumerate(grid):
-                    y_low = int(y_c*0.95)
-                    y_high = int((y_c+y_size)*1.05)
-
-                    x_low = int(x_c*0.95)
-                    x_high = int((x_c+x_size)*1.05)
-
-                    morphology_chunk = morphology_section[
-                        :, y_low:y_high, x_low:x_high
-                    ]
-                    focus_chunk = focus_section[
-                        y_low:y_high, x_low:x_high, :
-                    ]
-
-                    write_tif(
-                        morphology_chunk, imagestats, section, chunk=chunk
-                    )
-                    write_tif(
-                        focus_chunk, imagestats, section, chunk=chunk
+                    grid = product(
+                        range(0, y-y%y_size, y_size),
+                        range(0, x-x%x_size, x_size)
                     )
 
-                    for l, plane in enumerate(planes):
+                    for chunk, (y_c, x_c) in enumerate(grid):
+                        y_low = int(y_c*0.95)
+                        y_high = int((y_c+y_size)*1.05)
+
+                        x_low = int(x_c*0.95)
+                        x_high = int((x_c+x_size)*1.05)
+
+                        morphology_chunk = morphology_section[
+                            :, y_low:y_high, x_low:x_high
+                        ]
+                        focus_chunk = focus_section[
+                            y_low:y_high, x_low:x_high, :
+                        ]
+
                         write_tif(
-                            morphology_chunk[l, ...], imagestats,
-                            section, chunk=chunk, layer=plane
+                            morphology_chunk, imagestats, section, chunk=chunk
+                        )
+                        write_tif(
+                            focus_chunk, imagestats, section, chunk=chunk
                         )
 
-                    memory_percentage = get_memory_usage_percentage()
-                    chunk_bar.set_description(
-                        f'saving as chunks | %MEM: {memory_percentage:.2f}'
-                    )
-                    chunk_bar.update(1)
+                        for l, plane in enumerate(planes):
+                            write_tif(
+                                morphology_chunk[l, ...], imagestats,
+                                section, chunk=chunk, layer=plane
+                            )
+
+                        memory_percentage = get_memory_usage_percentage()
+                        chunk_bar.set_description(
+                            f'saving as chunks | %MEM: {memory_percentage:.2f}'
+                        )
+                        chunk_bar.update(1)
             
             memory_percentage = get_memory_usage_percentage()
             section_bar.set_description(

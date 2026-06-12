@@ -34,30 +34,30 @@ y = 64612
 x = 51096
 
 
-[job]
+[sbatch]
 # sbatch job specifications
 gpu = "gpu:l40:1"
-# --------------
-# for computationally heavy tasks
-# the values below will be doubled.
-# --------------
-# days
+# time in days
 time = 2
-# gigabyte
+# RAM in gigabyte
 mem = 64
-# cores
-cpu = 24
+# nr. cores
+cpu = 20
 
 
 [preprocessing]
 # layers user is interested in
+# leave list empty if only
+# multi-layer required
 planes = [5, 6, 7]
 # number of expected sections
 n_roi = 12
 # additional space around the roi
 buffer = 0.01
-# number of chunks a section is spli t into for faster processing
-# must be 4,9,16,25,...
+# number of chunks a section is 
+# split into for faster processing
+# set to zero for None
+# must be 0,4,9,16,25,...
 chunks = 4
 # overlap of chunks in percent
 overlap = 0.05
@@ -78,8 +78,6 @@ batch_size = 64
 resample = true
 # channel_axis = morphology has only one channel; ZYX
 z_axis = 0
-	[methods.cpsam.eval.normalize]
-	norm3D = true
 # rescale = original size is prefered
 # diameter = diameter unknown; original size is prefered
 # flow_threshold = 0.4; not used for 3D
@@ -97,6 +95,9 @@ tile_overlap = 0.1
 # interp = not available for 3D
 compute_masks = true
 # progress = requires pyqt bar, which opens in external window
+[methods.cpsam.eval.normalize]
+norm3D = true
+
 
 [methods.dinocell]
 

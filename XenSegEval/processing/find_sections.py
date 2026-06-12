@@ -19,6 +19,9 @@ import cv2
 # types
 from numpy import ndarray
 
+from XenSegEval.utils import get_config_args
+
+
 def get_weighted_distance(
     centre: tuple | list,
     weightx: float=0.25,
@@ -98,32 +101,34 @@ def find_rois(
 
 
 if __name__ == '__main__':
-    # define paths
-    parser = argparse.ArgumentParser(
-        prog='ROIs.',
-        description='Find the ROIs ')
+    parser = argparse.ArgumentParser(prog='ROIs')
     parser.add_argument(
         '-c', '--Config',
         default='config.toml',
-        help='Path to the config file.')
+        help='Path to the config file.'
+    )
+    
     args = parser.parse_args()
 
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = tomlkit.load(f)
+        config = load(f)
 
-    preprocessing = config['preprocessing']
-    paths = config['paths']
-    imagestats = config['ImageStats']
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
-    # define paths
-    home = paths['home']
-    sample = paths['sample_name']
-    data = paths['data_path']
+    # preprocessing = config['preprocessing']
+    # paths = config['paths']
+    # imagestats = config['ImageStats']
 
-    processed = Path(f'{home}/{sample}/processed')
-    processed.mkdir(parents=True, exist_ok=True)
+    # # define paths
+    # home = paths['home']
+    # sample = paths['sample_name']
+    # data = paths['data_path']
+
+    # processed = Path(f'{home}/{sample}/processed')
+    # processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
     print('to load')

@@ -1,3 +1,0 @@
-/data/cephfs-1/work/groups/sawitzki/users/juno12_c/XenSegEval
- WARN cache for Repodata at /data/cephfs-1/home/users/juno12_c/.cache/rattler/cache/repodata is on a network/parallel filesystem (NFS/SMB/FUSE/BeeGFS/Lustre/GPFS/CephFS), redirected to /tmp/pixi-cache-juno12_c/repodata for this run. Set [cache.repodata] in config.toml or PIXI_CACHE_DIR to override, or [cache.netfs-redirect] = "never" to keep the original path.
-[2026-06-11T10:21:20.379] error: *** JOB 26564271 ON hpc-cpu-11 CANCELLED AT 2026-06-11T10:21:20 DUE to SIGNAL Terminated ***

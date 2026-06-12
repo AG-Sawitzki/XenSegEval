@@ -1,35 +1,35 @@
 # XenSegEval
-Segments on Xenium v2 output and evaluates the results if a ground-truth is provided.
+Segments on XeniumV2-output[[0]](#0) and evaluates the results if a ground-truth is provided.
 
 $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
 
 ## ToDo
-- [ ] make chunks optional
-- [ ] make single-layer optional
+- [X] make chunks optional
+- [X] make single-layer optional
 - [ ] make boundaries optional (only used by UCS)
-- [ ] doc-strings
+- [X] doc-strings
 - [X] proseg in pixi.toml
 - [ ] add PCA
 - [ ] add PD
-- [ ] add sources
-    - [ ] CPSAM
-    - [ ] DeepCell
-    - [ ] DINOCell
-    - [ ] DISSECT
-    - [ ] Proseg
-    - [ ] StarDist
-    - [ ] UCS
-    - [ ] Evaluation
-    - [ ] Xenium by 10xGenomics
+    - [ ] and source
+- [X] add sources
+    - [X] CPSAM
+    - [X] DeepCell
+    - [X] DINOCell
+    - [X] DISSECT
+    - [X] Proseg
+    - [X] StarDist
+    - [X] UCS
+    - [X] Xenium by 10xGenomics
 
 ## Overview - Segmentation Algorithms
 
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
-| pre-trained |  | $$\color{green}\text{CellposeSAM}$$ <br> $$\color{green}\text{StarDist}$$ <br> $$\color{green}\text{Mesmer}$$ <br> $$\color{green}\text{DINOCell}$$ | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$ |
-| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{green}\text{UCS}$$ |
-| no-training | $$\color{green}\text{Proseg}$$ |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
+| pre-trained |  | $$\color{green}\text{CellposeSAM}$$<sup>[[3]](#3)</sup> <br> $$\color{green}\text{StarDist}$$<sup>[[1]](#1)[[2]](#2)</sup> <br> $$\color{green}\text{Mesmer}$$<sup>[[6]](#6)[[7]](#7)[[8]](#8)[[9]](#9)</sup> <br> $$\color{green}\text{DINOCell}$$<sup>[[4]](#4)</sup> | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$<sup>[[5]](#5)</sup> |
+| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{green}\text{UCS}$$<sup>[[10]](#10)</sup> |
+| no-training | $$\color{green}\text{Proseg}$$<sup>[[11]](#11)</sup> |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
 
 All those in green are currently working. Those in red have been tried and were either uninstallable (segger & SCS) or could not work with the data (ComSeg & RNA2Seg).  
 "SRT based" includes those that require only the transcriptomics data.  
@@ -83,8 +83,7 @@ Under `[paths]` the scripts find the path to the raw data, the name of the sampl
 
 After configuring the paths in `config.toml` you can start the pipeline using
 ```
-pixi shell
-python XenSegEval/main.py
+pixi run python XenSegEval/main.py
 ```
 
 ## Preprocessing
@@ -106,3 +105,75 @@ Xenium provides boundaries of cells and nuclei, saved in the `_boundaries.parque
 ...
 ## Evaluating
 ...
+
+# References
+## Xenium
+<a id="0">[0]
+Janesick, A. et al. (2023)<br>
+High resolution mapping of the tumor microenvironment using integrated single-cell, spatial and in situ analysis.<br>
+[DOI:10.1038/s41467-023-43458-x](doi.org/10.1038/s41467-023-43458-x)
+## Segmentation-Algorithms
+<a id="1">[1]</a>
+Martin Weigert, Uwe Schmidt, Robert Haase, Ko Sugawara, Gene Myers (2020).<br>
+Star-convex Polyhedra for 3D Object Detection and Segmentation in Microscopy.<br>
+[DOI:10.1109/WACV45572.2020.9093435](doi.org/10.1109/WACV45572.2020.9093435)
+
+<a id="2">[2]</a>
+Martin Weigert, Uwe Schmidt (2022).<br>
+Nuclei Instance Segmentation and Classification in Histopathology Images with Stardist.<br>
+[DOI:10.1109/ISBIC56247.2022.9854534](doi.org/10.1109/ISBIC56247.2022.9854534)
+
+<a id="3">[3]</a>
+Marius Pachitariu, Michael Rariden, Carsen Stringer (2025). <br>
+Cellpose-SAM: superhuman generalization for cellular segmentation.<br>
+[DOI:10.1101/2025.04.28.651001](doi.org/10.1101/2025.04.28.651001)
+
+<a id="4">[4]</a>
+Kaden Stillwagon, Alexandra Dunnum VandeLoo, Benjamin Magondu, Craig R. Forest (2026).<br>
+Self-supervised Pretraining of Cell Segmentation Models.<br>
+[DOI:10.48550/arXiv.2604.10609](doi.org/10.48550/arXiv.2604.10609)
+
+<a id="5">[5]</a>
+Zeng Lab. <br>
+DISSECT integrates cytological images and spatial transcriptomics for cell segmentation.
+
+<a id="6">[6]</a>
+David A. Van Valen, Takamasa Kudo, Keara M. Lane, Derek N. Macklin, Nicolas T. Quach, Mialy M. DeFelice, Inbal Maayan, Yu Tanouchi, Euan A. Ashley, Markus W. Covert (2016)<br>
+Deep Learning Automates the Quantitative Analysis of Individual Cells in Live-Cell Imaging Experiments.<br>
+[DOI:10.1371/journal.pcbi.1005177](doi.org/10.1371/journal.pcbi.1005177)
+
+<a id="7">[7]</a>
+Erick Moen, Enrico Borba, Geneva Miller, Morgan Schwartz, Dylan Bannon, Nora Koe, Isabella Camplisson, Daniel Kyme, Cole Pavelchek, Tyler Price, Takamasa Kudo, Edward Pao, William Graf, David Van Valen (2019)<br>
+Accurate cell tracking and lineage construction in live-cell imaging experiments with deep learning.<br>
+[DOI:10.1101/803205](doi.org/10.1101/803205)
+
+<a id="8">[8]</a>
+Bannon, D., Moen, E., Schwartz, M. et al. (2021)<br>
+DeepCell Kiosk: scaling deep learning–enabled cellular image analysis with Kubernetes.<br>
+[DOI:10.1038/s41592-020-01023-0](doi.org/10.1038/s41592-020-01023-0)
+
+<a id="9">[9]</a>
+Greenwald, N.F., Miller, G., Moen, E. et al. (2022)<br>
+Whole-cell segmentation of tissue images with human-level performance using large-scale data annotation and deep learning.<br>
+[DOI:10.1038/s41587-021-01094-0](doi.org/10.1038/s41587-021-01094-0)
+
+<a id="10">[10]</a>
+Yuheng Chen, Xin Xu, Xiaomeng Wan, Jiashun Xiao, Can Yang (2025)<br>
+UCS: A Unified Approach to Cell Segmentation for Subcellular Spatial Transcriptomics.<br>
+[DOI:10.1002/smtd.202400975](doi.org/10.1002/smtd.202400975)
+
+<a id="11">[11]</a>
+Jones, D.C., Elz, A.E., Hadadianpour, A. et al. (2025)<br>
+Cell simulation as cell segmentation.<br>
+[DOI:10.1038/s41592-025-02697-0](doi.org/10.1038/s41592-025-02697-0)
+
+## Evaluation-Methods
+<a id="12">[10]</a>
+Caicedo, Juan C., et al. (2019)<br>
+Evaluation of Deep Learning Strategies for Nucleus Segmentation in Fluorescence Images.<br>
+[DOI:10.1002/cyto.a.23863](doi.org/10.1002/cyto.a.23863)
+
+<a id="13">[11]</a>
+Can Shi, Jinghong Fan, Zhonghan Deng, Huanlin Liu, Qiang Kang, Yumei Li, Jing Guo, Jingwen Wang, Jinjiang Gong, Sha Liao, Ao Chen, Ying Zhang, Mei Li (2025)<br>
+CellBinDB: a large-scale multimodal annotated dataset for cell segmentation with benchmarking of universal models.<br>
+[DOI:10.1101/2024.11.20.619750](doi.org/10.1101/2024.11.20.619750)
