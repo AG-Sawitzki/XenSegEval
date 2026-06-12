@@ -1,5 +1,5 @@
 # XenSegEval
-Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates the results if a ground-truth is provided.
+Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[13]](#13)</sup> the results if a ground-truth is provided.
 
 $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
