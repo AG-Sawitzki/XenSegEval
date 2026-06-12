@@ -40,7 +40,7 @@ All those in green are currently working. Those in red have been tried and were 
 # Getting Started
 To use this repository, clone it
 ```
-git clone https://github.com/Normann-BPh/10xSegEval.git
+git clone https://github.com/Normann-BPh/XenSegEval.git
 ```
 install pixi
 ```
@@ -48,11 +48,11 @@ curl -fsSL https://pixi.sh/install.sh | sh
 # or
 wget -q0- https://pixi.sh/install.sh | sh
 ```
-then run
+then change the directory and update the .lock file.
 ```
+cd XenSegEval
 pixi lock
 ```
-in the directory to update the packages.
 
 ### Dissect
 To install dissect-st run the following commads
@@ -61,7 +61,7 @@ pixi shell -e dissect
 uv pip install --prerelease=allow deterctron2 -f \
     https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 ```
-Afterwards download the pre-trained model using gdown[5.2.2].
+Afterwards download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
