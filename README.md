@@ -57,9 +57,13 @@ in the directory to update the packages.
 ### Dissect
 To install dissect-st run the following commads
 ```
-pixi shell -e deepcell
+pixi shell -e dissect
 uv pip install --prerelease=allow deterctron2 -f \
     https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
+```
+Afterwards download the pre-trained model using gdown[5.2.2].
+```
+gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
 
 ### Proseg
@@ -84,7 +88,7 @@ Under `[paths]` the scripts find the path to the raw data, the name of the sampl
 
 After configuring the paths in `config.toml` you can start the pipeline using
 ```
-pixi run python XenSegEval/main.py
+pixi run python -m XenSegEval.main
 ```
 
 ## Preprocessing
