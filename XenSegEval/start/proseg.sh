@@ -10,7 +10,7 @@ sections_path=$(get_toml_value "$CONFIG_FILE" "paths" "sections_path")
 . ~/.bashrc
 sections=$(jq 'keys' $sections_path | jq .[] | tr -d ' "')
 #
-echo $sections
+SECONDS=0
 for s in ${sections}; do
     mkdir -p "$home/$sample/results/proseg/output/$s/"
     proseg \
@@ -22,3 +22,5 @@ for s in ${sections}; do
     --output-counts "$home/$sample/results/proseg/output/$s/counts.mtx.gz" \
     "$home/$sample/processed/$s/transcripts/relative.csv.gz"
 done
+duration=$SECONDS
+echo "$((duration / 60)) minutes and $((duration % 60)) seconds elapsed."

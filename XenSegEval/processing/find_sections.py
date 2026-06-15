@@ -12,21 +12,21 @@ import json
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
 from numpy.lib.stride_tricks import sliding_window_view
-from numpy.typing import ArrayLike
 import numpy as np
 import zarr
 import cv2
 
 # types
-from numpy import ndarray
+from numpy.typing import ArrayLike
+from typing import Any, Union
 
 from XenSegEval.utils import get_config_args
 
 
 def get_weighted_distance(
-    centre: tuple | list,
-    weightx: float=0.25,
-    weighty: float=1
+    centre: Union[tuple, list],
+    weightx: float = 0.25,
+    weighty: float = 1
 ) -> float:
     """Get weighted distance of an area's centre from [0,0].
     Args:
@@ -45,7 +45,7 @@ def find_rois(
     shape_org: tuple,
     image_subres: ArrayLike ,
     n_roi: int
-) -> list | ndarray:
+) -> Union[list, ArrayLike]:
     """Sort the contours by area.
     Args:
         shape_org: Max resolution of img.
@@ -88,14 +88,15 @@ def find_rois(
     # sort by area and find smallest allowed roi
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
     smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
-    # sort by weighted_distance and 
+    # sort by weighted_distance 
     values_arr_wd_args = np.argsort(values_arr, kind='stable', order='wd')
     values_arr_wd_sorted = np.sort(values_arr, kind='stabe', order='wd')
     contours_wd_sorted = [contours[index] for index in values_arr_wd_args]
 
     mask = values_arr_wd_sorted['area'] >= smallest_allowed_roi
     nroi_contours = [
-        contours_wd_sorted[index] for index, boolean in enumerate(mask) if boolean
+        contours_wd_sorted[index] for index, boolean in enumerate(mask)
+        if boolean
     ]
 
     return nroi_contours, subres_centre

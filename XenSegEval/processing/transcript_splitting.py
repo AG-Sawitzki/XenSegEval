@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 
 # types
-from typing import Any
+from typing import Any, Union
 from pandas.core.frame import DataFrame
 
 from XenSegEval.utils import get_config_args
@@ -91,25 +91,7 @@ def relative(
         regions_data: Dictionary with coordinates of bbox-corners.
     Returns:
         DataFrame with coordinates relative to region origin.
-    """
-    #y_loc = df.columns.get_loc('y_location')
-    #x_loc = df.columns.get_loc('x_location')
-    
-    #y_arr = df['y_location'].to_numpy()
-    #y_arr = np.nan_to_num(y_arr, nan=0, posinf=0, neginf=0)
-    #y_arr_r = y_arr - region_data['y_min']
-    #y_arr_r.astype(np.int64)
-    #y_arr_r[y_arr_r == 0] = np.nan
-    
-    #df.iloc[:,y_loc] = pd.DataFrame(y_arr_r)
-    #x_arr = df['x_location'].to_numpy()
-    #x_arr = np.nan_to_num(x_arr, nan=0, posinf=0, neginf=0)
-    #x_arr_r = x_arr - region_data['x_min']
-    #x_arr_r.astype(np.int64)
-    #x_arr_r[x_arr_r == 0] = np.nan
-    
-    #df.iloc[:,x_loc] = pd.DataFrame(x_arr_r)
-    
+    """    
     df['y_location'] = (df['y_location'] - region_data['y_min'])
     df['x_location'] = (df['x_location'] - region_data['x_min'])
 
@@ -126,25 +108,6 @@ def pixelate(
     Returns:
         DataFrame with coordinates in pixel coordinates.
     """ 
-    #y_loc = df.columns.get_loc('y_location')
-    #x_loc = df.columns.get_loc('x_location')
-
-    #y_arr = df['y_location'].to_numpy()
-    #y_arr = np.nan_to_num(y_arr, nan=0, posinf=0, neginf=0)
-    #y_arr_p = y_arr / pixelsize
-    #y_arr_p.astype(np.int64)
-    #y_arr_p[y_arr_p == 0] = np.nan
-
-    #df.iloc[:,y_loc] = pd.DataFrame(y_arr_p)
-    #
-    #x_arr = df['x_location'].to_numpy()
-    #x_arr = np.nan_to_num(x_arr, nan=0, posinf=0, neginf=0)
-    #x_arr_p = x_arr / pixelsize
-    #x_arr_p.astype(np.int64)
-    #x_arr_p[x_arr_p == 0] = np.nan
-    #
-    #df.iloc[:,x_loc] = pd.DataFrame(x_arr_p)
-    #
     df['y_location'] = (
         df['y_location'] / pixelsize[0]
     ).round(0).astype(np.int64)
@@ -201,10 +164,10 @@ def save_section(
             index=False,
             compression='infer'
         )
-        sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
-        pq.write_table(
-            sub_results_pq, Path(output_dir / 'relative.parquet')
-        )
+        # sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
+        # pq.write_table(
+        #     sub_results_pq, Path(output_dir / 'relative.parquet')
+        # )
 
         print(f'region {region_name}: saved restults')
 
@@ -225,25 +188,6 @@ if __name__ == '__main__':
 
     variables = get_config_args(config, 'transcripts')
     globals().update(variables)
-
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # home = paths['home']
-    # data = Path(paths['data_path'])
-    # sample = paths['sample_name']
-    # ## define processed directory 
-    # processed = Path(f'{home}/{sample}/processed')
-    # processed.mkdir(parents=True, exist_ok=True)
-    # ## define sections_dictionary path
-    # if 'sections_path' in paths:
-    #     sections_path = paths['sections_path']
-    # else:
-    #     sections_path = processed / 'sections_px.json'
-
-    # # define variables
-    # pixelsizeXY = imagestats['pixelsize_xy']
-    # pixelsizeZ = imagestats['pixelsize_z']
 
     # load sections_dictionary
     with open(sections_path) as f:

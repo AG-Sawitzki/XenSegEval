@@ -17,6 +17,11 @@ import numpy as np
 import zarr
 import cv2
 
+# types
+from numpy.typing import ArrayLike
+from typing import Any, Union
+
+
 from XenSegEval.utils import get_config_args
 
 
@@ -99,7 +104,7 @@ def chunk_size(
 def write_tif(
     image: ArrayLike,
     imagestats: dict,
-    section: str | int,
+    section: Union[str, int],
     layer: int=None,
     chunk: int=None
 ) -> None:
@@ -191,20 +196,6 @@ if __name__ == '__main__':
 
     variables = get_config_args(config, 'images')
     globals().update(variables)
-
-    # preprocessing = config['preprocessing']
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # # define paths
-    # home = paths['home']
-    # sample = paths['sample_name']
-    # data = paths['data_path']
-    # ## define processed directory    
-    # processed = Path(f'{home}/{sample}/processed')
-    # processed.mkdir(parents=True, exist_ok=True)
-    # ## define sections_dictionary path
-    # sections_path = paths['sections_path']
 
     with open(sections_path, 'r') as f:
         section_dictionary = json.load(f)

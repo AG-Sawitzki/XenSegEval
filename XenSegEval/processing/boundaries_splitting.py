@@ -92,24 +92,6 @@ def relative(
     Returns:
         DataFrame with coordinates relative to region origin.
     """
-    #y_loc = df.columns.get_loc('vertex_y')
-    #x_loc = df.columns.get_loc('vertex_x')
-    #
-    #vertex_y_arr = df['vertex_y'].to_numpy()
-    #vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
-    #vertex_y_arr_r = vertex_y_arr - region_data['y_min']
-    #vertex_y_arr_r.astype(np.int64)
-    #vertex_y_arr_r[vertex_y_arr_r == 0] = np.nan
-    #
-    #df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_r)
-    #
-    #vertex_x_arr = df['vertex_x'].to_numpy()
-    #vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
-    #vertex_x_arr_r = vertex_x_arr - region_data['x_min']
-    #vertex_x_arr_r.astype(np.int64)
-    #vertex_x_arr_r[vertex_x_arr_r == 0] = np.nan
-    #
-    #df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_r)
     df['vertex_y'] = (df['vertex_y'] - region_data['y_min'])
     df['vertex_x'] = (df['vertex_x'] - region_data['x_min'])
     return df
@@ -126,24 +108,6 @@ def pixelate(
     Returns:
         DataFrame with coordinates in pixel coordinates.
     """
-    #y_loc = df.columns.get_loc('vertex_y')
-    #x_loc = df.columns.get_loc('vertex_x')
-    #
-    #vertex_y_arr = df['vertex_y'].to_numpy()
-    #vertex_y_arr = np.nan_to_num(vertex_y_arr, nan=0, posinf=0, neginf=0)
-    #vertex_y_arr_p = vertex_y_arr / pixelsize
-    #vertex_y_arr_p.astype(np.int64)
-    #vertex_y_arr_p[vertex_y_arr_p == 0] = np.nan
-    #
-    #df.iloc[:,y_loc] = pd.DataFrame(vertex_y_arr_p)
-    #
-    #vertex_x_arr = df['vertex_x'].to_numpy()
-    #vertex_x_arr = np.nan_to_num(vertex_x_arr, nan=0, posinf=0, neginf=0)
-    #vertex_x_arr_p = vertex_x_arr / pixelsize
-    #vertex_x_arr_p.astype(np.int64)
-    #vertex_x_arr_p[vertex_x_arr_p == 0] = np.nan
-    #
-    #df.iloc[:,x_loc] = pd.DataFrame(vertex_x_arr_p)
     df['vertex_y'] = (
         df['vertex_y'] / pixelsizeXY
     ).round(0).astype(np.int64)
@@ -160,7 +124,7 @@ def save_section(
     regions: Any,
     df: Any,
     pixelsizeXY: Any,
-    bound: Any='cell'
+    bound: Any = 'cell'
 ) -> None:
     """Saves the DataFrame as parquet.
     Args:
@@ -219,24 +183,6 @@ if __name__ == '__main__':
 
     variables = get_config_args(config, 'boundaries')
     globals().update(variables)
-
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # home = paths['home']
-    # data = Path(paths['data_path'])
-    # sample = paths['sample_name']
-    # ## define processed directory    
-    # processed = Path(f'{home}/{sample}/processed/')
-    # processed.mkdir(parents=True, exist_ok=True)
-    # ## define sections_dictionary path
-    # if 'sections_path' in paths:
-    #     sections_path = Path(paths['sections_path'])
-    # else:
-    #     sections_path = Path(processed / 'sections_px.json')
-
-    # # define variables
-    # pixelsizeXY = imagestats['pixelsize_xy']
 
     # load sections_dictionary
     with open(sections_path) as f:

@@ -65,6 +65,7 @@ Afterwards download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
+The config.yaml file can be found on the [ZengLabs GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). D
 
 ### Proseg
 Install Proseg by running the commands below

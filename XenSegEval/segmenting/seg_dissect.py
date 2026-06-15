@@ -11,7 +11,6 @@ from tomlkit import load
 import numpy as np
 import json
 
-#sys.path.append('..')
 from XenSegEval.utils import get_config_args
 
 

@@ -1,11 +1,11 @@
 [xenium_output]:
     data:
-        transcripts.csv.gz
         cell_boundaries.parquet
-        nucleus_boundaries.parquet
         morphology.ome.tif
         morphology_focus:
-            morphology_focus_000{0...3}.ome.tif
+            morphology_focus_000{0..3}.ome.tif
+        nucleus_boundaries.parquet
+        transcripts.csv.gz
 [sample]:
     processed:
         [section]:
@@ -16,16 +16,16 @@
                 focus:
                     focus.ome.tif
                     quartered:
-                        q0{0...chunk}.ome.tif
+                        q0{0..chunks}.ome.tif
                 multi_layer:
                     morphology.ome.tif
                     quartered:
-                        q0{0...chunk}.ome.tif
+                        q0{0..chunks}.ome.tif
                 single_layer:
                     layer0{0...3}:
                         morphology.tif
                         quatered:
-                            q0{0...chunk}.tif
+                            q0{0..chunks}.tif
             transcripts:
                 relative.csv{.gz}
                 relative.parquet
@@ -33,30 +33,31 @@
         sections_px.json
     results:
         [method]:
-            count_matrix:
-                [section].mtx.gz
+            # count_matrix:
+            #     [section].mtx.gz
             evaluation:
                 [section]:
-                    CS-BENCH.csv
-                    false_negatives.csv
-                    results.csv
-                    split_merges.csv
-            outlines:
-                [section]:
-                    [section].npy
-                    quartered:
-                        q0{0...chunk}.npy
+                    {layer/stain}
+                        CS-BENCH.csv
+                        false_negatives.csv
+                        results.csv
+                        split_merges.csv
+            # outlines:
+            #     [section]:
+            #         [section].npy
+            #         quartered:
+            #             q0{0..chunks}.npy
             output:
                 [section]:
                     {output}            
             polygons:
                 [section].geojson.gz
     run:
+        jobs:
+            [method].sh
+        logs:
+            [method]_%N_%j.err
+            [method]_%N_%j.out
         methods:
             [method]:
-                logs:
-                    %N_%j.err
-                    %N_%j.out
                 {parameters.json}
-
-        processing:
