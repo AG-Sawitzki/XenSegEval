@@ -27,6 +27,9 @@ pandas = "*"
 psutil = "*"
 zarr = ">=3.2.1,<4"
 tqdm = ">=4.68.1,<5"
+geojson = "*"
+geopandas = "*"
+shapely = "*"
 
 [feature.process.target.linux-64.pypi-dependencies]
 opencv-python = ">=4.13.0.92, <5"

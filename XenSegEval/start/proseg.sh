@@ -12,6 +12,7 @@ sections=$(jq 'keys' $sections_path | jq .[] | tr -d ' "')
 #
 echo $sections
 for s in ${sections}; do
+    mkdir -p "$home/$sample/results/proseg/output/$s/"
     proseg \
     --xenium \
     --overwrite \
