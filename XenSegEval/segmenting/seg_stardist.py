@@ -60,7 +60,6 @@ if __name__ == '__main__':
         img = imread(img_path)
         labels, _ = model.predict_instances(normalize(img))
 
-
         output_dir = Path(results / f'{section}')
         output_dir.mkdir(parents=True, exist_ok=True)
 
