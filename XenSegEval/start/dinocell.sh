@@ -9,5 +9,6 @@ n_roi=$(get_toml_value "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 #
 . ~/.bashrc
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"./.pixi/envs/dinocell/lib"
 #
-pixi run -e dinocell python XenSegEval/segmenting/dinocell.py
+pixi run -e dinocell python -m XenSegEval.segmenting.seg_dinocell

@@ -1,8 +1,8 @@
-
 from itertools import product
 from pathlib import Path
 import configparser
 import argparse
+import sys
 import os
 
 from tqdm import tqdm
@@ -18,8 +18,6 @@ import zarr
 import cv2
 
 from XenSegEval.utils import get_config_args
-
-print(os.getcwd())
 
 
 def get_memory_usage_percentage() -> float:
@@ -121,7 +119,7 @@ def write_tif(
         {quatered/q0{chunk}.extension if chunk
          else focus. or morphology.extension}'
     """
-    if pixelsizeXY in globals():
+    if 'pixelsizeXY' in globals():
         print('all there :)')
         # pixelsizeXY = imagestats['pixelsize_xy']
         # pixelsizeZ = imagestats['pixelsize_z']
@@ -189,9 +187,9 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = load(f)
+        config = tomlkit.load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'images')
     globals().update(variables)
 
     # preprocessing = config['preprocessing']
@@ -208,11 +206,11 @@ if __name__ == '__main__':
     # ## define sections_dictionary path
     # sections_path = paths['sections_path']
 
-    # with open(sections_path, 'r') as f:
-    #     sections_dict = json.load(f)
+    with open(sections_path, 'r') as f:
+        section_dictionary = json.load(f)
 
     # load morpho and focus:
-    morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
+    morphology_store = imread(f'{data_path}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
 
     subres_lvls = [lvl for lvl in morphology_zarr]
@@ -223,7 +221,7 @@ if __name__ == '__main__':
 
     # load morphology_focus
     focus_org = []
-    for file in Path(f'{data}/morphology_focus').glob('*.ome.tif'):
+    for file in Path(f'{data_path}/morphology_focus').glob('*.ome.tif'):
         focus_store = imread(file,
             aszarr=True,
             is_ome=False # to prevent multifile reading
@@ -232,7 +230,7 @@ if __name__ == '__main__':
         focus_org.append(focus_zarr['0'])
 
     with tqdm(
-        total=len(sections_dict),
+        total=len(section_dictionary),
         desc='Saving ROIs',
         ncols=79,
         leave=True
@@ -243,7 +241,7 @@ if __name__ == '__main__':
         chunks = preprocessing['chunks']
         overlap = preprocessing['overlap']
 
-        for section, bbox in sections_dict.items():
+        for section, bbox in section_dictionary.items():
             y_min, x_min = bbox[0]
             y_max, x_max = bbox[1]
             resolution = (y_max-y_min, x_max-x_min)

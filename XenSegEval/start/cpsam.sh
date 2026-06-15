@@ -10,10 +10,10 @@ n_roi=$(get_toml_value "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 . ~/.bashrc
 #
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./.pixi/envs/cpsam/lib"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"./.pixi/envs/cpsam/lib"
 #
-pixi run -e cpsam python XenSegEval/segmenting/seg_cpsam.py -c $CONFIG_FILE
-
+pixi run -e cpsam python -m XenSegEval.segmenting.seg_cpsam -c $CONFIG_FILE
+#
 # should the script make problems:
 # if [ -z ${SECTION} ] 
 #     then

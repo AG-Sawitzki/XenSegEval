@@ -1,3 +1,5 @@
+import sys
+
 from pathlib import Path
 import argparse
 import pickle
@@ -9,23 +11,24 @@ import tomlkit
 
 from XenSegEval.utils import get_config_args
 
+
 # for pca
 from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-from aicsimageio.aics_image import imread, AICSImage
-from aicsimageio.readers import ome_tiff_reader, tiff_reader, array_like_reader
-from aicsimageio.writers import ome_tiff_writer
+#from aicsimageio.aics_image import imread, AICSImage
+#from aicsimageio.readers import ome_tiff_reader, tiff_reader, array_like_reader
+#from aicsimageio.writers import ome_tiff_writer
 
 # for jaccard
-from unet4nuclei.evaluation import (
+from XenSegEval.eval.unet4nuclei.evaluation import (
     compute_af1_results,
     get_false_negatives,
     get_splits_and_merges
 )
 
 # for cs-bench
-from cs_benchmark.metrics import Metrics
+from XenSegEval.eval.cs_benchmark.metrics import Metrics
 
 
 if __name__ == '__main__':
@@ -35,13 +38,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     method = args.Method
-    section = args.Section
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'eval')
     globals().update(variables)
 
     # paths = config['paths']
@@ -60,8 +62,12 @@ if __name__ == '__main__':
     # JACCARD = evaluation['JACCARD']
     # CS_BENCH = evaluation['CS-BENCH']
 
-    outdir = Path(f'{home}/{sample}/results/{method}/evaluation/{section}/')
+    section = 'newmem'
+    outdir = Path(f'{home}/{sample_name}/results/{method}/evaluation/{section}/')
     outdir.mkdir(parents=True, exist_ok=True)
+
+    gt = tf.imread(gt_path)
+    mask_path = f'{results}/{method}/output/{section}/prediction.tif'
 
     if PCA:
         with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
@@ -109,6 +115,7 @@ if __name__ == '__main__':
         )
 
     if JACCARD:
+        print('jaccard')
         results = pd.DataFrame(
             columns=["Method", "Threshold", "F1", "Jaccard", "TP", "FP", "FN"]
         )
@@ -143,7 +150,7 @@ if __name__ == '__main__':
             method
         )
         
-        splits_merges = get_splits_and_merges(
+        split_merges = get_splits_and_merges(
             gt, 
             mask, 
             splits_merges, 
@@ -155,6 +162,7 @@ if __name__ == '__main__':
         split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
     if CS_BENCH:
+        print('cs_bench')
         gt = label(gt)
         mask = label(mask)
 

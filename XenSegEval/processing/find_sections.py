@@ -2,6 +2,7 @@ from itertools import product
 from pathlib import Path
 import configparser
 import argparse
+import sys
 import os
 
 from tqdm import tqdm
@@ -113,26 +114,14 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = load(f)
+        config = tomlkit.load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'ROIs')
     globals().update(variables)
-
-    # preprocessing = config['preprocessing']
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # # define paths
-    # home = paths['home']
-    # sample = paths['sample_name']
-    # data = paths['data_path']
-
-    # processed = Path(f'{home}/{sample}/processed')
-    # processed.mkdir(parents=True, exist_ok=True)
 
     # load morpho and focus:
     print('to load')
-    morphology_store = imread(f'{data}/morphology.ome.tif', aszarr=True)
+    morphology_store = imread(f'{data_path}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')
 
     subres_lvls = [lvl for lvl in morphology_zarr]

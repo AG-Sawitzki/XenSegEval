@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 
 import dissect
@@ -10,6 +11,7 @@ from tomlkit import load
 import numpy as np
 import json
 
+#sys.path.append('..')
 from XenSegEval.utils import get_config_args
 
 
@@ -28,26 +30,8 @@ if __name__ == '__main__':
     with open(config_path, 'rb') as f:
         config = load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'dissect')
     globals().update(variables)
-
-    # preprocessing = config['preprocessing']
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # home = paths['home']
-    # sample = paths['sample_name']
-    # ## define processed and results directory
-    # processed = Path(f'{home}/{sample}/processed/')
-    # results = Path(f'{home}/{sample}/results/dissect')
-    # results.mkdir(parents=True, exist_ok=True)
-    # ## define sections_dictionary path
-    # if 'sections_path' in paths:
-    #     sections_path = paths['sections_path']
-    # else:
-    #     sections_path = processed / 'sections_px.json'
-
-    # pixelsize = imagestats['pixelsize_xy']
 
     # load sections_dictionary
     with open(sections_path) as f:
@@ -55,11 +39,17 @@ if __name__ == '__main__':
         sections = section_dictionary.keys()
 
     for section in sections:
+        img_path = Path(processed / f'{section}/morphology/focus/focus.ome.tif')
+        gene_mtx_filename = Path(processed / f'{section}/transcripts/relative.csv')
+        config_file = Path('./XenSegEval/segmenting/dissect/dissect_config.yaml')
+        weights_file = Path('./XenSegEval/segmenting/dissect/dissect_weights.pth')
+        output_dir = Path(results / f'{section}')
+        output_dir.mkdir(parents=True, exist_ok=True)
         mask = dissect.segmentation(
-            img_path=Path(processed / f'{section}/morphology/focus/focus.ome.tif'),
+            img_path=str(img_path),
             platform='xenium',
-            gene_mtx_filename=Path(processed / f'{section}/transcripts/relative.csv'),
-            config_file=Path('segmenting/dissect_config.yaml'),
-            weights_file=Path('segmenting/dissect_weights.pth'),
-            output=Path(results / f'output/{section}')
+            gene_mtx_filename=str(gene_mtx_filename),
+            config_file=str(config_file),
+            weights_file=str(weights_file),
+            output=str(output_dir)
         )

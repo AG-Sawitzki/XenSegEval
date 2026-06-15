@@ -40,7 +40,7 @@ All those in green are currently working. Those in red have been tried and were 
 # Getting Started
 To use this repository, clone it
 ```
-git clone https://github.com/Normann-BPh/10xSegEval.git
+git clone https://github.com/Normann-BPh/XenSegEval.git
 ```
 install pixi
 ```
@@ -48,18 +48,22 @@ curl -fsSL https://pixi.sh/install.sh | sh
 # or
 wget -q0- https://pixi.sh/install.sh | sh
 ```
-then run
+then change the directory and update the .lock file.
 ```
+cd XenSegEval
 pixi lock
 ```
-in the directory to update the packages.
 
 ### Dissect
 To install dissect-st run the following commads
 ```
-pixi shell -e deepcell
+pixi shell -e dissect
 uv pip install --prerelease=allow deterctron2 -f \
     https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
+```
+Afterwards download the pre-trained model using gdown (v5.2.2).
+```
+gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
 
 ### Proseg
@@ -84,7 +88,7 @@ Under `[paths]` the scripts find the path to the raw data, the name of the sampl
 
 After configuring the paths in `config.toml` you can start the pipeline using
 ```
-pixi run python XenSegEval/main.py
+pixi run python -m XenSegEval.main
 ```
 
 ## Preprocessing
@@ -105,10 +109,11 @@ If `[Tasks.evaluate] = true` all those procedures set to `true` under `[evaluati
 
 # References
 ## Xenium
-<a id="0">[0]
+<a id="0">[0] 
 Janesick, A. et al. (2023)<br>
 High resolution mapping of the tumor microenvironment using integrated single-cell, spatial and in situ analysis.<br>
 [DOI:10.1038/s41467-023-43458-x](doi.org/10.1038/s41467-023-43458-x)
+
 ## Segmentation-Algorithms
 <a id="1">[1]</a>
 Martin Weigert, Uwe Schmidt, Robert Haase, Ko Sugawara, Gene Myers (2020).<br>

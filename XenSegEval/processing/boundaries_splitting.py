@@ -3,6 +3,7 @@ from pathlib import Path
 import configparser
 import functools
 import argparse
+import sys
 import os
 
 import tomlkit
@@ -19,8 +20,6 @@ from typing import Any
 from pandas.core.frame import DataFrame
 
 from XenSegEval.utils import get_config_args
-
-print(os.getcwd())
 
 
 def define_regions_to_extract(
@@ -216,9 +215,9 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = load(f)
+        config = tomlkit.load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'boundaries')
     globals().update(variables)
 
     # paths = config['paths']
@@ -245,10 +244,10 @@ if __name__ == '__main__':
 
     regions = define_regions_to_extract(section_dictionary, pixelsizeXY) 
 
-    for file in Path(data).glob('*_boundaries.parquet'):
+    for file in Path(data_path).glob('*_boundaries.parquet'):
         parquet_file = pq.ParquetFile(file)
         bound = str(file).removesuffix('_boundaries.parquet')
-        bound = str(bound).removeprefix(str(data)+'/')
+        bound = str(bound).removeprefix(str(data_path)+'/')
         print(bound)
         with mp.Pool(processes=mp.cpu_count()-1) as pool:
             # with parquet_file.iter_batches() as reader:

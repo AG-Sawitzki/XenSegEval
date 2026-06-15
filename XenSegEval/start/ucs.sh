@@ -35,4 +35,4 @@ for s in ${}; do
     --gene_map $home/$sample/results/ucs/$s/gene_map.tif \
     --nuclei_mask $home/$sample/results/ucs/$s/nuclei_10X_mask.tif \
     --log_dir $home/$sample/run/ucs/log/$s/
-
+done

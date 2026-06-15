@@ -3,6 +3,7 @@ from pathlib import Path
 import configparser
 import functools
 import argparse
+import sys
 import os
 
 import tomlkit
@@ -20,8 +21,6 @@ from typing import Any
 from pandas.core.frame import DataFrame
 
 from XenSegEval.utils import get_config_args
-
-print(os.getcwd())
 
 
 def regions_to_extract(
@@ -222,9 +221,9 @@ if __name__ == '__main__':
     config_path = args.Config
 
     with open(config_path, 'rb') as f:
-        config = load(f)
+        config = tomlkit.load(f)
 
-    variables = get_config_args(config, 'main')
+    variables = get_config_args(config, 'transcripts')
     globals().update(variables)
 
     # paths = config['paths']
@@ -261,7 +260,7 @@ if __name__ == '__main__':
     print('Processing Chunks.')
     with mp.Pool(processes=mp.cpu_count()-1) as pool:
         with pd.read_csv(
-            data / 'transcripts.csv.gz',
+            data_path / 'transcripts.csv.gz',
             compression='infer',
             dtype=dtype_dict,
             chunksize=20000

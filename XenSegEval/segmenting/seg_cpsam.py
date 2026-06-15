@@ -1,15 +1,19 @@
 import os
+import sys
 import argparse
 from pathlib import Path
 
 from cellpose import models, io
-from tifffile import TiffFile, imwrite
+from tifffile import TiffFile, imwrite, imread
 
 import numpy as np
 
 import tomlkit
 import json
 
+print(os.getcwd())
+
+#sys.path.append('..')
 from XenSegEval.utils import get_config_args
 
 if __name__ == '__main__':
@@ -28,34 +32,13 @@ if __name__ == '__main__':
         config = tomlkit.load(f)
 
     variables = get_config_args(config, 'cpsam')
-    globals().update()
+    globals().update(variables)
 
-    # preprocessing = config['preprocessing']
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-
-    # home = paths['home']
-    # sample = paths['sample_name']
-    # ## define processed and results directory
-    # processed = Path(f'{home}/{sample}/processed/')
-    # results = Path(f'{home}/{sample}/results/cpsam')
-    # results.mkdir(parents=True, exist_ok=True)
-    # ## define sections_dictionary path
-    # if 'sections_path' in paths:
-    #     sections_path = paths['sections_path']
-    # else:
-    #     sections_path = processed / 'sections_px.json'
-
-    # pixelsize = imagestats['pixelsize_xy']
-
-    # # load sections_dictionary
-    # with open(sections_path) as f:
-    #     section_dictionary = json.load(f)
-    #     sections = section_dictionary.keys()
+    # load sections_dictionary
+    with open(sections_path) as f:
+        section_dictionary = json.load(f)
+        sections = section_dictionary.keys()
     
-    # cpsam_model = config['methods']['cpsam']['model']
-    # cpsam_eval = config['methods']['cpsam']['eval']
-
     cpsam_model = method['model']
     cpsam_eval = method['eval']
 
@@ -64,17 +47,31 @@ if __name__ == '__main__':
     model = models.CellposeModel(**cpsam_model)
 
     for section in sections:
-        multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
-        for q, quater in enumerate(multi_layer_quater.glob('q0*.ome.tif')):
-            with TiffFile(quater) as tif:
-                img = tif.pages[0].asarray()
-
-                masks, flows, styles = model.eval(img, **cpsam_eval)
-
-                res = np.array({'masks': masks, 'flows': flows})
-
-                np.save(
-                    f'{sample}/results/cpsam/{section}/q0{q}.npy',
-                    res
-                )
-                
+        img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')
+        #multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
+        #for q, quater in enumerate(multi_layer_quater.glob('q0*.ome.tif')):
+        #    with TiffFile(quater) as tif:
+        #        img = tif.pages[0].asarray()
+        #
+        #        masks, flows, styles = model.eval(img, **cpsam_eval)
+        #
+        #        res = np.array({'masks': masks, 'flows': flows})
+        #
+        #        np.save(
+        #            f'{sample_name}/results/cpsam/{section}/q0{q}.npy',
+        #            res
+        #        )
+        #with TiffFile(img_path) as tif:
+        img = imread(img_path)
+        masks, flows, styles = model.eval(img, **cpsam_eval)
+        prediction = np.array({'masks': masks, 'flows': flows})
+        output_dir = results / f'{section}'
+        output_dir.mkdir(parents=True, exist_ok=True)
+        np.save(
+            output_dir / 'prediction.npy',
+            prediction
+        )
+        imwrite(
+            output_dir / 'prediction.tif',
+            masks
+        )

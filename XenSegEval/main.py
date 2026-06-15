@@ -6,12 +6,9 @@ import os
 
 import tomlkit
 
-from submit_sbatch import submit_sbatch
-
-from XenSegEval.utils import get_config_args
+from XenSegEval.utils import get_config_args, submit_sbatch
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(
         prog= 'main',
         description='''Main file for XenSegEval.
@@ -38,63 +35,38 @@ if __name__ == '__main__':
         config = tomlkit.load(f)
 
     if sections is not None:
-        paths['sections_path'] = str(sections)
+        config['paths']['sections_path'] = str(sections)
         with open(config_path, 'w') as f:
             tomlkit.dump(config, f)
 
     variables = get_config_args(config, 'main')
     globals().update(variables)
     
-    # tasks = config['Tasks']
-    # preprocessing = config['preprocessing']
-    # paths = config['paths']
-    # imagestats = config['ImageStats']
-    # methods = config['methods']
-
-    # # define paths
-    # cwd = os.getcwd()
-    # home = paths['home']
-    # sample = paths['sample_name']
-    # data = paths['data_path']
-    # results = Path(f'{home}/{sample}/results')
-    # results.mkdir(parents=True, exist_ok=True)
-
-    # tempfile_dir = Path(f'{home}/{sample}/jobs/')
-    # tempfile_dir.mkdir(parents=True, exist_ok=True)
-    # log_path = Path(f'{home}/{sample}/run/logs/')
-    # log_path.mkdir(parents=True, exist_ok=True)
-    # # add custom section_dictionary to paths
-    # # define job arguments
-    # sbatch_kwargs = config['job']
-    # sbatch_kwargs.update(
-    #     log_path=str(log_path),
-    #     tempfile_dir=str(tempfile_dir),
-    #     mail=config['owner']['mail'],
-    # )
+    gpu = sbatch_kwargs['gpu']
 
     # preprocess
     if tasks['preprocess']:
         del sbatch_kwargs['gpu']
         print('preprocessing')
         if sections is None:
-            cmd = f'python XenSegEval/processing/find_sections.py'
+            cmd = f'pixi run python -m XenSegEval.processing.find_sections -c {config_path}'
             sbatch_kwargs['cmd'] = cmd
-            pS = subprocess.Popen(submit_sbatch(sbatch_kwargs), shell=True)
+            pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
             pS.wait()
 
-        cmd = f'python XenSegEval/processing/image_splitting.py'
+        cmd = f'pixi run python -m XenSegEval.processing.image_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pI = subprocess.Popen(submit_sbatch(sbatch_kwargs), shell=True)
+        pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started image splitting.')
 
-        cmd = f'python XenSegEval/processing/transcript_splitting.py'
+        cmd = f'pixi run python -m XenSegEval.processing.transcript_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pT = subprocess.Popen(submit_sbatch(sbatch_kwargs), shell=True)
+        pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started transcript splitting.')
 
-        cmd = f'python XenSegEval/processing/boundaries_splitting.py'
+        cmd = f'pixi run python -m XenSegEval.processing.boundaries_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pB = subprocess.Popen(submit_sbatch(sbatch_kwargs), shell=True)
+        pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started boundary splitting.')
 
         pI.wait()
@@ -102,18 +74,16 @@ if __name__ == '__main__':
         pB.wait()
 
     if tasks['segment']:
-        sbatch_kwargs['gpu'] = 
+        print(config['sbatch'])
+        sbatch_kwargs['gpu'] = gpu
         print('started segmenting')
         seg = []
         for method in config['methods']:
-            # if method in ['proseg', 'ucs']:
-            cmd = f'bash XenSegEval/start/{method}.sh'
-            if method != 'proseg':
-                gpu = True
+            cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
             sbatch_kwargs['cmd'] = cmd
             seg.append(
                 subprocess.Popen(
-                    submit_sbatch(sbatch_kwargs, gpu=gpu),
+                    submit_sbatch(**sbatch_kwargs),
                     shell=True
                 )
             )
@@ -124,11 +94,11 @@ if __name__ == '__main__':
         print('started evaluating')
         evl = []
         for method in config['methods']:
-            cmd = f'python XenSegEval/eval/eval.py -c {config_path} -m {method}'
+            cmd = f'pixi run -e eval python -m XenSegEval.eval.eval -c {config_path} -m {method}'
             sbatch_kwargs['cmd'] = cmd
             evl.append(
                 subprocess.Popen(
-                    submit_sbatch(sbatch_kwargs),
+                    submit_sbatch(**sbatch_kwargs),
                     shell=True
                 )
             )
