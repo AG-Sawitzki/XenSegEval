@@ -83,9 +83,9 @@ The preprocessing steps can be performed without pre-defined ROIs, but **for the
     [[y0, x0], [y1, x1]]
 }
 ```
-Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]`.
+Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]` or include the `--Section` flag when starting `XenSegEval.main`.
 
-Under `[paths]` the scripts find the path to the raw data, the name of the sample, and, if needed, the path to the directory the output should be saved under.
+Under `[paths]` the scripts find the path to the raw data, the name of the sample, and the path to the directory the output should be saved under.
 
 After configuring the paths in `config.toml` you can start the pipeline using
 ```
