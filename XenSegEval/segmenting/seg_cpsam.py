@@ -71,7 +71,8 @@ if __name__ == '__main__':
             output_dir / 'prediction.npy',
             prediction
         )
-        imwrite(
-            output_dir / 'prediction.tif',
-            masks
-        )
+        for l, p in enumerat(preprocessing['planes']):
+            imwrite(
+                output_dir / f'prediction_p{p}.tif',
+                masks[l]
+            )

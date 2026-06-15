@@ -50,8 +50,6 @@ if __name__ == '__main__':
 
     section = 'newmem'
 
-    gt = tf.imread(gt_path)
-
     if method is 'proseg':
         file = 'cell-polygons_layers.geojson.gz'
         polygon_path = Path(
@@ -67,11 +65,18 @@ if __name__ == '__main__':
                 f'{results}/{method}/output/{section}/perdiction_l{layer}.tif',
                 mask
             )
-        
     mask_path = f'{results}/{method}/output/{section}/'
 
+
     for file in Path(mask_path).glob('prediction*.tif'):
+        mask = tf.imread(mask_path)
+        mask_l = label(mask)
+
+        gt = tf.imread(gt_path)
+        gt_l = label(gt)
+        
         dir_name = file.stem.replace('prediction', '')
+        
         if dir_name is not '':
             outdir = Path(
                 f'{home}/{sample_name}/results/{method}/evaluation/{section}/{dir_name}'
@@ -80,7 +85,9 @@ if __name__ == '__main__':
             outdir = Path(
                 f'{home}/{sample_name}/results/{method}/evaluation/{section}
             )
+        
         outdir.mkdir(parents=True, exist_ok=True)
+        
         if PCA:
             with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
                 PCA = pickle.load(pkl)
@@ -138,32 +145,25 @@ if __name__ == '__main__':
                 columns=["Method", "Merges", "Splits"]
             )
 
-            gt = label(gt)
-
-            if len(gt.shape) == 3:
-                gt = gt[:,:,0]
-            
-            mask = tf.imread(mask_path)
-
-            gt = relabel_sequential(gt)[0]
-            mask = relabel_sequential(mask)[0]
+            gt = relabel_sequential(gt_l)[0]
+            mask = relabel_sequential(mask_l)[0]
 
             results = compute_af1_results(
-                gt, 
+                gt_l, 
                 mask, 
                 results, 
                 method
             )
             
             false_negatives = get_false_negatives(
-                gt, 
+                gt_l, 
                 mask, 
                 false_negatives, 
                 method
             )
             
             split_merges = get_splits_and_merges(
-                gt, 
+                gt_l, 
                 mask, 
                 split_merges, 
                 method
@@ -175,12 +175,10 @@ if __name__ == '__main__':
 
         if CS_BENCH:
             print('cs_bench')
-            gt = label(gt)
-            mask = label(mask)
 
             pm = Metrics(method, outdir=outdir)
 
-            object_metrics = pm.calc_object_stats(gt, mask)
+            object_metrics = pm.calc_object_stats(gt_l, mask_l)
 
             results = pd.DataFrame(data=object_metrics)
 

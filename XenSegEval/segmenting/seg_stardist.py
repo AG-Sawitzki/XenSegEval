@@ -48,15 +48,6 @@ if __name__ == '__main__':
     for section in sections:
         #single_layer = Path(processed / f'{section}/morphology/single_layer/')
         img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')
-        #for l, layer in enumerate(single_layer.glob('*0*')):
-        #    p = planes[l]
-        #    for q, quater in enumerate(layer.glob('quatered/q0*.tif')):
-        #        img = imread(quater)
-        #        labels, _ = model.predict_instances(normalize(img))
-        #        np.save(
-        #            f'{sample}/results/stardist/{section}/layer0{p}/q0{q}.npy',
-        #            labels
-        #        )
         img = imread(img_path)
         labels, _ = model.predict_instances(normalize(img))
 
