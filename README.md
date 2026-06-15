@@ -5,7 +5,7 @@ $$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
 $$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
 
 ## ToDo
-- [ ] license
+- [X] license
 - [X] make chunks optional
 - [X] make single-layer optional
 - [ ] make boundaries optional (only used by UCS)
