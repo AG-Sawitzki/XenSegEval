@@ -1,8 +1,11 @@
 # XenSegEval
 Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[13]](#13)</sup> the results if a ground-truth is provided.
 
-$$\color{orange}\text{A Linux-64 system is currently strictly necessary!}$$ <br>
-$$\color{orange}\text{The automatic pipeline requires to be run on the BIH-HPC cluster!}$$ <br>
+> [!WARNING]
+> A Linux-64 system is currently strictly necessary!
+
+> [!IMPORTANT]
+> The automatic pipeline requires to be run on the BIH-HPC cluster!
 
 ## ToDo
 - [X] license
@@ -48,7 +51,7 @@ curl -fsSL https://pixi.sh/install.sh | sh
 # or
 wget -q0- https://pixi.sh/install.sh | sh
 ```
-then change the directory and update the .lock file.
+then change the directory and update the `pixi.lock` file.
 ```
 cd XenSegEval
 pixi lock
@@ -65,19 +68,18 @@ Afterwards download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
-The config.yaml file can be found on the [ZengLabs GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). D
+The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). After downloading the file add it to the same directory as the weights.
 
 ### Proseg
-Install Proseg by running the commands below
+Install Proseg by running the command below
 ```
-pixi shell -e proseg
-cargo install proseg
+pixi run -e proseg cargo install proseg
 ```
 
 # Pipeline
 This repository can prepare and segment on Xenium v2, and soon v3, output. If a ground-truth is provided, it evaluates the results using basic Jaccard values. [PCA](https://github.com/murphygroup/CellSegmentationEvaluator) or [probability density](https://github.com/lstrgar/seg) based evaluation are in work.
 
-The preprocessing steps can be performed without pre-defined ROIs, but **for the evaluation a json file with coordinates** must be provided! Structured as below.
+The preprocessing steps can be performed without pre-defined ROIs, but **for the evaluation a json file with coordinates** must be provided. Structured as below.
 ```
 {"name":
     [[y0, x0], [y1, x1]]
