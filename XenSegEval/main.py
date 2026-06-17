@@ -43,6 +43,7 @@ if __name__ == '__main__':
     globals().update(variables)
     
     gpu = sbatch_kwargs['gpu']
+    mem = sbatch_kwargs['mem']
 
     # preprocess
     if tasks['preprocess']:
@@ -51,22 +52,22 @@ if __name__ == '__main__':
         if sections is None:
             cmd = f'pixi run python -m XenSegEval.processing.find_sections -c {config_path}'
             sbatch_kwargs['cmd'] = cmd
-            pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
+            pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
             pS.wait()
 
         cmd = f'pixi run python -m XenSegEval.processing.image_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
+        pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started image splitting.')
 
         cmd = f'pixi run python -m XenSegEval.processing.transcript_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
+        pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started transcript splitting.')
 
         cmd = f'pixi run python -m XenSegEval.processing.boundaries_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
+        pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started boundary splitting.')
 
         pI.wait()
@@ -81,7 +82,15 @@ if __name__ == '__main__':
         for method in config['methods']:
             cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
             sbatch_kwargs['cmd'] = cmd
-            seg.append(subprocess.Popen(submit_sbatch(**sbatch_kwargs)))
+            if method == 'dissect':
+                sbatch_kwargs['mem'] = 128
+            seg.append(
+                subprocess.Popen(
+                    submit_sbatch(**sbatch_kwargs),
+                    shell=True
+                )
+            )
+            sbatch_kwargs['mem'] = mem
         for p in seg:
             p.wait() 
 
@@ -94,7 +103,12 @@ if __name__ == '__main__':
                 -c {config_path} -m {method}
             '''
             sbatch_kwargs['cmd'] = cmd
-            evl.append(subprocess.Popen(submit_sbatch(**sbatch_kwargs)))
+            evl.append(
+                subprocess.Popen(
+                    submit_sbatch(**sbatch_kwargs),
+                    shell=True
+                )
+            )
         for p in evl:
             p.wait()
     

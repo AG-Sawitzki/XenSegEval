@@ -42,7 +42,7 @@ def submit_sbatch(
         file = cmd[cmd.find('Xen'):cmd.find(' -c')]
         name = file.rpartition('.')
         name = name[-1]
-        name.replace('-','')
+        name = name.replace('-','')
         if name == 'eval':
             name += '_'+cmd[cmd.rfind('-m')+3:]
     with open(f'{tempfile_dir}/{name}.sh', 'w+') as fh:
@@ -65,7 +65,7 @@ def submit_sbatch(
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
         fh.writelines('\n#\n')
         fh.writelines(f'pixi run {cmd}\n')
-
+    print(fh.name)
     return f'sbatch {fh.name}'
 
 
