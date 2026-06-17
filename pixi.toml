@@ -220,6 +220,7 @@ dinocell = ">=0.74, <0.75"
 platforms = ["linux-64"]
 channels = ["nvidia", "pytorch", "conda-forge", "nodefaults"]
 
+
 [feature.dissect.target.linux-64.dependencies]
 setuptools = "<80"
 python = "==3.9.0"
