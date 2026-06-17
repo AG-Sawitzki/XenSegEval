@@ -34,10 +34,8 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'cpsam')
     globals().update(variables)
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    # load sections
+    sections = section_dictionary.keys()
     
     cpsam_model = method['model']
     cpsam_eval = method['eval']
@@ -68,11 +66,15 @@ if __name__ == '__main__':
         output_dir = results / f'{section}'
         output_dir.mkdir(parents=True, exist_ok=True)
         np.save(
-            output_dir / 'prediction.npy',
+            output_dir / 'output.npy',
             prediction
+        )
+        imwrite(
+            output_dir / f'output.tif',
+            masks
         )
         for l, p in enumerat(preprocessing['planes']):
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
-                masks[l]
+                masks[l,...]
             )

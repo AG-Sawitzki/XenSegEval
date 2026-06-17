@@ -30,7 +30,8 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 
 # 
-from XenSegEval.utils import polygon_to_mask, get_config_args
+from XenSegEval.utils import get_config_args
+from XenSegEval.eval.utils import polygon_to_mask
 
 
 if __name__ == '__main__':

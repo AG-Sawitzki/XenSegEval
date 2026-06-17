@@ -184,10 +184,6 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'boundaries')
     globals().update(variables)
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-
     regions = define_regions_to_extract(section_dictionary, pixelsizeXY) 
 
     for file in Path(data_path).glob('*_boundaries.parquet'):

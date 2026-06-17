@@ -35,10 +35,8 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'stardist')
     globals().update(variables)
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    # load sections
+    sections = section_dictionary.keys()
 
     # creates a pretrained model
     #model = StarDist2D.from_pretrained('2D_versatile_fluo')
@@ -55,10 +53,15 @@ if __name__ == '__main__':
         output_dir.mkdir(parents=True, exist_ok=True)
 
         np.save(
-            output_dir / 'prediction.npy',
+            output_dir / 'output.npy',
             labels
         )
         imwrite(
-            output_dir / 'prediction.tif',
+            output_dir / 'output.tif',
             labels
         )
+        for l, p in enumerate(preprocessing['planes']):
+            imwrite(
+                output_dir/ f'prediction_p{p}',
+                labels[l,...]
+            )

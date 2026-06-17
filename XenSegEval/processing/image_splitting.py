@@ -197,9 +197,6 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'images')
     globals().update(variables)
 
-    with open(sections_path, 'r') as f:
-        section_dictionary = json.load(f)
-
     # load morpho and focus:
     morphology_store = imread(f'{data_path}/morphology.ome.tif', aszarr=True)
     morphology_zarr = zarr.open(morphology_store, mode='r')

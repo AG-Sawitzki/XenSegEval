@@ -31,9 +31,9 @@ Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[1
 
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
-| pre-trained |  | $$\color{green}\text{CellposeSAM}$$<sup>[[3]](#3)</sup> <br> $$\color{green}\text{StarDist}$$<sup>[[1]](#1)[[2]](#2)</sup> <br> $$\color{green}\text{Mesmer}$$<sup>[[6]](#6)[[7]](#7)[[8]](#8)[[9]](#9)</sup> <br> $$\color{green}\text{DINOCell}$$<sup>[[4]](#4)</sup> | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$<sup>[[5]](#5)</sup> |
-| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{green}\text{UCS}$$<sup>[[10]](#10)</sup> |
-| no-training | $$\color{green}\text{Proseg}$$<sup>[[11]](#11)</sup> |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
+| pre-trained |  | $$\color{green}\text{CellposeSAM}$$ <sup>[[3]](#3)</sup> <br> $$\color{green}\text{StarDist}$$ <sup>[[1]](#1)[[2]](#2)</sup> <br> $$\color{green}\text{Mesmer}$$ <sup>[[6]](#6)[[7]](#7)[[8]](#8)[[9]](#9)</sup> <br> $$\color{green}\text{DINOCell}$$ <sup>[[4]](#4)</sup> | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$ <sup>[[5]](#5)</sup> |
+| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{green}\text{UCS}$$ <sup>[[10]](#10)</sup> |
+| no-training | $$\color{green}\text{Proseg}$$ <sup>[[11]](#11)</sup> |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
 
 All those in green are currently working. Those in red have been tried and were either uninstallable (segger & SCS) or could not work with the data (ComSeg & RNA2Seg).  
 "SRT based" includes those that require only the transcriptomics data.  
@@ -43,7 +43,7 @@ All those in green are currently working. Those in red have been tried and were 
 # Getting Started
 To use this repository, clone it
 ```
-git clone https://github.com/Normann-BPh/XenSegEval.git
+git clone https://github.com/AG-Sawitzki/XenSegEval.git
 ```
 install pixi
 ```

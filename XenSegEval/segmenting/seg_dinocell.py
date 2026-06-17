@@ -34,10 +34,8 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'dinocell')
     globals().update(variables)
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    # load sections
+    sections = section_dictionary.keys()
 
     for section in sections:
         img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')

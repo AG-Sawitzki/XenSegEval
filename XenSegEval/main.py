@@ -51,22 +51,22 @@ if __name__ == '__main__':
         if sections is None:
             cmd = f'pixi run python -m XenSegEval.processing.find_sections -c {config_path}'
             sbatch_kwargs['cmd'] = cmd
-            pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+            pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
             pS.wait()
 
         cmd = f'pixi run python -m XenSegEval.processing.image_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+        pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
         print('started image splitting.')
 
         cmd = f'pixi run python -m XenSegEval.processing.transcript_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+        pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
         print('started transcript splitting.')
 
         cmd = f'pixi run python -m XenSegEval.processing.boundaries_splitting -c {config_path}'
         sbatch_kwargs['cmd'] = cmd
-        pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+        pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs))
         print('started boundary splitting.')
 
         pI.wait()
@@ -81,12 +81,7 @@ if __name__ == '__main__':
         for method in config['methods']:
             cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
             sbatch_kwargs['cmd'] = cmd
-            seg.append(
-                subprocess.Popen(
-                    submit_sbatch(**sbatch_kwargs),
-                    shell=True
-                )
-            )
+            seg.append(subprocess.Popen(submit_sbatch(**sbatch_kwargs)))
         for p in seg:
             p.wait() 
 
@@ -94,14 +89,12 @@ if __name__ == '__main__':
         print('started evaluating')
         evl = []
         for method in config['methods']:
-            cmd = f'pixi run -e eval python -m XenSegEval.eval.eval -c {config_path} -m {method}'
+            cmd = f'''pixi run -e eval \
+                python -m XenSegEval.eval.eval \
+                -c {config_path} -m {method}
+            '''
             sbatch_kwargs['cmd'] = cmd
-            evl.append(
-                subprocess.Popen(
-                    submit_sbatch(**sbatch_kwargs),
-                    shell=True
-                )
-            )
+            evl.append(subprocess.Popen(submit_sbatch(**sbatch_kwargs)))
         for p in evl:
             p.wait()
     

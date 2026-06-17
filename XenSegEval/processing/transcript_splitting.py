@@ -189,10 +189,6 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'transcripts')
     globals().update(variables)
 
-    # load sections_dictionary
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-
     dtype_dict = dict(
         zip(['transcript_id','overlaps_nucleus','codeword_index'],
             [np.int64]*3
