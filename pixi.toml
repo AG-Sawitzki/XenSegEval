@@ -55,21 +55,6 @@ aicsimageio = ">=4.14.0, <5"
 cellsegmentationevaluator = ">=1.5.19, <2"
 
 
-[feature.utils]
-platforms = ["linux-64"]
-
-[feature.utils.target.linux-64.dependencies]
-geopandas = "*"
-tomlkit = "*"
-shapely = "*"
-tifffile = "*"
-pandas = "*"
-numpy = "*"
-
-[feature.utils.target.linux-64.pypi-dependencies]
-opencv-python = "*"
-
-
 [feature.uv]
 platforms = ["linux-64"]
 
@@ -322,13 +307,13 @@ umap-learn = "*"
 
 
 [environments]
-default = ["process", "utils", "uv"]
-eval = ["eval", "utils", "uv"]
-cpsam = ["cpsam", "utils"]
-deepcell = ["deepcell", "utils"]
-dinocell = ["dinocell", "utils"]
-dissect = ["dissect", "utils", "uv"]
+default = ["process", "uv"]
+eval = ["eval", "uv"]
+cpsam = ["cpsam"]
+deepcell = ["deepcell"]
+dinocell = ["dinocell"]
+dissect = ["dissect", "uv"]
 proseg = ["proseg"]
-stardist = ["stardist", "utils"]
+stardist = ["stardist"]
 ucs = ["ucs"]
 

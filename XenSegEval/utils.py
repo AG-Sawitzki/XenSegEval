@@ -1,5 +1,6 @@
 import os
 import gzip
+import json
 from pathlib import Path
 
 import tomlkit
@@ -139,7 +140,7 @@ def get_config_args(
         results=results,
         sbatch_kwargs=sbatch_kwargs,
         imagestats=imagestats,
-        sections_dictionary=section_dictionary
+        section_dictionary=section_dictionary
     ))
 
     if method in methods:
