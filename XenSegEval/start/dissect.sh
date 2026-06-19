@@ -9,6 +9,6 @@ n_roi=$(get_toml_value "$CONFIG_FILE" "preprocessing" "n_roi")
 #
 #
 . ~/.bashrc
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"./.pixi/envs/dissect/lib"
+export LD_LIBRARY_PATH="./.pixi/envs/dissect/lib/":$LD_LIBRARY_PATH
 #
 pixi run -e dissect python -m XenSegEval.segmenting.seg_dissect -c $CONFIG_FILE

@@ -1,10 +1,8 @@
 # XenSegEval
 Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[13]](#13)</sup> the results if a ground-truth is provided.
 
-> [!WARNING]
-> A Linux-64 system is currently strictly necessary!
-
 > [!IMPORTANT]
+> A Linux-64 system is currently strictly necessary!
 > The automatic pipeline requires to be run on the BIH-HPC cluster!
 
 ## ToDo
@@ -57,13 +55,25 @@ cd XenSegEval
 pixi lock
 ```
 
+<!---### CellposeSAM/DINO
+To use the DINO backend of Cellpose install the package with
+```
+pixi shell -e cpsam
+uv pip install git+https://github.com/facebookresearch/dinov3
+```
+-->
 ### Dissect
 To install dissect-st run the following commads
 ```
 pixi shell -e dissect
-uv pip install --prerelease=allow deterctron2 -f \
-    https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
+python3 -m ensurepip
+python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 ```
+<!-- uv pip install --prerelease=allow deterctron2 -f \
+    https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.10/index.html 
+    https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch1.10/index.html
+-->
+
 Afterwards download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
