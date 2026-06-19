@@ -23,7 +23,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     # load sections
     sections = section_dictionary.keys()
-    
+
     cpsam_model = method['model']
     cpsam_eval = method['eval']
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             output_dir / f'output.tif',
             masks
         )
-        for l, p in enumerat(preprocessing['planes']):
+        for l, p in enumerate(planes):
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
                 masks[l,...]

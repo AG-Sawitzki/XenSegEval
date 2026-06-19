@@ -4,7 +4,7 @@ name = 'Normann-BPh'
 mail = 'julius.normann@bih-charite.de'
 
 [Tasks]
-preprocess = true
+preprocess = false
 segment = true
 evaluate = true
 
@@ -64,10 +64,10 @@ overlap = 0.05
 
 
 [methods.cpsam.model]
-# consult cellpose/models.py#L100 for description of parameters
+# consult cellpose/models.py#L104 for description of parameters
 gpu = true
 # available models: cpdino, cpsam_v2, cpdino-vitb, cpsam
-pretrained_model = 'cpdino'
+pretrained_model = 'cpsam_v2'
 # model_type = not used in v4.0.1+
 # diam_mean = unknown, not used in v4.0.1+
 device = 'cuda:0'

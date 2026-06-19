@@ -50,22 +50,30 @@ if __name__ == '__main__':
         del sbatch_kwargs['gpu']
         print('preprocessing')
         if sections is None:
-            cmd = f'pixi run python -m XenSegEval.processing.find_sections -c {config_path}'
+            cmd = ('pixi run python -m XenSegEval.processing.find_sections'
+                   f' -c {config_path}'
+            )
             sbatch_kwargs['cmd'] = cmd
             pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
             pS.wait()
 
-        cmd = f'pixi run python -m XenSegEval.processing.image_splitting -c {config_path}'
+        cmd = ('pixi run python -m XenSegEval.processing.image_splitting'
+               f' -c {config_path}'
+        )
         sbatch_kwargs['cmd'] = cmd
         pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started image splitting.')
 
-        cmd = f'pixi run python -m XenSegEval.processing.transcript_splitting -c {config_path}'
+        cmd = ('pixi run python -m XenSegEval.processing.transcript_splitting'
+               f' -c {config_path}'
+        )
         sbatch_kwargs['cmd'] = cmd
         pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started transcript splitting.')
 
-        cmd = f'pixi run python -m XenSegEval.processing.boundaries_splitting -c {config_path}'
+        cmd = ('pixi run python -m XenSegEval.processing.boundaries_splitting'
+               f' -c {config_path}'
+        )
         sbatch_kwargs['cmd'] = cmd
         pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started boundary splitting.')
@@ -98,10 +106,10 @@ if __name__ == '__main__':
         print('started evaluating')
         evl = []
         for method in config['methods']:
-            cmd = f'''pixi run -e eval \
-                python -m XenSegEval.eval.eval \
-                -c {config_path} -m {method}
-            '''
+            cmd = (f'pixi run -e eval'
+                   f' python -m XenSegEval.eval.eval'
+                   f' -c {config_path} -m {method}'
+            )
             sbatch_kwargs['cmd'] = cmd
             evl.append(
                 subprocess.Popen(

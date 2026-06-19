@@ -1,6 +1,7 @@
 import os
 import gzip
 import json
+from time import sleep
 from pathlib import Path
 
 import tomlkit
@@ -11,7 +12,7 @@ from typing import Any, Union
 
 
 def submit_sbatch(
-    tempfile_dir: Union[str, os.PathLike[Any]],
+    job_dir: Union[str, os.PathLike[Any]],
     time: int,
     mem: int,
     cpu: int,
@@ -45,7 +46,7 @@ def submit_sbatch(
         name = name.replace('-','')
         if name == 'eval':
             name += '_'+cmd[cmd.rfind('-m')+3:]
-    with open(f'{tempfile_dir}/{name}.sh', 'w+') as fh:
+    with open(f'{job_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
         fh.writelines(f'#SBATCH --job-name={name}\n')
@@ -65,7 +66,9 @@ def submit_sbatch(
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
         fh.writelines('\n#\n')
         fh.writelines(f'pixi run {cmd}\n')
-    print(fh.name)
+
+    sleep(2)
+
     return f'sbatch {fh.name}'
 
 
@@ -122,12 +125,12 @@ def get_config_args(
     results.mkdir(parents=True, exist_ok=True)
     log_path = Path(f'{home}/{sample_name}/run/logs/')
     log_path.mkdir(parents=True, exist_ok=True)
-    tempfile_dir = Path(f'{home}/{sample_name}/run/jobs/')
-    tempfile_dir.mkdir(parents=True, exist_ok=True)
+    job_dir = Path(f'{home}/{sample_name}/run/jobs/')
+    job_dir.mkdir(parents=True, exist_ok=True)
 
     sbatch_kwargs.update(
         log_path=str(log_path),
-        tempfile_dir=str(tempfile_dir),
+        job_dir=str(job_dir),
         mail=mail,
     )
 
@@ -149,7 +152,8 @@ def get_config_args(
         variables.update(dict(
             method=methods[method],
             results=results,
-            pixelsizeXY = imagestats['pixelsize_xy']
+            pixelsizeXY=imagestats['pixelsize_xy'],
+            planes=preprocessing['planes']
         ))
     else:
         if method == 'eval':

@@ -33,13 +33,14 @@ if __name__ == "__main__":
         layer_plg = f'{results}/{section}/cell-polygons_layers.geojson.gz'
         counts = f'{results}/{section}/counts.mtx.gz'
 
-        proseg_cmd = f'''proseg \
-            --xenium \
-            --overwrite \
-            --output-spatialdata "{spatialdata}" \
-            --output-cell-polygons "{all_poylgons}" \
-            --output-cell-polygon-layers "{layer_polygons}" \
-            --output-counts "{counts}" \
-            "{processed}/{section}/transcripts/relative.csv.gz"
-        '''
+        proseg_cmd = (
+            'proseg '
+            '--xenium '
+            '--overwrite '
+            '--output-spatialdata "{spatialdata}" '
+            '--output-cell-polygons "{all_poylgons}" '
+            '--output-cell-polygon-layers "{layer_polygons}" '
+            '--output-counts "{counts}" '
+            '"{processed}/{section}/transcripts/relative.csv.gz" '
+        )
         subprocess.Popen(proseg_cmd, shell=True)

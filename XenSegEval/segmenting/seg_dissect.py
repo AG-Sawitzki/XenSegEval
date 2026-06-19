@@ -4,12 +4,9 @@ import argparse
 
 import dissect
 from pathlib import Path
-from tifffile import TiffFile, imwrite
 
-from skimage.segmentation import find_boundaries
 from tomlkit import load
 import numpy as np
-import json
 
 from XenSegEval.utils import get_config_args
 

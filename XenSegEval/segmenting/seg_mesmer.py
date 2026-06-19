@@ -22,7 +22,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -54,7 +54,7 @@ if __name__ == '__main__':
                 axis=-1
             )
             #print(focus_mt.shape)
-        
+
             # add ATP1A1/E-Cadherin/CD45 channel
             focus_mem = np.expand_dims(focus[...,0:2], axis=0)
             print(focus_mem.shape)

@@ -24,7 +24,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -60,8 +60,8 @@ if __name__ == '__main__':
             output_dir / 'output.tif',
             labels
         )
-        for l, p in enumerate(preprocessing['planes']):
+        for l, p in enumerate(planes):
             imwrite(
-                output_dir/ f'prediction_p{p}',
+                output_dir / f'prediction_p{p}.tif',
                 labels[l,...]
             )

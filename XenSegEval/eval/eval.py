@@ -12,7 +12,7 @@ import geopandas as gpd
 
 
 # for pca
-from CellSegmentationEvaluator.single_method_eval import single_method_eval
+#from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
 #from aicsimageio.aics_image import imread, AICSImage
@@ -29,7 +29,7 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 
-# 
+#
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import polygon_to_mask
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     parser.add_argument('-m', '--Method', help='Method to evaluate.')
     args = parser.parse_args()
-    
+
     method = args.Method
     config_path = args.Config
 
@@ -51,7 +51,10 @@ if __name__ == '__main__':
 
     section = 'newmem'
 
-    if method is 'proseg':
+    gt = tf.imread(gt_path)
+    gt_l = label(gt)
+
+    if method == 'proseg':
         file = 'cell-polygons_layers.geojson.gz'
         polygon_path = Path(
             f'{results}/{method}/output/{section}/{file}'
@@ -66,31 +69,31 @@ if __name__ == '__main__':
                 f'{results}/{method}/output/{section}/perdiction_l{layer}.tif',
                 mask
             )
+
     mask_path = f'{results}/{method}/output/{section}/'
 
 
     for file in Path(mask_path).glob('prediction*.tif'):
-        mask = tf.imread(mask_path)
+        mask = tf.imread(file)
         mask_l = label(mask)
 
-        gt = tf.imread(gt_path)
-        gt_l = label(gt)
-        
         dir_name = file.stem.replace('prediction', '')
-        
-        if dir_name is not '':
+
+        if dir_name != '':
             outdir = Path(
                 f'{home}/{sample_name}/results/{method}/evaluation/{section}/{dir_name}'
             )
         else:
             outdir = Path(
-                f'{home}/{sample_name}/results/{method}/evaluation/{section}
+                f'{home}/{sample_name}/results/{method}/evaluation/{section}'
             )
-        
+
         outdir.mkdir(parents=True, exist_ok=True)
-        
+
         if PCA:
-            with open('/data/cephfs-1/work/groups/sawitzki/users/juno12_c/10xSegEval/eval/pca.pickle', 'rb') as pkl:
+            with open('/data/cephfs-1/work/groups/sawitzki/'
+                      'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
+            ) as pkl:
                 PCA = pickle.load(pkl)
 
             img = tf.imread(focus_path / 'focus.ome.tif')
@@ -136,6 +139,13 @@ if __name__ == '__main__':
 
         if JACCARD:
             print('jaccard')
+            if method == 'mesmer':
+                mask = mask.squeeze()[0,...]
+                mask_l = label(mask)
+
+            mask_rl = relabel_sequential(mask_l)
+            gt_rl = relabel_sequential(gt_l)
+
             results = pd.DataFrame(
                 columns=["Method", "Threshold", "F1", "Jaccard", "TP", "FP", "FN"]
             )
@@ -146,45 +156,47 @@ if __name__ == '__main__':
                 columns=["Method", "Merges", "Splits"]
             )
 
-            gt = relabel_sequential(gt_l)[0]
-            mask = relabel_sequential(mask_l)[0]
-
             results = compute_af1_results(
-                gt_l, 
-                mask, 
-                results, 
+                gt_rl,
+                mask_rl,
+                results,
                 method
             )
-            
+
             false_negatives = get_false_negatives(
-                gt_l, 
-                mask, 
-                false_negatives, 
+                gt_rl,
+                mask_rl,
+                false_negatives,
                 method
             )
-            
+
             split_merges = get_splits_and_merges(
-                gt_l, 
-                mask, 
-                split_merges, 
+                gt_rl,
+                mask_rl,
+                split_merges,
                 method
             )
 
             results.to_csv(outdir / 'results.csv', index=False)
-            false_negative.to_csv(outdir / 'false_negative.csv', index=False)
+            false_negatives.to_csv(outdir / 'false_negatives.csv', index=False)
             split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
         if CS_BENCH:
             print('cs_bench')
 
+            # expand dims. requires 3D (batch, y, x)
+            # or 4D (batch, y, x, chan)
+            gt = np.expand_dims(gt, axis=0)
+            mask = np.expand_dims(mask, axis=0)
+
             pm = Metrics(method, outdir=outdir)
 
-            object_metrics = pm.calc_object_stats(gt_l, mask_l)
+            object_metrics = pm.calc_object_stats(gt, mask)
 
             results = pd.DataFrame(data=object_metrics)
 
             results.to_csv(outdir / 'CS-BENCH.csv', index=False)
-        
+
         if PD:
             # nothing
             print('nothing')
