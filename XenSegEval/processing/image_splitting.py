@@ -13,11 +13,10 @@ import psutil
 import json
 
 from tifffile import imread, imwrite, TiffWriter, TiffFile
-from numpy.lib.stride_tricks import sliding_window_view
-from numpy.typing import ArrayLike
 import numpy as np
 import zarr
 import cv2
+from aicsimageio.writers import ome_tiff_writer
 
 # types
 from numpy.typing import ArrayLike

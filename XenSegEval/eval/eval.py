@@ -110,31 +110,31 @@ if __name__ == '__main__':
             ) as pkl:
                 PCA = pickle.load(pkl)
 
-            img = tf.imread(focus_path / 'focus.ome.tif')
-            print(img.shape)
-            img = np.moveaxis(img, -1, 0)
-            print(img.shape)
-            writer = ome_tiff_writer.OmeTiffWriter()
-            channel_names = [
-                'DAPI',
-                'ATP1A1_E-Cadherin_CD45',
-                '18S_rRNA',
-                'alphaSMA_Vimentin'
-            ]
+            # img = tf.imread(focus_path / 'focus.ome.tif')
+            # print(img.shape)
+            # img = np.moveaxis(img, -1, 0)
+            # print(img.shape)
+            # writer = ome_tiff_writer.OmeTiffWriter()
+            # channel_names = [
+            #     'DAPI',
+            #     'ATP1A1_E-Cadherin_CD45',
+            #     '18S_rRNA',
+            #     'alphaSMA_Vimentin'
+            # ]
 
-            stats = {
-                'dim_order': 'CYX',
-                'channel_names': channel_names,
-                'image_name': 'focus',
-                'pixel_physical_size': 0.2125,
-                'channel_colours': ['red', 'green', 'blue', 'yellow']
-            }
+            # stats = {
+            #     'dim_order': 'CYX',
+            #     'channel_names': channel_names,
+            #     'image_name': 'focus',
+            #     'pixel_physical_size': 0.2125,
+            #     'channel_colours': ['red', 'green', 'blue', 'yellow']
+            # }
 
-            writer.save(
-                img,
-                uri=Path(focus_path / 'aics.ome.tif'),
-                **stats
-            )
+            # writer.save(
+            #     img,
+            #     uri=Path(focus_path / 'aics.ome.tif'),
+            #     **stats
+            # )
 
             img = AICSImage(
                 focus_path / 'aics.ome.tif',
