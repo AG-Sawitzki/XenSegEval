@@ -190,9 +190,12 @@ if __name__ == '__main__':
             gt_x = np.expand_dims(gt, axis=0)
             mask_x = np.expand_dims(mask, axis=0)
 
+            gt_x_rl = relabel_sequential(gt_x)
+            mask_x_rl = relabel_sequential(mask_x)
+
             pm = Metrics(method, outdir=outdir)
 
-            object_metrics = pm.calc_object_stats(gt_x, mask_x)
+            object_metrics = pm.calc_object_stats(gt_x_rl, mask_x_rl)
 
             results = pd.DataFrame(data=object_metrics)
 
