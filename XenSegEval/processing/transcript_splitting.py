@@ -91,11 +91,12 @@ def relative(
         regions_data: Dictionary with coordinates of bbox-corners.
     Returns:
         DataFrame with coordinates relative to region origin.
-    """    
+    """
     df['y_location'] = (df['y_location'] - region_data['y_min'])
     df['x_location'] = (df['x_location'] - region_data['x_min'])
 
     return df
+
 
 def pixelate(
     df: Any,
@@ -107,19 +108,19 @@ def pixelate(
         pixelsize: Pixelsize of XY and Z [unit of image]/px.
     Returns:
         DataFrame with coordinates in pixel coordinates.
-    """ 
+    """
     df['y_location'] = (
         df['y_location'] / pixelsize[0]
     ).round(0).astype(np.int64)
-    
+
     df['x_location'] = (
         df['x_location'] / pixelsize[0]
     ).round(0).astype(np.int64)
-    
+
     df['z_location'] = (
         df['z_location'] / pixelsize[1]
     ).round(0).astype(np.int64)
-    
+
     # print(df.head(n=5))
     return df
 
@@ -164,12 +165,15 @@ def save_section(
             index=False,
             compression='infer'
         )
-        # sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
+        # sub_results_pq = pa.Table.from_pandas(
+        #     sub_results_df, preserve_index=False
+        # )
         # pq.write_table(
         #     sub_results_pq, Path(output_dir / 'relative.parquet')
         # )
 
         print(f'region {region_name}: saved restults')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='transcripts')
@@ -178,7 +182,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -190,7 +194,8 @@ if __name__ == '__main__':
     globals().update(variables)
 
     dtype_dict = dict(
-        zip(['transcript_id','overlaps_nucleus','codeword_index'],
+        zip(
+            ['transcript_id', 'overlaps_nucleus', 'codeword_index'],
             [np.int64]*3
         )
     )

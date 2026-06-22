@@ -11,9 +11,7 @@ import json
 
 from dinocell import segment
 
-#sys.path.append('..')
 from XenSegEval.utils import get_config_args
-
 
 
 if __name__ == '__main__':
@@ -23,7 +21,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -38,8 +36,10 @@ if __name__ == '__main__':
     sections = section_dictionary.keys()
 
     for section in sections:
-        img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')
-
+        img_path = Path(
+            processed / f'{section}/morphology/multi_layer/'
+            'morphology.ome.tif'
+        )
         output = segment(img_path)
 
         output_dir = Path(results / f'{section}')

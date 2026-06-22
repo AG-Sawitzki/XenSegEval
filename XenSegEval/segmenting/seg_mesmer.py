@@ -11,7 +11,6 @@ from tomlkit import load
 import numpy as np
 import json
 
-#sys.path.append('..')
 from XenSegEval.utils import get_config_args
 
 
@@ -43,26 +42,29 @@ if __name__ == '__main__':
     identifiers = ['mt', 'mem', 'ribo']
 
     for section in sections:
-        with TiffFile(processed / f'{section}/morphology/focus/focus.ome.tif') as tif:
+        with TiffFile(
+            processed /
+            f'{section}/morphology/focus/focus.ome.tif'
+        ) as tif:
             focus = tif.pages[0].asarray()
-            #print(focus.shape)
+            # print(focus.shape)
 
             # add an empty membrane channel
-            focus_mt = np.expand_dims(focus[...,0], axis=(0,-1))
+            focus_mt = np.expand_dims(focus[..., 0], axis=(0, -1))
             focus_mt = np.concatenate(
                 (focus_mt, np.zeros(focus_mt.shape)),
                 axis=-1
             )
-            #print(focus_mt.shape)
+            # print(focus_mt.shape)
 
             # add ATP1A1/E-Cadherin/CD45 channel
-            focus_mem = np.expand_dims(focus[...,0:2], axis=0)
+            focus_mem = np.expand_dims(focus[..., 0:2], axis=0)
             print(focus_mem.shape)
             print(sum(sum(focus_mem)))
 
             # add 18s channel
-            focus_ribo = np.expand_dims(focus[...,0:3:2], axis=0)
-            #print(focus_ribo.shape)
+            focus_ribo = np.expand_dims(focus[..., 0:3:2], axis=0)
+            # print(focus_ribo.shape)
 
         # predict
         for i, img in enumerate([focus_mt, focus_mem, focus_ribo]):

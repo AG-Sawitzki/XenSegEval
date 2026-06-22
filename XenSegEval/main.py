@@ -10,7 +10,7 @@ from XenSegEval.utils import get_config_args, submit_sbatch
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        prog= 'main',
+        prog='main',
         description='''Main file for XenSegEval.
             Successively starts image, transcript and boundary processing,
             segmentation algorithms and evaluation.
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     variables = get_config_args(config, 'main')
     globals().update(variables)
-    
+
     gpu = sbatch_kwargs['gpu']
     mem = sbatch_kwargs['mem']
 
@@ -57,22 +57,25 @@ if __name__ == '__main__':
             pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
             pS.wait()
 
-        cmd = ('pixi run python -m XenSegEval.processing.image_splitting'
-               f' -c {config_path}'
+        cmd = (
+            'pixi run python -m XenSegEval.processing.image_splitting'
+            f' -c {config_path}'
         )
         sbatch_kwargs['cmd'] = cmd
         pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started image splitting.')
 
-        cmd = ('pixi run python -m XenSegEval.processing.transcript_splitting'
-               f' -c {config_path}'
+        cmd = (
+            'pixi run python -m XenSegEval.processing.transcript_splitting'
+            f' -c {config_path}'
         )
         sbatch_kwargs['cmd'] = cmd
         pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
         print('started transcript splitting.')
 
-        cmd = ('pixi run python -m XenSegEval.processing.boundaries_splitting'
-               f' -c {config_path}'
+        cmd = (
+            'pixi run python -m XenSegEval.processing.boundaries_splitting'
+            f' -c {config_path}'
         )
         sbatch_kwargs['cmd'] = cmd
         pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
@@ -100,15 +103,16 @@ if __name__ == '__main__':
             )
             sbatch_kwargs['mem'] = mem
         for p in seg:
-            p.wait() 
+            p.wait()
 
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
         for method in config['methods']:
-            cmd = (f'pixi run -e eval'
-                   f' python -m XenSegEval.eval.eval'
-                   f' -c {config_path} -m {method}'
+            cmd = (
+                f'pixi run -e eval'
+                f' python -m XenSegEval.eval.eval'
+                f' -c {config_path} -m {method}'
             )
             sbatch_kwargs['cmd'] = cmd
             evl.append(
@@ -119,5 +123,5 @@ if __name__ == '__main__':
             )
         for p in evl:
             p.wait()
-    
+
     print('done :3')

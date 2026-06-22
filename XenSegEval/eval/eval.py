@@ -12,12 +12,14 @@ import geopandas as gpd
 
 
 # for pca
-#from CellSegmentationEvaluator.single_method_eval import single_method_eval
+# from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-#from aicsimageio.aics_image import imread, AICSImage
-#from aicsimageio.readers import ome_tiff_reader, tiff_reader, array_like_reader
-#from aicsimageio.writers import ome_tiff_writer
+# from aicsimageio.aics_image import imread, AICSImage
+# from aicsimageio.readers import (
+#     ome_tiff_reader, tiff_reader, array_like_reader
+# )
+# from aicsimageio.writers import ome_tiff_writer
 
 # for jaccard
 from XenSegEval.eval.unet4nuclei.evaluation import (
@@ -71,7 +73,6 @@ if __name__ == '__main__':
 
     mask_path = f'{results}/{method}/output/{section}/'
 
-
     for file in Path(mask_path).glob('prediction*.tif'):
         print(file)
         mask = tf.imread(file)
@@ -80,7 +81,8 @@ if __name__ == '__main__':
 
         if dir_name != '':
             outdir = Path(
-                f'{home}/{sample_name}/results/{method}/evaluation/{section}/{dir_name}'
+                f'{home}/{sample_name}/results/{method}/'
+                f'evaluation/{section}/{dir_name}'
             )
         else:
             outdir = Path(
@@ -90,8 +92,9 @@ if __name__ == '__main__':
         outdir.mkdir(parents=True, exist_ok=True)
 
         if PCA:
-            with open('/data/cephfs-1/work/groups/sawitzki/'
-                      'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
+            with open(
+                '/data/cephfs-1/work/groups/sawitzki/'
+                'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
             ) as pkl:
                 PCA = pickle.load(pkl)
 
@@ -99,7 +102,7 @@ if __name__ == '__main__':
             print(img.shape)
             img = np.moveaxis(img, -1, 0)
             print(img.shape)
-            writer=ome_tiff_writer.OmeTiffWriter()
+            writer = ome_tiff_writer.OmeTiffWriter()
             channel_names = [
                 'DAPI',
                 'ATP1A1_E-Cadherin_CD45',
@@ -110,7 +113,7 @@ if __name__ == '__main__':
             stats = {
                 'dim_order': 'CYX',
                 'channel_names': channel_names,
-                'image_name':'focus',
+                'image_name': 'focus',
                 'pixel_physical_size': 0.2125,
                 'channel_colours': ['red', 'green', 'blue', 'yellow']
             }
@@ -121,25 +124,35 @@ if __name__ == '__main__':
                 **stats
             )
 
-            img = AICSImage(focus_path / 'aics.ome.tif', reader=ome_tiff_reader.OmeTiffReader)
+            img = AICSImage(
+                focus_path / 'aics.ome.tif',
+                reader=ome_tiff_reader.OmeTiffReader
+            )
             print(img)
-            #print(img.data)
+            # print(img.data)
             print(img.metadata)
 
-            mask = AICSImage(f'{home}/{sample}/results/mesmer/output/{section}/prediction_mem.tif', reader=tiff_reader.TiffReader)
+            mask = AICSImage(
+                f'{home}/{sample}/results/mesmer/'
+                f'output/{section}/prediction_mem.tif',
+                reader=tiff_reader.TiffReader
+            )
             print(mask.shape)
-            #mask = find_boundaries(mask, connectivity=1, mode='inner')
-            #print(type(mask))
+            # mask = find_boundaries(mask, connectivity=1, mode='inner')
+            # print(type(mask))
 
-            print(single_method_eval(img, mask, PCA_model=PCA,
-                output_dir='/data/cephfs-2/unmirrored/groups/sawitzki/Juno/eval-test/PCA'
+            print(
+                single_method_eval(
+                    img, mask, PCA_model=PCA,
+                    output_dir='/data/cephfs-2/unmirrored/groups/'
+                               'sawitzki/Juno/eval-test/PCA'
                 )
             )
 
         if JACCARD:
             print('jaccard')
             if method == 'mesmer':
-                mask = mask.squeeze()[0,...]
+                mask = mask.squeeze()[0, ...]
 
             mask_l = label(mask)
             gt_l = label(gt)
@@ -148,7 +161,10 @@ if __name__ == '__main__':
             gt_rl = relabel_sequential(gt_l)[0]
 
             results = pd.DataFrame(
-                columns=["Method", "Threshold", "F1", "Jaccard", "TP", "FP", "FN"]
+                columns=[
+                    "Method", "Threshold", "F1",
+                    "Jaccard", "TP", "FP", "FN"
+                ]
             )
             false_negatives = pd.DataFrame(
                 columns=["False_Negative", "Area"]

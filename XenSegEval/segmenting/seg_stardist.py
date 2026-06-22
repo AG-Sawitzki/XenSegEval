@@ -39,13 +39,18 @@ if __name__ == '__main__':
     sections = section_dictionary.keys()
 
     # creates a pretrained model
-    #model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    # model = StarDist2D.from_pretrained('2D_versatile_fluo')
     model = StarDist3D.from_pretrained('3D_demo')
 
     # loop through sections/quaters and segment each
     for section in sections:
-        #single_layer = Path(processed / f'{section}/morphology/single_layer/')
-        img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')
+        # single_layer = Path(
+        #    processed / f'{section}/morphology/single_layer/'
+        # )
+        img_path = Path(
+            processed /
+            f'{section}/morphology/multi_layer/morphology.ome.tif'
+        )
         img = imread(img_path)
         labels, _ = model.predict_instances(normalize(img))
 
@@ -60,8 +65,8 @@ if __name__ == '__main__':
             output_dir / 'output.tif',
             labels
         )
-        for l, p in enumerate(planes):
+        for L, p in enumerate(planes):
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
-                labels[l,...]
+                labels[L, ...]
             )

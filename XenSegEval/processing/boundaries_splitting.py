@@ -34,7 +34,7 @@ def define_regions_to_extract(
         Reorganized and refactored coordinates of bbox as dictionary.
     """
     regions = {}
-    
+
     for region, bbox in sections_dict.items():
         y_min_px, x_min_px = bbox[0]
         y_max_px, x_max_px = bbox[1]
@@ -111,10 +111,10 @@ def pixelate(
     df['vertex_y'] = (
         df['vertex_y'] / pixelsizeXY
     ).round(0).astype(np.int64)
-    
+
     df['vertex_x'] = (
         df['vertex_y'] / pixelsizeXY
-    ).round(0).astype(np.int64)   
+    ).round(0).astype(np.int64)
     # print(df.head(n=5))
     return df
 
@@ -135,7 +135,7 @@ def save_section(
                Defines which boundaries file was read
                and adds an identifier to the path.
     Returns:
-        None.   
+        None.
     """
     region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
@@ -151,7 +151,9 @@ def save_section(
         print(f'region {region_name}: no datapoints matching')
     else:
         # save thingy
-        sub_results_pq = pa.Table.from_pandas(sub_results_df, preserve_index=False)
+        sub_results_pq = pa.Table.from_pandas(
+            sub_results_df, preserve_index=False
+        )
         # print(sub_results_pq)
         # del sub_results_df
 
@@ -173,7 +175,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -184,7 +186,7 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'boundaries')
     globals().update(variables)
 
-    regions = define_regions_to_extract(section_dictionary, pixelsizeXY) 
+    regions = define_regions_to_extract(section_dictionary, pixelsizeXY)
 
     for file in Path(data_path).glob('*_boundaries.parquet'):
         parquet_file = pq.ParquetFile(file)
@@ -197,7 +199,7 @@ if __name__ == '__main__':
                 functools.partial(
                     process_chunk,
                     regions=regions
-                ), parquet_file.iter_batches() # reader
+                ), parquet_file.iter_batches()  # reader
             )
             pool.close()
             pool.join()

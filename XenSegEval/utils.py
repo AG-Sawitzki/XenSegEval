@@ -60,7 +60,9 @@ def submit_sbatch(
         fh.writelines(f'#SBATCH --error={log_path}/{name}_%N_%j.err\n')
         if mail is not None:
             fh.writelines(f'#SBATCH --mail-user={mail}\n')
-            fh.writelines(f'#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50\n')
+            fh.writelines(
+                f'#SBATCH --mail-type=BEGIN,END,FAIL,'
+                'TIME_LIMIT_90,TIME_LIMIT_80,TIME_LIMIT_50\n')
         fh.writelines('#\n')
         fh.writelines('. ~/.bashrc\n')
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
@@ -86,8 +88,8 @@ def get_config_args(
     variables = dict()
 
     if type(config) is str or type(config) is os.PathLike:
-            with open(config, 'rb') as f:
-                config = tomlkit.load(f)
+        with open(config, 'rb') as f:
+            config = tomlkit.load(f)
 
     config = dict(config)
 
@@ -108,17 +110,17 @@ def get_config_args(
     data_path = Path(paths['data_path'])
     sample_name = paths['sample_name']
     gt_path = Path(paths['gt_path'])
-    ## define sections_dictionary path
+    # define sections_dictionary path
     if 'sections_path' in paths:
         sections_path = Path(paths['sections_path'])
     else:
         sections_path = processed / 'sections_px.json'
-    
+
     with open(sections_path) as f:
         section_dictionary = json.load(f)
         sections = section_dictionary.keys()
 
-    ## define processed and results directory
+    # define processed and results directory
     processed = Path(f'{home}/{sample_name}/processed/')
     processed.mkdir(parents=True, exist_ok=True)
     results = Path(f'{home}/{sample_name}/results/')

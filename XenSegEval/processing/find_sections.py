@@ -51,7 +51,8 @@ def find_rois(
         shape_org: Max resolution of img.
         image_subres: Lowest subresolution of image.
         n_roi: Expected # of regions of interest.
-               Should be equivalent to the number of tissue-samples on the slide. 
+               Should be equivalent to
+               the number of tissue-samples on the slide.
     Returns:
         Contours of significant size.
     """
@@ -68,7 +69,7 @@ def find_rois(
         subres_dilated,
         127, 255, 0
     )
-    
+
     contours, _ = cv2.findContours(
         subres_binary,
         cv2.RETR_LIST,
@@ -81,14 +82,14 @@ def find_rois(
 
     for c in contours:
         (x, y), (w, h), a = cv2.minAreaRect(c)
-        wd = get_weighted_distance([x,y])
+        wd = get_weighted_distance([x, y])
         values.append((w*h, wd, y, x))
 
     values_arr = np.array(values, dtype=dtype)
     # sort by area and find smallest allowed roi
     values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
     smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
-    # sort by weighted_distance 
+    # sort by weighted_distance
     values_arr_wd_args = np.argsort(values_arr, kind='stable', order='wd')
     values_arr_wd_sorted = np.sort(values_arr, kind='stabe', order='wd')
     contours_wd_sorted = [contours[index] for index in values_arr_wd_args]
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -136,7 +137,7 @@ if __name__ == '__main__':
     sections_dict = {}
 
     morphology_subres = morphology_zarr[subres_max]
-    
+
     roi_list, subres_centre = find_rois(
         shape_org, morphology_subres,
         preprocessing['n_roi']
@@ -155,7 +156,7 @@ if __name__ == '__main__':
 
         rf_x = int(x/x_)
         rf_y = int(y/y_)
-        
+
         for section, contour in enumerate(roi_list):
             # add roi to scaled image to check for regions
             x, y, w, h = cv2.boundingRect(contour)
@@ -165,12 +166,12 @@ if __name__ == '__main__':
                 (255, 255, 255), 2
             )
             cv2.putText(
-                img=subres_centre, 
+                img=subres_centre,
                 text=str(section),
                 org=(int(x+w/4), int(y+h/2)),
-                fontFace=cv2.FONT_HERSHEY_PLAIN, #int(h/2),
+                fontFace=cv2.FONT_HERSHEY_PLAIN,
                 fontScale=2,
-                color=(255, 255, 255), 
+                color=(255, 255, 255),
                 thickness=2,
                 bottomLeftOrigin=False
             )
@@ -191,7 +192,7 @@ if __name__ == '__main__':
                 f'Saving Coordinates | %MEM: {memory_percentage:.2f}'
             )
             search_bar.update(1)
-        
+
         with open(processed / 'sections_px.json', 'w') as f:
             json.dump(sections_dict, f)
 

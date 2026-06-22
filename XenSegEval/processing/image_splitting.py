@@ -36,16 +36,17 @@ def get_memory_usage_percentage() -> float:
     # Resident Set Size in bytes
     mem_info = process.memory_info()
     used_memory = mem_info.rss
-    memory_percentage = (used_memory / total_memory) * 100  # Calculate percentage
+    # Calculate percentage
+    memory_percentage = (used_memory / total_memory) * 100
     return memory_percentage
 
 
 def tif_path(
     section: str,
-    ome: bool=True,
-    focus: bool=False,
-    chunk: int=None,
-    layer: int=None
+    ome: bool = True,
+    focus: bool = False,
+    chunk: int = None,
+    layer: int = None
 ) -> Path:
     """Create the path to the tif file.
     Args:
@@ -79,7 +80,7 @@ def tif_path(
         else:
             ext = '.'.join(['morphology', ext])
 
-    dir_path = Path(processed / f_str) # Path('/'.join([processed, f_str]))
+    dir_path = Path(processed / f_str)
     dir_path.mkdir(parents=True, exist_ok=True)
 
     f_str = '/'.join([f_str, ext])
@@ -105,17 +106,17 @@ def write_tif(
     image: ArrayLike,
     imagestats: dict,
     section: Union[str, int],
-    layer: int=None,
-    chunk: int=None
+    layer: int = None,
+    chunk: int = None
 ) -> None:
     """Write an array into a tif file.
     Args:
         image: numpy.ndarray of the image.
         section: ROI name.
         imagestats: Dictionary containing stats of the image.
-        layer: The layer of the morphology image being written. 
+        layer: The layer of the morphology image being written.
                Passed on to tif_path.
-        chunk: Chunk corresponding to image being written. 
+        chunk: Chunk corresponding to image being written.
                Passed on to tif_path.
     Retruns:
         None. Saves file under
@@ -130,7 +131,7 @@ def write_tif(
         # pixelsizeZ = imagestats['pixelsize_z']
     else:
         print('Imagestats are missing "pixelsize_xy" | "pixelsize_z".')
-    
+
     options = dict(
         compression=None,
         resolutionunit='MICROMETER'
@@ -186,7 +187,7 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
-    
+
     args = parser.parse_args()
 
     config_path = args.Config
@@ -210,9 +211,10 @@ if __name__ == '__main__':
     # load morphology_focus
     focus_org = []
     for file in Path(f'{data_path}/morphology_focus').glob('*.ome.tif'):
-        focus_store = imread(file,
+        focus_store = imread(
+            file,
             aszarr=True,
-            is_ome=False # to prevent multifile reading
+            is_ome=False  # to prevent multifile reading
         )
         focus_zarr = zarr.open(focus_store, mode='r')
         focus_org.append(focus_zarr['0'])
@@ -252,12 +254,12 @@ if __name__ == '__main__':
             write_tif(morphology_section, imagestats, section)
             write_tif(focus_section, imagestats, section)
 
-            for l, plane in enumerate(planes):
+            for L, plane in enumerate(planes):
                 write_tif(
-                    morphology_section[l, ...],
+                    morphology_section[L, ...],
                     imagestats, section, layer=plane
                 )
-                
+
                 memory_percentage = get_memory_usage_percentage()
                 section_bar.set_description(
                     f'Saving ROIs | %MEM: {memory_percentage:.2f}'
@@ -277,8 +279,8 @@ if __name__ == '__main__':
                     x_size = chunk_size(x, chunks)
 
                     grid = product(
-                        range(0, y-y%y_size, y_size),
-                        range(0, x-x%x_size, x_size)
+                        range(0, y-y % y_size, y_size),
+                        range(0, x-x % x_size, x_size)
                     )
 
                     for chunk, (y_c, x_c) in enumerate(grid):
@@ -302,9 +304,9 @@ if __name__ == '__main__':
                             focus_chunk, imagestats, section, chunk=chunk
                         )
 
-                        for l, plane in enumerate(planes):
+                        for L, plane in enumerate(planes):
                             write_tif(
-                                morphology_chunk[l, ...], imagestats,
+                                morphology_chunk[L, ...], imagestats,
                                 section, chunk=chunk, layer=plane
                             )
 
@@ -313,7 +315,7 @@ if __name__ == '__main__':
                             f'saving as chunks | %MEM: {memory_percentage:.2f}'
                         )
                         chunk_bar.update(1)
-            
+
             memory_percentage = get_memory_usage_percentage()
             section_bar.set_description(
                 f'Saving ROIs | %MEM: {memory_percentage:.2f}'

@@ -33,10 +33,20 @@ if __name__ == '__main__':
     sections = section_dictionary.keys()
 
     for section in sections:
-        img_path = Path(processed / f'{section}/morphology/focus/focus.ome.tif')
-        gene_mtx_filename = Path(processed / f'{section}/transcripts/relative.csv')
-        config_file = Path('./XenSegEval/segmenting/dissect/dissect_config.yaml')
-        weights_file = Path('./XenSegEval/segmenting/dissect/dissect_weights.pth')
+        img_path = Path(
+            processed /
+            f'{section}/morphology/focus/focus.ome.tif'
+        )
+        gene_mtx_filename = Path(
+            processed /
+            f'{section}/transcripts/relative.csv'
+        )
+        config_file = Path(
+            './XenSegEval/segmenting/dissect/dissect_config.yaml'
+        )
+        weights_file = Path(
+            './XenSegEval/segmenting/dissect/dissect_weights.pth'
+        )
         output_dir = Path(results / f'{section}')
         output_dir.mkdir(parents=True, exist_ok=True)
         mask = dissect.segmentation(

@@ -14,6 +14,7 @@ import configparser
 import argparse
 import tomllib
 
+
 # function form cellpose.utils
 def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
     """
@@ -50,6 +51,7 @@ def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
     else:
         return outlines_list_single(masks)
 
+
 # function form cellpose.utils
 def outlines_list_single(masks):
     """
@@ -77,6 +79,7 @@ def outlines_list_single(masks):
                 outpix.append(np.zeros((0, 2)))
     return outpix
 
+
 # function form cellpose.utils
 def outlines_list_multi(masks, num_processes=None):
     """
@@ -94,6 +97,7 @@ def outlines_list_multi(masks, num_processes=None):
     with Pool(processes=num_processes) as pool:
         outpix = pool.map(get_outline_multi, [(masks, n) for n in unique_masks])
     return outpix
+
 
 # function form cellpose.utils
 def get_outline_multi(args):
@@ -118,24 +122,25 @@ def get_outline_multi(args):
         return pix if len(pix) > 4 else np.zeros((0, 2))
     return np.zeros((0, 2))
 
+
 # function form stackoverflow
 # adapted to return shapely Polygons
 def process_roi(npy_data, npy_base_output_path):
     """
     Get the polgyons from the prediction-masks using cellpose.utils functions
     Saves them as a GeoDataFrame (geojson)
-    
+
     Args:
         npy_data: The numpy.ndarray of the masks.
         npy_base_output_path: Path to save the geojson.
-    
+
     Returns:
         Nothing. Automatically saves the GDF.
     """
     print(' - Extracting ROI')
     try:
         masks = npy_data.item().get("masks")
-    except:
+    except AttributeError:
         masks = npy_data
     masks = masks.squeeze()
     # change the index order:
@@ -155,15 +160,15 @@ def process_roi(npy_data, npy_base_output_path):
     else:
         coords_list = outlines_list(masks)
         i = 1
-        for coords in coords_list:            
+        for coords in coords_list:
             data['layer'].append(np.nan)
             data['name'].append(f'cell_{i}')
             data['geometry'].append(Polygon(coords))
             i += 1
-    gdf = gpd.GeoDataFrame(data = data)
+    gdf = gpd.GeoDataFrame(data=data)
     gdf.set_index(['layer', 'name'])
     print(' - Saving GeoDataFrame')
-    gdf.to_file(npy_base_output_path, driver='GeoJSON', index = True)
+    gdf.to_file(npy_base_output_path, driver='GeoJSON', index=True)
 
 
 if __name__ == '__main__':
@@ -185,7 +190,7 @@ if __name__ == '__main__':
     imagestats = config['ImageStats']
 
     home = paths['home']
-    
+
     results = Path(f'{home}/{sample}/results')
     results.mkdir(parents=True, exist_ok=True)
 

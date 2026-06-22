@@ -45,21 +45,24 @@ if __name__ == '__main__':
     model = models.CellposeModel(**cpsam_model)
 
     for section in sections:
-        img_path = Path(processed / f'{section}/morphology/multi_layer/morphology.ome.tif')
-        #multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
-        #for q, quater in enumerate(multi_layer_quater.glob('q0*.ome.tif')):
+        img_path = Path(
+            processed / 
+            f'{section}/morphology/multi_layer/morphology.ome.tif'
+        )
+        # multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
+        # for q, quater in enumerate(multi_layer_quater.glob('q0*.ome.tif')):
         #    with TiffFile(quater) as tif:
         #        img = tif.pages[0].asarray()
-        #
+
         #        masks, flows, styles = model.eval(img, **cpsam_eval)
-        #
+
         #        res = np.array({'masks': masks, 'flows': flows})
-        #
+
         #        np.save(
         #            f'{sample_name}/results/cpsam/{section}/q0{q}.npy',
         #            res
         #        )
-        #with TiffFile(img_path) as tif:
+        # with TiffFile(img_path) as tif:
         img = imread(img_path)
         masks, flows, styles = model.eval(img, **cpsam_eval)
         prediction = np.array({'masks': masks, 'flows': flows})
@@ -73,8 +76,8 @@ if __name__ == '__main__':
             output_dir / f'output.tif',
             masks
         )
-        for l, p in enumerate(planes):
+        for L, p in enumerate(planes):
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
-                masks[l,...]
+                masks[L,...]
             )
