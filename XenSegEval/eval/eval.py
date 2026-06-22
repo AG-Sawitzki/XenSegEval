@@ -65,7 +65,7 @@ if __name__ == '__main__':
         for layer in range(layers+1):
             mask = polygon_to_mask(polygon_path, shape, layer)
             tf.imwrite(
-                f'{results}/{method}/output/{section}/perdiction_l{layer}.tif',
+                f'{results}/{method}/output/{section}/prediction_l{layer}.tif',
                 mask
             )
 
@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
 
     for file in Path(mask_path).glob('prediction*.tif'):
+        print(file)
         mask = tf.imread(file)
 
         dir_name = file.stem.replace('prediction', '')
