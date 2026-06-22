@@ -40,6 +40,20 @@ def get_memory_usage_percentage() -> float:
     return memory_percentage
 
 
+def chunk_size(
+    var: int,
+    chunks: int
+) -> int:
+    """Calculate the size of a chunk of a region.
+    Args:
+        var: Total region width or height.
+        chunks: Total numbr of chunks.
+    Returns:
+        Width or Height of chunk.
+    """
+    return int(var*np.sqrt(chunks)/chunks)
+
+
 def tif_path(
     section: str,
     ome: bool = True,
@@ -84,21 +98,8 @@ def tif_path(
 
     f_str = '/'.join([f_str, ext])
     file_path = Path(processed / f_str)
+
     return file_path
-
-
-def chunk_size(
-    var: int,
-    chunks: int
-) -> int:
-    """Calculate the size of a chunk of a region.
-    Args:
-        var: Total region width or height.
-        chunks: Total numbr of chunks.
-    Returns:
-        Width or Height of chunk.
-    """
-    return int(var*np.sqrt(chunks)/chunks)
 
 
 def write_tif(
@@ -179,6 +180,45 @@ def write_tif(
         )
 
 
+def write_aics(
+    image: ArrayLike,
+    section: Union[str, int],
+) -> None:
+    '''Save focus-image for PCA analysis.
+    Args:
+        image: CYX array of the image.
+        section: the section the image represents.
+    Retruns:
+        None. Saves the image using AICSImageIO.
+    '''
+    image = np.moveaxis(image, -1, 0)
+
+    writer = ome_tiff_writer.OmeTiffWriter()
+
+    channel_names = [
+        'DAPI',
+        'ATP1A1_E-Cadherin_CD45',
+        '18S_rRNA',
+        'alphaSMA_Vimentin'
+    ]
+
+    stats = {
+        'dim_order': 'CYX',
+        'channel_names': channel_names,
+        'image_name': 'focus',
+        'pixel_physical_size': 0.2125,
+        'channel_colours': ['red', 'green', 'blue', 'yellow']
+    }
+
+    file = tif_path(section, ome=True, focus=True)
+    file = str(file).replace(file.stem, 'aics')
+    writer.save(
+        image,
+        uri=file,
+        **stats
+    )
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='IMGs')
     parser.add_argument(
@@ -252,6 +292,8 @@ if __name__ == '__main__':
 
             write_tif(morphology_section, imagestats, section)
             write_tif(focus_section, imagestats, section)
+            if AICS is True:
+                write_aics(focus_section, section)
 
             for L, plane in enumerate(planes):
                 write_tif(

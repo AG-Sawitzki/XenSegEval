@@ -63,7 +63,7 @@ chunks = 4
 overlap = 0.05
 
 
-#[methods.cpsam.model]
+[methods.cpsam.model]
 # consult cellpose/models.py#L104 for description of parameters
 gpu = true
 # available models: cpdino, cpsam_v2, cpdino-vitb, cpsam
@@ -72,7 +72,7 @@ pretrained_model = 'cpsam_v2'
 # diam_mean = unknown, not used in v4.0.1+
 device = 'cuda:0'
 use_bfloat16 = true
-#[methods.cpsam.eval]
+[methods.cpsam.eval]
 # consult cellpose/models.py#L163 for description of parameters
 batch_size = 64
 resample = true
@@ -95,14 +95,14 @@ tile_overlap = 0.1
 # interp = not available for 3D
 compute_masks = true
 # progress = # requires pyqt bar, which opens in external window
-#[methods.cpsam.eval.normalize]
+[methods.cpsam.eval.normalize]
 norm3D = true
 
 
-#[methods.dinocell]
+[methods.dinocell]
 
 
-#[methods.dissect]
+[methods.dissect]
 platform = 'Xenium'
 # config_file = 
 # weights_file = 
@@ -117,12 +117,12 @@ isslice = false
 # length = length (x-axis) of slice if isslice is true
 # width = width (y-axis) of slice if isslice is true
 
-#[methods.mesmer]
+[methods.mesmer]
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
 [methods.proseg]
 
-#[methods.stardist]
+[methods.stardist]
 
 #[methods.ucs]
 # check_gene_map = false
@@ -131,12 +131,12 @@ token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 [evaluation]
 # if a evaluation should be performed based on
 # Jaccard and related scores
-JACCARD = true
+JACCARD = false
 # Jaccard but by cs-benchmark
-CS-BENCH = true
+CS-BENCH = false
 # not implemented yet
 	# principal components
-	PCA = false
+	PCA = true
 	# probability density
 	PD = false
 	overlay_image = false

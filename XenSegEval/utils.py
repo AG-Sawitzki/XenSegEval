@@ -21,7 +21,7 @@ def submit_sbatch(
     gpu: Union[str, None] = None,
     mail: Union[str, None] = None,
 ) -> str:
-    '''Writes a job-file for sbatch akd retruns the command to submit it.
+    '''Writes a job-file for sbatch and returns the command to submit it.
     Args:
         tempfile_dir: path to a directory
                       where the sbatch files will be saved.

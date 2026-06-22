@@ -17,8 +17,37 @@ from numpy.typing import ArrayLike
 from typing import Any, Union
 
 
+def check_colour(
+    r: int,
+    g: int,
+    b: int
+) -> tuple:
+    '''Gives a new rgb colour-tuple, incremented by 1.
+    Args:
+        r: red,
+        g: green,
+        b: blue
+    Returns:
+        Tuple of (r,g,b)
+    '''
+    if r < 255:
+        r += 1
+    else:
+        if g < 255:
+            g += 1
+            r = 0
+        else:
+            if b < 255:
+                b += 1
+                g = 0
+                r = 0
+            else:
+                return None
+    return (r, g, b)
+
+
 def polygon_to_mask(
-    gdf: Union[str, os.PathLike, GeoDataFrame],
+    gdf: GeoDataFrame,
     shape: tuple,
     layer: int,
 ) -> ArrayLike:
@@ -29,36 +58,57 @@ def polygon_to_mask(
     Retruns:
         Masks in numpy-array.
     '''
-    if Path(gdf).suffix == '.gz':
-        with gzip.open(gdf) as file:
-            gdf = gpd.read_file(file)
-    elif Path(gdf).suffix == 'geojson':
-        gdf = gpd.read_file(gdf)
-    elif type(gdf) is GeoDataFrame:
-        gdf = gdf
-    else:
-        print('gdf not path or GeoDataFrame.')
-
     r, g, b = (0,)*3
     img = np.zeros(shape, np.uint8)
-    for mpg in gdf[gdf['layer'] == layer]['geometry']:
+    if type(layer) is int:
+        gds = gdf[gdf['layer'] == layer]['geometry']
+    else:
+        gds = gdf['geometry']
+    for mpg in gds:
         for lr in mpg.geoms:
             pl = np.array(list(lr.exterior.coords))
             cv2.fillPoly(img, np.int32([pl]), (r, g, b))
-            if r < 255:
-                r += 1
-            else:
-                if g < 255:
-                    g += 1
-                    r = 0
-                else:
-                    if b < 255:
-                        b += 1
-                        g = 0
-                        r = 0
-                    else:
-                        print('no colours left')
+            r, g, b = check_colour(r, g, b)
     return img
+
+
+def prepare_ProSeg(
+    polygons: Union[str, os.PathLike, GeoDataFrame],
+    output_path: Union[str, os.PathLike],
+    shape: tuple
+) -> None:
+    '''A wrapper for polygon_to_mask.
+    Args:
+        polygons: path to the geojson file or GeoDataFrame.
+        output_path: path to the dir to save the masks under.
+        shape: shape of the corresponding groundtruth or known area shape.
+    Returns:
+        None. Saves masks as .tif in output_dir.
+    '''
+    if Path(polygons).suffix == '.gz':
+        with gzip.open(polygons) as file:
+            gdf = gpd.read_file(file)
+    elif Path(polygons).suffix == 'geojson':
+        gdf = gpd.read_file(polygons)
+    elif type(polygons) is GeoDataFrame:
+        gdf = polygons
+    else:
+        print('gdf not path or GeoDataFrame.')
+
+    try:
+        layers = max(gdf['layer'])
+        for layer in range(layers+1):
+            mask = polygon_to_mask(gdf, shape, layer)
+            tf.imwrite(
+                output_path / f'prediction_l{layer}.tif',
+                mask
+            )
+    except KeyError:
+        mask = polygon_to_mask(gdf, shape, layer=None)
+        tf.imwrite(
+            output_path / f'prediction.tif',
+            mask
+        )
 
 
 # function form cellpose.utils

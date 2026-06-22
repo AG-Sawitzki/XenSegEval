@@ -8,7 +8,10 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # Utils
 from XenSegEval.utils import get_config_args
-from XenSegEval.eval.utils import polygon_to_mask
+from XenSegEval.eval.utils import (
+    prepare_ProSeg,
+    polygon_to_mask
+)
 
 import sys
 import gzip
@@ -27,11 +30,20 @@ import geopandas as gpd
 # from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-# from aicsimageio.aics_image import imread, AICSImage
-# from aicsimageio.readers import (
-#     ome_tiff_reader, tiff_reader, array_like_reader
-# )
-# from aicsimageio.writers import ome_tiff_writer
+from aicsimageio.aics_image import imread, AICSImage
+from aicsimageio.readers import (
+    ome_tiff_reader, tiff_reader, array_like_reader
+)
+from aicsimageio.writers import ome_tiff_writer
+
+PCA_CAPABLE = [
+    'cpsam',
+    'dinocell',
+    'dissect',
+    'mesmer',
+    'proseg',
+    'stardist'
+]
 
 
 if __name__ == '__main__':
@@ -51,25 +63,27 @@ if __name__ == '__main__':
 
     section = 'newmem'
 
-    gt = tf.imread(gt_path)
+    focus_path = Path(f'{processed}/{section}/morphology/focus/')
 
+    # prepare Proseg output
     if method == 'proseg':
-        file = 'cell-polygons_layers.geojson.gz'
-        polygon_path = Path(
-            f'{results}/{method}/output/{section}/{file}'
-        )
-        shape = gt.shape
-        with gzip.open(polygon_path) as file:
-            gdf = gpd.read_file(file)
-            layers = max(gdf['layer'])
-        for layer in range(layers+1):
-            mask = polygon_to_mask(polygon_path, shape, layer)
-            tf.imwrite(
-                f'{results}/{method}/output/{section}/prediction_l{layer}.tif',
-                mask
+        files = [
+            'cell-polygons.geojson.gz',
+            'cell-polygons_layers.geojson.gz'
+        ]
+        for file in files:
+            polygons = Path(
+                f'{results}/{method}/output/{section}/{file}'
             )
+            output_path = Path(
+                f'{results}/{method}/outupt/{section}'
+            )
+            shape = gt.shape
+            prepare_ProSeg(polygons, output_path)
 
     mask_path = f'{results}/{method}/output/{section}/'
+
+    gt = tf.imread(gt_path)
 
     for file in Path(mask_path).glob('prediction*.tif'):
         print(file)
@@ -89,7 +103,7 @@ if __name__ == '__main__':
 
         outdir.mkdir(parents=True, exist_ok=True)
 
-        if PCA:
+        if PCA and method in PCA_CAPABLE:
             with open(
                 '/data/cephfs-1/work/groups/sawitzki/'
                 'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
