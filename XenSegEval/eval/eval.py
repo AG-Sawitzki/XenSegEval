@@ -52,7 +52,6 @@ if __name__ == '__main__':
     section = 'newmem'
 
     gt = tf.imread(gt_path)
-    gt_l = label(gt)
 
     if method == 'proseg':
         file = 'cell-polygons_layers.geojson.gz'
@@ -63,7 +62,7 @@ if __name__ == '__main__':
         with gzip.open(polygon_path) as file:
             gdf = gpd.read_file(file)
             layers = max(gdf['layer'])
-        for layer in range(layer+1):
+        for layer in range(layers+1):
             mask = polygon_to_mask(polygon_path, shape, layer)
             tf.imwrite(
                 f'{results}/{method}/output/{section}/perdiction_l{layer}.tif',
@@ -75,7 +74,6 @@ if __name__ == '__main__':
 
     for file in Path(mask_path).glob('prediction*.tif'):
         mask = tf.imread(file)
-        mask_l = label(mask)
 
         dir_name = file.stem.replace('prediction', '')
 
@@ -141,10 +139,12 @@ if __name__ == '__main__':
             print('jaccard')
             if method == 'mesmer':
                 mask = mask.squeeze()[0,...]
-                mask_l = label(mask)
 
-            mask_rl = relabel_sequential(mask_l)
-            gt_rl = relabel_sequential(gt_l)
+            mask_l = label(mask)
+            gt_l = label(gt)
+
+            mask_rl = relabel_sequential(mask_l)[0]
+            gt_rl = relabel_sequential(gt_l)[0]
 
             results = pd.DataFrame(
                 columns=["Method", "Threshold", "F1", "Jaccard", "TP", "FP", "FN"]
@@ -186,12 +186,12 @@ if __name__ == '__main__':
 
             # expand dims. requires 3D (batch, y, x)
             # or 4D (batch, y, x, chan)
-            gt = np.expand_dims(gt, axis=0)
-            mask = np.expand_dims(mask, axis=0)
+            gt_x = np.expand_dims(gt, axis=0)
+            mask_x = np.expand_dims(mask, axis=0)
 
             pm = Metrics(method, outdir=outdir)
 
-            object_metrics = pm.calc_object_stats(gt, mask)
+            object_metrics = pm.calc_object_stats(gt_x, mask_x)
 
             results = pd.DataFrame(data=object_metrics)
 

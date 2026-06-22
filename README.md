@@ -63,7 +63,7 @@ uv pip install git+https://github.com/facebookresearch/dinov3
 ```
 -->
 ### Dissect
-To install dissect-st run the following commads
+<!--To install dissect-st run the following commads
 ```
 pixi shell -e dissect
 python3 -m ensurepip
@@ -73,8 +73,7 @@ python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.10/index.html 
     https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch1.10/index.html
 -->
-
-Afterwards download the pre-trained model using gdown (v5.2.2).
+(Afterwards) Download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
