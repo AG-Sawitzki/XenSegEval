@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 from itertools import product
 from pathlib import Path
 import configparser
@@ -20,8 +22,6 @@ import cv2
 from numpy.typing import ArrayLike
 from typing import Any, Union
 
-from XenSegEval.utils import get_config_args
-
 
 def get_weighted_distance(
     centre: Union[tuple, list],
@@ -43,7 +43,7 @@ def get_weighted_distance(
 
 def find_rois(
     shape_org: tuple,
-    image_subres: ArrayLike ,
+    image_subres: ArrayLike,
     n_roi: int
 ) -> Union[list, ArrayLike]:
     """Sort the contours by area.

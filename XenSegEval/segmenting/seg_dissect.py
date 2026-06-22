@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 import os
 import sys
 import argparse
@@ -7,8 +9,6 @@ from pathlib import Path
 
 from tomlkit import load
 import numpy as np
-
-from XenSegEval.utils import get_config_args
 
 
 if __name__ == '__main__':

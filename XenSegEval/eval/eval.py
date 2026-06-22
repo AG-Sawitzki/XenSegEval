@@ -1,3 +1,15 @@
+# for jaccard
+from XenSegEval.eval.unet4nuclei.evaluation import (
+    compute_af1_results,
+    get_false_negatives,
+    get_splits_and_merges
+)
+# for cs-bench
+from XenSegEval.eval.cs_benchmark.metrics import Metrics
+# Utils
+from XenSegEval.utils import get_config_args
+from XenSegEval.eval.utils import polygon_to_mask
+
 import sys
 import gzip
 from pathlib import Path
@@ -20,20 +32,6 @@ from skimage.morphology import label
 #     ome_tiff_reader, tiff_reader, array_like_reader
 # )
 # from aicsimageio.writers import ome_tiff_writer
-
-# for jaccard
-from XenSegEval.eval.unet4nuclei.evaluation import (
-    compute_af1_results,
-    get_false_negatives,
-    get_splits_and_merges
-)
-
-# for cs-bench
-from XenSegEval.eval.cs_benchmark.metrics import Metrics
-
-#
-from XenSegEval.utils import get_config_args
-from XenSegEval.eval.utils import polygon_to_mask
 
 
 if __name__ == '__main__':

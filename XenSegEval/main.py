@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args, submit_sbatch
+
 from pathlib import Path
 import configparser
 import subprocess
@@ -6,7 +8,6 @@ import os
 
 import tomlkit
 
-from XenSegEval.utils import get_config_args, submit_sbatch
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -50,8 +51,9 @@ if __name__ == '__main__':
         del sbatch_kwargs['gpu']
         print('preprocessing')
         if sections is None:
-            cmd = ('pixi run python -m XenSegEval.processing.find_sections'
-                   f' -c {config_path}'
+            cmd = (
+                'pixi run python -m XenSegEval.processing.find_sections'
+                f' -c {config_path}'
             )
             sbatch_kwargs['cmd'] = cmd
             pS = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)

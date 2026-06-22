@@ -1,11 +1,11 @@
+from XenSegEval.utils import get_config_args, submit_sbatch
+
 from pathlib import Path
 import subprocess
 import argparse
 import os
 
 import tomlkit
-
-from XenSegEval.utils import get_config_args, submit_sbatch
 
 
 if __name__ == "__main__":

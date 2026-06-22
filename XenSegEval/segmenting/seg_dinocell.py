@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 import os
 import sys
 import argparse
@@ -10,8 +12,6 @@ import tomlkit
 import json
 
 from dinocell import segment
-
-from XenSegEval.utils import get_config_args
 
 
 if __name__ == '__main__':

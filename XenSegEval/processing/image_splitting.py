@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 from itertools import product
 from pathlib import Path
 import configparser
@@ -20,9 +22,6 @@ import cv2
 # types
 from numpy.typing import ArrayLike
 from typing import Any, Union
-
-
-from XenSegEval.utils import get_config_args
 
 
 def get_memory_usage_percentage() -> float:

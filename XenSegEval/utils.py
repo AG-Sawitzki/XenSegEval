@@ -23,7 +23,7 @@ def submit_sbatch(
 ) -> str:
     '''Writes a job-file for sbatch akd retruns the command to submit it.
     Args:
-        tempfile_dir: path to a directory 
+        tempfile_dir: path to a directory
                       where the sbatch files will be saved.
         time: days to reserve the node for.
         mem: how much RAM to request.
@@ -43,7 +43,7 @@ def submit_sbatch(
         file = cmd[cmd.find('Xen'):cmd.find(' -c')]
         name = file.rpartition('.')
         name = name[-1]
-        name = name.replace('-','')
+        name = name.replace('-', '')
         if name == 'eval':
             name += '_'+cmd[cmd.rfind('-m')+3:]
     with open(f'{job_dir}/{name}.sh', 'w+') as fh:

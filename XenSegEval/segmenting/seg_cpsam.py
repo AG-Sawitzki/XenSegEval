@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 import os
 import sys
 import argparse
@@ -12,9 +14,6 @@ import tomlkit
 import json
 
 print(os.getcwd())
-
-#sys.path.append('..')
-from XenSegEval.utils import get_config_args
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='CPSAM.')
@@ -46,7 +45,7 @@ if __name__ == '__main__':
 
     for section in sections:
         img_path = Path(
-            processed / 
+            processed /
             f'{section}/morphology/multi_layer/morphology.ome.tif'
         )
         # multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
@@ -79,5 +78,5 @@ if __name__ == '__main__':
         for L, p in enumerate(planes):
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
-                masks[L,...]
+                masks[L, ...]
             )

@@ -1,3 +1,5 @@
+from XenSegEval.utils import get_config_args
+
 import multiprocessing as mp
 from pathlib import Path
 import configparser
@@ -18,8 +20,6 @@ import numpy as np
 # types
 from typing import Any
 from pandas.core.frame import DataFrame
-
-from XenSegEval.utils import get_config_args
 
 
 def define_regions_to_extract(
