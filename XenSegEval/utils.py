@@ -165,6 +165,7 @@ def get_config_args(
                 PCA=evaluation['PCA'],
                 JACCARD=evaluation['JACCARD'],
                 CS_BENCH=evaluation['CS-BENCH'],
+                CROSS=evaluation['CROSS']
             ))
         elif method in [
             'transcripts',

@@ -1,7 +1,23 @@
+# for jaccard
+from XenSegEval.eval.unet4nuclei.evaluation import (
+    compute_af1_results,
+    # get_false_negatives,
+    # get_splits_and_merges
+)
+# for cs-bench
+from XenSegEval.eval.cs_benchmark.metrics import Metrics
+# for plotting
+from XenSegEval.plot import heatmap, annotate_heatmap
+
+from skimage.segmentation import relabel_sequential
+from skimage.morphology import label
+
 import os
 import gzip
 import pickle
+import functools
 from pathlib import Path
+import multiprocessing as mp
 
 import pandas as pd
 import numpy as np
@@ -15,6 +31,114 @@ import cv2
 from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
 from typing import Any, Union
+from pathlib import PosixPath
+
+
+def wrapper_cs(mask, gt):
+    gt_x = np.expand_dims(gt, axis=0)
+    mask_x = np.expand_dims(mask, axis=0)
+
+    gt_x_rl = relabel_sequential(gt_x)
+    mask_x_rl = relabel_sequential(mask_x)
+
+    pm = Metrics(method)
+
+    object_metrics = pm.calc_object_stats(gt_x_rl, mask_x_rl)
+
+    results = pd.DataFrame(data=object_metrics)
+
+    return results
+
+
+def wrapper_u4n(mask, gt):
+    mask_l = label(mask)
+    gt_l = label(gt)
+
+    mask_rl = relabel_sequential(mask_l)[0]
+    gt_rl = relabel_sequential(gt_l)[0]
+
+    results = pd.DataFrame(
+        columns=[
+            'Method', 'Threshold', 'F1',
+            'Jaccard', 'TP', 'FP', 'FN'
+        ]
+    )
+    results = compute_af1_results(
+        gt_rl,
+        mask_rl,
+        results,
+        method
+    )
+
+    return results
+
+
+def eval_masks(
+    masks: list,
+    gt: Union[str, os.PathLike, PosixPath],
+    cs: ArrayLike,
+    u4n: ArrayLike
+) -> None:
+    if type(gt) in [str, os.PathLike, PosixPath]:
+        gt = tifffile.imread(gt)
+    else:
+        assert type(gt) is np.ndarray
+
+    cs_arr = np.zeros((len(masks),))
+    u4n_arr = np.zeros((len(masks),))
+    for mask in masks:
+        cs_results = wrapper_cs(mask, gt)
+        u4n_results = wrapper_u4n(mask, gt)
+
+        np.append(
+            cs_arr,
+            cs_results[
+                ['precision', 'recall', 'f1', 'seg', 'jaccard', 'dice', 'PQ']
+            ]
+        )
+        np.append(u4n_arr, u4n_results[['Threshold', 'F1', 'Jaccard']])
+
+    np.append(cs, cs_arr)
+    np.append(u4n, u4n_arr)
+
+    return None
+
+
+def cross_eval(
+    results,
+    methods,
+    section,
+) -> None:
+    tested = []
+    cs = np.array([])
+    u4n = np.array([])
+    for method in methods:
+        tested.append(method)
+        masks = list(
+            Path(
+                f'{results}/{method}/output/{section}/'
+            ).glob('prediction*.tif')
+        )
+        gts = [
+            list(Path(
+                f'{results}/{to_test}/output/{section}/'
+            ).glob('prediction*.tif')) for to_test in tested
+        ]
+        # for mask in masks:
+        with mp.Pool(processes=mp.cpu_count()) as pool:
+            results = pool.map(functools.partial(
+                eval_masks,
+                masks=masks,
+                cs=cs,
+                u4n=u4n
+            ), gts)
+            pool.close()
+            pool.join()
+    print(cs)
+    print(u4n)
+    # fig, ax = plt.subplots()
+    # im, cbar = heatmap()
+    return None
 
 
 def check_colour(

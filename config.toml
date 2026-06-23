@@ -136,7 +136,8 @@ JACCARD = false
 CS-BENCH = false
 # not implemented yet
 	# principal components
-	PCA = true
+	PCA = false
 	# probability density
 	PD = false
 	overlay_image = false
+CROSS = true

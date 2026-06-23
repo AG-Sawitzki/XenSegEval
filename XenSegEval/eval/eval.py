@@ -10,7 +10,8 @@ from XenSegEval.eval.cs_benchmark.metrics import Metrics
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
     prepare_ProSeg,
-    polygon_to_mask
+    polygon_to_mask,
+    cross_eval
 )
 
 import sys
@@ -30,11 +31,11 @@ import geopandas as gpd
 # from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-from aicsimageio.aics_image import imread, AICSImage
-from aicsimageio.readers import (
-    ome_tiff_reader, tiff_reader, array_like_reader
-)
-from aicsimageio.writers import ome_tiff_writer
+# from aicsimageio.aics_image import imread, AICSImage
+# from aicsimageio.readers import (
+#     ome_tiff_reader, tiff_reader, array_like_reader
+# )
+# from aicsimageio.writers import ome_tiff_writer
 
 PCA_CAPABLE = [
     'cpsam',
@@ -174,15 +175,15 @@ if __name__ == '__main__':
 
             results = pd.DataFrame(
                 columns=[
-                    "Method", "Threshold", "F1",
-                    "Jaccard", "TP", "FP", "FN"
+                    'Method', 'Threshold', 'F1',
+                    'Jaccard', 'TP', 'FP', 'FN'
                 ]
             )
             false_negatives = pd.DataFrame(
-                columns=["False_Negative", "Area"]
+                columns=['False_Negative', 'Area']
             )
             split_merges = pd.DataFrame(
-                columns=["Method", "Merges", "Splits"]
+                columns=['Method', 'Merges', 'Splits']
             )
 
             results = compute_af1_results(
@@ -232,3 +233,10 @@ if __name__ == '__main__':
         if PD:
             # nothing
             print('nothing')
+
+        if CROSS:
+            cross_eval(
+                results,
+                method,
+                section
+            )

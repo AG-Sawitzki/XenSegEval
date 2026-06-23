@@ -316,9 +316,6 @@ tables = "==3.6.1"
 # torch = "==2.0.1"
 umap-learn = "*"
 
-[feature.processing.target.linux-64.pypi-dependencies]
-aicsimageio = "*"
-
 
 [environments]
 default = ["process", "uv"]
