@@ -125,6 +125,27 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
 def visualize_cs(
     eval_path
 ):
-    df = pd.read_csv(eval_path)
-    if 'Method' in df.columns:
-        print('WIP')
+    df_cs = pd.read_csv(f'{eval_path}/CS-BENCH.csv')
+    df_u4n = pd.read_csv(f'{eval_patho}/results.csv')
+
+    fig_cs, ax_cs = plt.subplots()
+    fig_u4n, ax_u4n = plt.subplots()
+
+    if 'Method' in df_u4n.columns:
+        ax_u4n.bar(
+            df_u4n[['F1', 'Jaccard']],
+            tick_label=np.round(df_u4n['Threshold'], 2)
+        )
+
+    if 'PQ' in df_cs.columns:
+        ax_cs.bar(
+            df_cs[['f1', 'seg', 'jaccard', 'dice', 'PQ']],
+            tick_label=method
+        )
+
+    ax_cs.legend()
+    ax_u4n.legend()
+
+    fig_u4n.savefig('~/test_u4n.png')
+    fig_cs.savefig('~/test_cs.png')
+    return None

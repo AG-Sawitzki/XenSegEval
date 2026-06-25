@@ -1,8 +1,8 @@
 # for jaccard
 from XenSegEval.eval.unet4nuclei.evaluation import (
     compute_af1_results,
-    # get_false_negatives,
-    # get_splits_and_merges
+    get_false_negatives,
+    get_splits_and_merges
 )
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
@@ -34,23 +34,66 @@ from typing import Any, Union
 from pathlib import PosixPath
 
 
-def wrapper_cs(mask, gt):
+def wrapper_cs(
+    mask: ArrayLike,
+    gt: ArrayLike,
+    method: str = 'cross',
+    outdir: Union[str, os.PathLike, PosixPath] = ''
+) -> pd.core.frame.DataFrame:
+    '''Wrapper for cs-benchmark. See [13] in README.md.
+    Args:
+        mask: Prediction to test against Ground Truth.
+        gt: Ground Truth to test Prediction on.
+        method (optional):
+            Method name that is evaluated.
+            Determines filename of json. See cs-benchmark docs.
+        outdir (optional): Output directory to save json under. See above.
+    Retruns:
+        object_metrics in DataFrame.
+    '''
+    gt = np.squeeze(gt)
+    mask = np.squeeze(mask)
+
+    assert gt.shape == mask.shape, 'Mask and GT differ in shape.'
+
     gt_x = np.expand_dims(gt, axis=0)
     mask_x = np.expand_dims(mask, axis=0)
 
-    gt_x_rl = relabel_sequential(gt_x)
-    mask_x_rl = relabel_sequential(mask_x)
+    pm = Metrics(method, outdir=outdir)
 
-    pm = Metrics(method)
-
-    object_metrics = pm.calc_object_stats(gt_x_rl, mask_x_rl)
+    object_metrics = pm.calc_object_stats(gt_x, mask_x)
 
     results = pd.DataFrame(data=object_metrics)
 
     return results
 
 
-def wrapper_u4n(mask, gt):
+def wrapper_u4n(
+    mask: ArrayLike,
+    gt: ArrayLike,
+    method='cross'
+) -> tuple[
+    pd.core.frame.DataFrame,
+    pd.core.frame.DataFrame,
+    pd.core.frame.DataFrame,
+]:
+    '''Wrapper for carpenterlab's evalutaion. See [12] in README.md.
+    Args:
+        mask: Prediction to test against Ground Truth.
+        gt: Ground Truth to test Prediction on.
+        method (optional):
+            Method name that is evaluated.
+            Appears in rows of results.
+    Returns:
+        df of metrics,
+        df of false negatives,
+        df of split merges
+    '''
+    mask = np.squeeze(mask)
+    gt = np.squeeze(mask)
+
+    assert gt.shape == mask.shape, 'Mask and GT differ in shape.'
+
     mask_l = label(mask)
     gt_l = label(gt)
 
@@ -63,6 +106,12 @@ def wrapper_u4n(mask, gt):
             'Jaccard', 'TP', 'FP', 'FN'
         ]
     )
+    false_negatives = pd.DataFrame(
+        columns=['False_Negative', 'Area']
+    )
+    split_merges = pd.DataFrame(
+        columns=['Method', 'Merges', 'Splits']
+    )
     results = compute_af1_results(
         gt_rl,
         mask_rl,
@@ -70,74 +119,172 @@ def wrapper_u4n(mask, gt):
         method
     )
 
-    return results
+    false_negatives = get_false_negatives(
+        gt_rl,
+        mask_rl,
+        false_negatives,
+        method
+    )
+
+    split_merges = get_splits_and_merges(
+        gt_rl,
+        mask_rl,
+        split_merges,
+        method
+    )
+
+    return results, false_negatives, split_merges
 
 
-def eval_masks(
+def eval_mask(
+    gt: Union[str, os.PathLike, PosixPath, ArrayLike],
     masks: list,
-    gt: Union[str, os.PathLike, PosixPath],
     cs: ArrayLike,
-    u4n: ArrayLike
-) -> None:
+    u4n: ArrayLike,
+    cs_val: str = 'f1',
+    u4n_val: str = 'F1',
+    threshold: int = 0.5,
+) -> tuple[ArrayLike, ArrayLike]:
+    '''Evaluate a single mask agains all other masks.
+    Args:
+        mask:
+            Path to or Array of prediction to test.
+            Functions as Prediction.
+        gts:
+            list of Paths to and/or Arrays of predictions.
+            Function as Ground Truths
+        cs: Array the cs_val is appended to.
+        u4n: Array the u4n_val is appended to.
+        cs_val (default: "f1"):
+            one metric from [
+                "f1", "seg", "jaccard", "dice", "PQ"
+            ]
+        u4n_val (default: "F1"):
+            one metric from [
+                "F1", "Jaccard"
+            ]
+        threshold (defaults: 0.5): Threshold for u4n. elem(0.5, 0.95)
+    Retruns:
+        cs and u4n
+    '''
     if type(gt) in [str, os.PathLike, PosixPath]:
         gt = tifffile.imread(gt)
-    else:
-        assert type(gt) is np.ndarray
+    assert type(gt) is np.ndarray, 'not an array'
+    assert gt.shape == (1250, 1650), 'Wrong Shape'
+    assert len(masks) > 0, 'No masks :<'
+    # if type(mask) in [str, os.PathLike, PosixPath]:
+    #     mask = tifffile.imread(mask)
+    # assert type(mask) is np.ndarray
+    # assert mask.shape == (1250, 1650)
+    # assert len(gt) > 0, 'No masks :<'
 
-    cs_arr = np.zeros((len(masks),))
-    u4n_arr = np.zeros((len(masks),))
+    cs_arr = np.array([])
+    u4n_arr = np.array([])
+
     for mask in masks:
+        if type(mask) in [str, os.PathLike, PosixPath]:
+            mask = tifffile.imread(mask)
+        mask = np.squeeze(mask)
+        assert mask.shape == (1250, 1650), 'Wrong Shape'
+
         cs_results = wrapper_cs(mask, gt)
-        u4n_results = wrapper_u4n(mask, gt)
+        u4n_results, _, __ = wrapper_u4n(mask, gt)
 
-        np.append(
-            cs_arr,
-            cs_results[
-                ['precision', 'recall', 'f1', 'seg', 'jaccard', 'dice', 'PQ']
-            ]
+        cs_arr = np.append(cs_arr, cs_results[cs_val])
+
+        u4n_arr = np.append(
+            u4n_arr,
+            u4n_results[u4n_results['Threshold'] == threshold][u4n_val]
         )
-        np.append(u4n_arr, u4n_results[['Threshold', 'F1', 'Jaccard']])
 
-    np.append(cs, cs_arr)
-    np.append(u4n, u4n_arr)
+    # if cs.shape == (0,):
+    cs = np.append(cs, cs_arr)
+    # else:
+    #     cs = np.vstack([cs, cs_arr])
+    # if u4n.shape == (0,):
+    u4n = np.append(u4n, u4n_arr)
+    # else:
+    #     u4n = np.vstack([u4n, u4n_arr])
 
-    return None
+    return cs, u4n
 
 
 def cross_eval(
-    results,
-    methods,
-    section,
+    results: Union[str, os.PathLike, PosixPath],
+    run: Union[str, os.PathLike, PosixPath],
+    methods: list,
+    section: str,
+    threshold: int = 0.5,
 ) -> None:
-    tested = []
+    '''Evaluate each mask against every other.
+    Args:
+        results: path to directory containing all results.
+        run: path to directory for run metrics and logs.
+        methdos: list of all methods used for segmentation.
+        section: string of section evaluation is running on.
+        threshold (defaults: 0.5): Threshold for u4n. elem(0.5, 0.95)
+    Returns:
+        None
+    '''
     cs = np.array([])
     u4n = np.array([])
+    gts = [
+        tifffile.imread(path) if method != 'mesmer'
+        else tifffile.imread(path)[0, ...].squeeze()
+        for method in methods for path in Path(
+            f'{results}/{method}/output/{section}/'
+        ).glob('prediction*.tif')
+    ]
     for method in methods:
-        tested.append(method)
-        masks = list(
-            Path(
-                f'{results}/{method}/output/{section}/'
-            ).glob('prediction*.tif')
-        )
-        gts = [
-            list(Path(
-                f'{results}/{to_test}/output/{section}/'
-            ).glob('prediction*.tif')) for to_test in tested
-        ]
-        # for mask in masks:
+        if method == 'mesmer':
+            masks = [
+                tifffile.imread(path)[0, ...] for path in Path(
+                    f'{results}/{method}/output/{section}/'
+                ).glob('prediction*.tif')
+            ]
+        elif method == 'dissect':
+            continue
+        else:
+            masks = [
+                path for path in Path(
+                    f'{results}/{method}/output/{section}/'
+                ).glob('prediction*.tif')
+            ]
+        with open(f'{run}/eval_order.txt', 'a') as file:
+            for path in masks:
+                if type(path) is not np.ndarray:
+                    file.writelines(f'{path}\n')
+                else:
+                    file.writelines(f'{method}\n')
+
+        # if len(masks) < mp.cpu_count():
+        #     if len(masks) == 0:
+        #         print(method)
+        #         continue
+        #     else:
+        #         processes = len(masks)
+        # else:
+        #     processes = mp.cpu_count()
+
         with mp.Pool(processes=mp.cpu_count()) as pool:
-            results = pool.map(functools.partial(
-                eval_masks,
+            res = pool.map(functools.partial(
+                eval_mask,
                 masks=masks,
                 cs=cs,
-                u4n=u4n
+                u4n=u4n,
+                threshold=threshold
             ), gts)
             pool.close()
             pool.join()
+    print(res)
+    cs = np.vstack(res[:, 0])
+    u4n = np.vstack(res[:, 1])
     print(cs)
     print(u4n)
     # fig, ax = plt.subplots()
     # im, cbar = heatmap()
+    np.save(f'{results}/cs_cross.npy', cs)
+    np.save(f'{results}/u4n_cross.npy', u4n)
     return None
 
 

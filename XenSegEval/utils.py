@@ -161,10 +161,15 @@ def get_config_args(
         if method == 'eval':
             variables.update(dict(
                 gt_path=gt_path,
+                methods=methods,
                 PD=evaluation['PD'],
                 PCA=evaluation['PCA'],
                 JACCARD=evaluation['JACCARD'],
                 CS_BENCH=evaluation['CS-BENCH'],
+            ))
+        elif method == 'cross':
+            variables.update(dict(
+                methods=methods,
                 CROSS=evaluation['CROSS']
             ))
         elif method in [
@@ -179,7 +184,12 @@ def get_config_args(
             ))
         elif method == 'main':
             variables.update(dict(
-                tasks=config['Tasks']
+                tasks=config['Tasks'],
+                PD=evaluation['PD'],
+                PCA=evaluation['PCA'],
+                JACCARD=evaluation['JACCARD'],
+                CS_BENCH=evaluation['CS-BENCH'],
+                CROSS=evaluation['CROSS']
             ))
 
     return variables

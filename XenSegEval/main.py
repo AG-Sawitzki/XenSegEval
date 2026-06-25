@@ -110,11 +110,25 @@ if __name__ == '__main__':
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
-        for method in config['methods']:
+        if PD or PCA or JACCARD or CS_BENCH:
+            for method in config['methods']:
+                cmd = (
+                    f'pixi run -e eval'
+                    f' python -m XenSegEval.eval.eval'
+                    f' -c {config_path} -m {method}'
+                )
+                sbatch_kwargs['cmd'] = cmd
+                evl.append(
+                    subprocess.Popen(
+                        submit_sbatch(**sbatch_kwargs),
+                        shell=True
+                    )
+                )
+        if CROSS:
             cmd = (
                 f'pixi run -e eval'
-                f' python -m XenSegEval.eval.eval'
-                f' -c {config_path} -m {method}'
+                f' python -m XenSegEval.eval.cross'
+                f' -c {config_path}'
             )
             sbatch_kwargs['cmd'] = cmd
             evl.append(
@@ -123,6 +137,7 @@ if __name__ == '__main__':
                     shell=True
                 )
             )
+
         for p in evl:
             p.wait()
 

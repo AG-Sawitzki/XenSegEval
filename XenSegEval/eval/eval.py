@@ -1,17 +1,18 @@
 # for jaccard
-from XenSegEval.eval.unet4nuclei.evaluation import (
-    compute_af1_results,
-    get_false_negatives,
-    get_splits_and_merges
-)
+# from XenSegEval.eval.unet4nuclei.evaluation import (
+#     compute_af1_results,
+#     get_false_negatives,
+#     get_splits_and_merges
+# )
 # for cs-bench
-from XenSegEval.eval.cs_benchmark.metrics import Metrics
+# from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
     prepare_ProSeg,
     polygon_to_mask,
-    cross_eval
+    wrapper_cs,
+    wrapper_u4n
 )
 
 import sys
@@ -48,7 +49,7 @@ PCA_CAPABLE = [
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Image Processing.')
+    parser = argparse.ArgumentParser(prog='Eval.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     parser.add_argument('-m', '--Method', help='Method to evaluate.')
     args = parser.parse_args()
@@ -66,6 +67,8 @@ if __name__ == '__main__':
 
     focus_path = Path(f'{processed}/{section}/morphology/focus/')
 
+    gt = tf.imread(gt_path)
+
     # prepare Proseg output
     if method == 'proseg':
         files = [
@@ -80,11 +83,9 @@ if __name__ == '__main__':
                 f'{results}/{method}/outupt/{section}'
             )
             shape = gt.shape
-            prepare_ProSeg(polygons, output_path)
+            prepare_ProSeg(polygons, output_path, shape)
 
     mask_path = f'{results}/{method}/output/{section}/'
-
-    gt = tf.imread(gt_path)
 
     for file in Path(mask_path).glob('prediction*.tif'):
         print(file)
@@ -164,79 +165,72 @@ if __name__ == '__main__':
 
         if JACCARD:
             print('jaccard')
-            if method == 'mesmer':
-                mask = mask.squeeze()[0, ...]
+            # if method == 'mesmer':
+            #     mask = mask.squeeze()[0, ...]
 
-            mask_l = label(mask)
-            gt_l = label(gt)
+            # mask_l = label(mask)
+            # gt_l = label(gt)
 
-            mask_rl = relabel_sequential(mask_l)[0]
-            gt_rl = relabel_sequential(gt_l)[0]
+            # mask_rl = relabel_sequential(mask_l)[0]
+            # gt_rl = relabel_sequential(gt_l)[0]
 
-            results = pd.DataFrame(
-                columns=[
-                    'Method', 'Threshold', 'F1',
-                    'Jaccard', 'TP', 'FP', 'FN'
-                ]
+            # results = pd.DataFrame(
+            #     columns=[
+            #         'Method', 'Threshold', 'F1',
+            #         'Jaccard', 'TP', 'FP', 'FN'
+            #     ]
+            # )
+            # false_negatives = pd.DataFrame(
+            #     columns=['False_Negative', 'Area']
+            # )
+            # split_merges = pd.DataFrame(
+            #     columns=['Method', 'Merges', 'Splits']
+            # )
+
+            # results = compute_af1_results(
+            #     gt_rl,
+            #     mask_rl,
+            #     results,
+            #     method
+            # )
+
+            # false_negatives = get_false_negatives(
+            #     gt_rl,
+            #     mask_rl,
+            #     false_negatives,
+            #     method
+            # )
+
+            # split_merges = get_splits_and_merges(
+            #     gt_rl,
+            #     mask_rl,
+            #     split_merges,
+            #     method
+            # )
+            results, false_negatives, split_merges = wrapper_u4n(
+                mask,
+                gt,
+                method=method
             )
-            false_negatives = pd.DataFrame(
-                columns=['False_Negative', 'Area']
-            )
-            split_merges = pd.DataFrame(
-                columns=['Method', 'Merges', 'Splits']
-            )
-
-            results = compute_af1_results(
-                gt_rl,
-                mask_rl,
-                results,
-                method
-            )
-
-            false_negatives = get_false_negatives(
-                gt_rl,
-                mask_rl,
-                false_negatives,
-                method
-            )
-
-            split_merges = get_splits_and_merges(
-                gt_rl,
-                mask_rl,
-                split_merges,
-                method
-            )
-
             results.to_csv(outdir / 'results.csv', index=False)
             false_negatives.to_csv(outdir / 'false_negatives.csv', index=False)
             split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
         if CS_BENCH:
             print('cs_bench')
+            # # expand dims. requires 3D (batch, y, x)
+            # # or 4D (batch, y, x, chan)
+            # gt_x = np.expand_dims(gt, axis=0)
+            # mask_x = np.expand_dims(mask, axis=0)
 
-            # expand dims. requires 3D (batch, y, x)
-            # or 4D (batch, y, x, chan)
-            gt_x = np.expand_dims(gt, axis=0)
-            mask_x = np.expand_dims(mask, axis=0)
+            # pm = Metrics(method, outdir=outdir)
 
-            gt_x_rl = relabel_sequential(gt_x)
-            mask_x_rl = relabel_sequential(mask_x)
+            # object_metrics = pm.calc_object_stats(gt_x, mask_x)
 
-            pm = Metrics(method, outdir=outdir)
-
-            object_metrics = pm.calc_object_stats(gt_x_rl, mask_x_rl)
-
-            results = pd.DataFrame(data=object_metrics)
-
+            # results = pd.DataFrame(data=object_metrics)
+            results = wrapper_cs(mask, gt, method=method, outdir=outdir)
             results.to_csv(outdir / 'CS-BENCH.csv', index=False)
 
         if PD:
             # nothing
             print('nothing')
-
-        if CROSS:
-            cross_eval(
-                results,
-                method,
-                section
-            )

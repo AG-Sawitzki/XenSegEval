@@ -102,7 +102,7 @@ norm3D = true
 [methods.dinocell]
 
 
-[methods.dissect]
+#[methods.dissect]
 platform = 'Xenium'
 # config_file = 
 # weights_file = 
