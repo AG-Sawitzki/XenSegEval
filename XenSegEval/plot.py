@@ -149,3 +149,38 @@ def visualize_cs(
     fig_u4n.savefig('~/test_u4n.png')
     fig_cs.savefig('~/test_cs.png')
     return None
+
+
+def bar_method_eval(
+    af1_path,
+    cs_path
+):
+    fig, ax = plt.subplot()
+    df = pd.read_csv(af1_path)
+    if 'Method' in df.columns:
+        ax.bar(df[['F1', 'Jaccard']], np.round(df['Threshold'],2))
+    df = pd.read_csv(cs_path)
+    if True:  #rows = 1:
+        ax.bar(df[['F1','Jaccard']], 'cs')
+    ax.legend()
+    fig.savefig(f'~/test.png', dpi=250)
+
+    return None
+
+
+def bar_compare_eval(
+    methods,
+    results_path
+):
+    fig_u4n, ax_u4n = plt.subplot()
+    fig_cs, ax_cs = plt.subplot()
+    for method in methods:
+        eval_path = f'{results_path}/{method}/evaluation/'
+        df_u4n = pd.read_csv(f'{eval_path}/results.csv')
+        df_cs = pd.read_csv(f'{eval_path}/CS_BENCH.csv')
+
+        ax_u4n.bar(df_u4n[['F1', 'Jaccard']], np.round(df_u4n['Threshold'],2))
+        ax_cs.bar(df_cs[['F1','Jaccard']], f'{method}')
+
+    fig_u4n.savefig('~/test_u4n.png')
+    fig_cs.savefig('~/test_cs.png')
