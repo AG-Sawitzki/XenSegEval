@@ -231,7 +231,7 @@ def cross_eval(
     gts = [
         tifffile.imread(path) if method != 'mesmer'
         else tifffile.imread(path)[0, ...].squeeze()
-        for method in methods for path in Path(
+        for method in methods.drop('dissect') for path in Path(
             f'{results}/{method}/output/{section}/'
         ).glob('prediction*.tif')
     ]
@@ -239,47 +239,48 @@ def cross_eval(
         processes = mp.cpu_count()
     else:
         processes = len(gts)
-    for method in methods:
-        if method == 'mesmer':
-            masks = [
-                tifffile.imread(path)[0, ...] for path in Path(
-                    f'{results}/{method}/output/{section}/'
-                ).glob('prediction*.tif')
-            ]
-        elif method == 'dissect':
-            continue
-        else:
-            masks = [
-                path for path in Path(
-                    f'{results}/{method}/output/{section}/'
-                ).glob('prediction*.tif')
-            ]
-        with open(f'{run}/eval_order.txt', 'a') as file:
-            for path in masks:
-                if type(path) is not np.ndarray:
-                    file.writelines(f'{path}\n')
-                else:
-                    file.writelines(f'{method}\n')
+    # for method in methods:
+    #     if method == 'mesmer':
+    #         masks = [
+    #             tifffile.imread(path)[0, ...] for path in Path(
+    #                 f'{results}/{method}/output/{section}/'
+    #             ).glob('prediction*.tif')
+    #         ]
+    #     elif method == 'dissect':
+    #         continue
+    #     else:
+    #         masks = [
+    #             path for path in Path(
+    #                 f'{results}/{method}/output/{section}/'
+    #             ).glob('prediction*.tif')
+    #         ]
 
-        with mp.Pool(processes=processes) as pool:
-            res = pool.map(functools.partial(
-                eval_mask,
-                masks=masks,
-                cs=cs,
-                u4n=u4n,
-                threshold=threshold
-            ), gts)
-            pool.close()
-            pool.join()
+        # with open(f'{run}/eval_order.txt', 'a') as file:
+        #     for path in masks:
+        #         if type(path) is not np.ndarray:
+        #             file.writelines(f'{path}\n')
+        #         else:
+        #             file.writelines(f'{method}\n')
+
+    with mp.Pool(processes=processes) as pool:
+        res = pool.map(functools.partial(
+            eval_mask,
+            masks=gts,
+            cs=cs,
+            u4n=u4n,
+            threshold=threshold
+        ), gts)
+        pool.close()
+        pool.join()
     print(res)
-    cs = np.vstack(res[:, 0])
-    u4n = np.vstack(res[:, 1])
-    print(cs)
-    print(u4n)
+    # cs = np.vstack(res[:, 0])
+    # u4n = np.vstack(res[:, 1])
+    # print(cs)
+    # print(u4n)
     # fig, ax = plt.subplots()
-    # im, cbar = heatmap()
-    np.save(f'{results}/cs_cross.npy', cs)
-    np.save(f'{results}/u4n_cross.npy', u4n)
+    # # im, cbar = heatmap()
+    # np.save(f'{results}/cs_cross.npy', cs)
+    # np.save(f'{results}/u4n_cross.npy', u4n)
     return None
 
 
