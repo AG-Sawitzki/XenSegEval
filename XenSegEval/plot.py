@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib
@@ -152,35 +154,91 @@ def visualize_cs(
 
 
 def bar_method_eval(
-    af1_path,
-    cs_path
+    fig,
+    ax,
+    results,
+    method,
+    section
 ):
-    fig, ax = plt.subplot()
-    df = pd.read_csv(af1_path)
+    eval_path = f'{results}/{method}/evaluation/{section}/'
+    u4n_path = f'{eval_path}/results.csv'
+    cs_path = f'{eval_path}/CS-BENCH.csv'
+    df = pd.read_csv(u4n_path)
     if 'Method' in df.columns:
-        ax.bar(df[['F1', 'Jaccard']], np.round(df['Threshold'],2))
+        data = np.array(df[['F1', 'Jaccard']])
+        tick_labels = list(np.round(df['Threshold'], 2))
     df = pd.read_csv(cs_path)
-    if True:  #rows = 1:
-        ax.bar(df[['F1','Jaccard']], 'cs')
+    if True:  # rows = 1:
+        data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
+        tick_labels.append('cs')
+    ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
     ax.legend()
-    fig.savefig(f'~/test.png', dpi=250)
+    ax.set_title(method)
+    # fig.savefig(f'/data/cephfs-1/home/users/juno12_c/test.png', dpi=250)
 
     return None
 
 
+def get_data(u4n, cs, u4n_path, cs_path, u4n_val, cs_vals):
+    df_u4n = pd.read_csv(u4n_path)
+    df_cs = pd.read_csv(cs_path)
+
+    if u4n.shape == (0,):
+        u4n = np.array(df_u4n[[u4n_val]]).T
+        cs = np.array(df_cs[cs_vals])
+    else:
+        data_u4n = np.array(df_u4n[[u4n_val]]).T
+        data_cs = np.array(df_cs[cs_vals])
+        u4n = np.vstack((u4n, data_u4n))
+        cs = np.vstack((cs, data_cs))
+
+    return u4n, cs
+
+
 def bar_compare_eval(
     methods,
-    results_path
+    results,
+    section,
+    fig_u4n,
+    fig_cs,
+    ax_u4n,
+    ax_cs,
 ):
-    fig_u4n, ax_u4n = plt.subplot()
-    fig_cs, ax_cs = plt.subplot()
+    u4n_val = 'F1'
+    cs_vals = ['f1', 'seg', 'jaccard', 'dice', 'PQ']
+
+    u4n = np.array([])
+    cs = np.array([])
+
+    tick_labels = []
     for method in methods:
-        eval_path = f'{results_path}/{method}/evaluation/'
-        df_u4n = pd.read_csv(f'{eval_path}/results.csv')
-        df_cs = pd.read_csv(f'{eval_path}/CS_BENCH.csv')
+        eval_path = f'{results}/{method}/evaluation/{section}/'
+        subdirs = list(Path(eval_path).glob('_*'))
+        if len(subdirs) != 0:
+            for subdir in subdirs:
+                u4n_path = Path(f'{subdir}/results.csv')
+                cs_path = Path(f'{subdir}/CS-BENCH.csv')
+                if u4n_path.is_file() and cs_path.is_file():
+                    tick_labels.append(method+subdir.stem)
+                    u4n, cs = get_data(
+                        u4n, cs, u4n_path, cs_path, u4n_val, cs_vals
+                    )
+        else:
+            tick_labels.append(method)
+            u4n_path = f'{eval_path}/results.csv'
+            cs_path = f'{eval_path}/CS-BENCH.csv'
+            u4n, cs = get_data(
+                u4n, cs, u4n_path, cs_path, u4n_val, cs_vals
+            )
+    labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
+    ax_u4n.grouped_bar(u4n, tick_labels=tick_labels, labels=labels)
+    ax_cs.grouped_bar(cs, tick_labels=tick_labels, labels=cs_vals)
 
-        ax_u4n.bar(df_u4n[['F1', 'Jaccard']], np.round(df_u4n['Threshold'],2))
-        ax_cs.bar(df_cs[['F1','Jaccard']], f'{method}')
+    ax_u4n.tick_params(axis='x', rotation=35)
+    ax_cs.tick_params(axis='x', rotation=35)
 
-    fig_u4n.savefig('~/test_u4n.png')
-    fig_cs.savefig('~/test_cs.png')
+    ax_u4n.legend()
+    ax_cs.legend()
+
+    fig_u4n.savefig('/data/cephfs-1/home/users/juno12_c/test_u4n.png')
+    fig_cs.savefig('/data/cephfs-1/home/users/juno12_c/test_cs.png')

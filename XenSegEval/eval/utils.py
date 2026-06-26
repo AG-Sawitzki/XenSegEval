@@ -190,19 +190,19 @@ def eval_mask(
         cs_results = wrapper_cs(mask, gt)
         u4n_results, _, __ = wrapper_u4n(mask, gt)
 
-        cs_arr = np.append(cs_arr, cs_results[cs_val])
+        cs = np.append(cs, cs_results[cs_val])
 
-        u4n_arr = np.append(
-            u4n_arr,
+        u4n = np.append(
+            u4n,
             u4n_results[u4n_results['Threshold'] == threshold][u4n_val]
         )
 
     # if cs.shape == (0,):
-    cs = np.append(cs, cs_arr)
+    # cs = np.append(cs, cs_arr)
     # else:
     #     cs = np.vstack([cs, cs_arr])
     # if u4n.shape == (0,):
-    u4n = np.append(u4n, u4n_arr)
+    # u4n = np.append(u4n, u4n_arr)
     # else:
     #     u4n = np.vstack([u4n, u4n_arr])
 
@@ -235,6 +235,10 @@ def cross_eval(
             f'{results}/{method}/output/{section}/'
         ).glob('prediction*.tif')
     ]
+    if len(gts) > mp.cpu_count():
+        processes = mp.cpu_count()
+    else:
+        processes = len(gts)
     for method in methods:
         if method == 'mesmer':
             masks = [
@@ -257,16 +261,7 @@ def cross_eval(
                 else:
                     file.writelines(f'{method}\n')
 
-        # if len(masks) < mp.cpu_count():
-        #     if len(masks) == 0:
-        #         print(method)
-        #         continue
-        #     else:
-        #         processes = len(masks)
-        # else:
-        #     processes = mp.cpu_count()
-
-        with mp.Pool(processes=mp.cpu_count()) as pool:
+        with mp.Pool(processes=processes) as pool:
             res = pool.map(functools.partial(
                 eval_mask,
                 masks=masks,
