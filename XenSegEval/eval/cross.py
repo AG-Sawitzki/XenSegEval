@@ -6,6 +6,8 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 )
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
+# plotting
+from XenSegEval.plot import heatmap, annotate_heatmap
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
@@ -16,15 +18,16 @@ from XenSegEval.eval.utils import (
 
 import sys
 import gzip
-from pathlib import Path
-import argparse
 import pickle
+import argparse
+from pathlib import Path
 
-import tifffile as tf
-import pandas as pd
-import numpy as np
 import tomlkit
+import numpy as np
+import pandas as pd
+import tifffile as tf
 import geopandas as gpd
+import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
@@ -40,17 +43,34 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'cross')
     globals().update(variables)
 
-    section = 'newmem'
-
-    print(results)
-
     run = Path(f'{home}/{sample_name}/run/')
 
-    if CROSS:
-        cross_eval(
-            results,
-            run,
-            methods,
-            section,
-            threshold=0.5
+    for section in sections:
+        if CROSS['use']:
+            res, labels = cross_eval(
+                results,
+                run,
+                methods,
+                section,
+                metric=CROSS['metric'],
+                benchmark=CROSS['benchmark'],
+                threshold=CROSS['threshold']
+            )
+
+        print(res)
+
+        np.save(f'{results}/cross_evaluation.npy', res)
+
+        fig, ax = plt.subplots()
+
+        im, cbar = heatmap(
+            results, labels, labels, ax=ax,
+            cmap='YlGn', cbarlabel=CROSS['metric']
+        )
+        texts = annotate_heatmap(im, valfmt='{x:.1f}')
+        fig.tight_layout()
+        fig.savefig(
+            f'/data/cephfs-1/home/users/juno12_c/'
+            f'cross_{CROSS['benchmark']}_{CROSS['metric']}.png',
+            dpi=250
         )

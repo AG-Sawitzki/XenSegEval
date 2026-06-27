@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
         outdir.mkdir(parents=True, exist_ok=True)
 
-        if PCA and method in PCA_CAPABLE:
+        if PCA['use'] and method in PCA_CAPABLE:
             with open(
                 '/data/cephfs-1/work/groups/sawitzki/'
                 'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
@@ -163,7 +163,7 @@ if __name__ == '__main__':
                 )
             )
 
-        if JACCARD:
+        if JACCARD['use']:
             print('jaccard')
             # if method == 'mesmer':
             #     mask = mask.squeeze()[0, ...]
@@ -216,7 +216,7 @@ if __name__ == '__main__':
             false_negatives.to_csv(outdir / 'false_negatives.csv', index=False)
             split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
-        if CS_BENCH:
+        if CS_BENCH['use']:
             print('cs_bench')
             # # expand dims. requires 3D (batch, y, x)
             # # or 4D (batch, y, x, chan)
@@ -231,6 +231,6 @@ if __name__ == '__main__':
             results = wrapper_cs(mask, gt, method=method, outdir=outdir)
             results.to_csv(outdir / 'CS-BENCH.csv', index=False)
 
-        if PD:
+        if PD['use']:
             # nothing
             print('nothing')

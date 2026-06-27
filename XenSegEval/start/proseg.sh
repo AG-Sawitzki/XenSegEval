@@ -8,7 +8,7 @@
 # sections_path=$(get_toml_value "$CONFIG_FILE" "paths" "sections_path")
 #
 . ~/.bashrc
-pixi run python -m XenSegEval.segmenting.seg_proseg -c $CONFIG_FILE
+pixi run python -m XenSegEval.segmenting.seg_proseg -c $1
 #
 # sections=$(jq 'keys' $sections_path | jq .[] | tr -d ' "')
 #

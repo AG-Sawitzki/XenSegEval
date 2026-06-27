@@ -39,34 +39,28 @@ if __name__ == '__main__':
     sections = section_dictionary.keys()
 
     # creates a pretrained model
-    # model = StarDist2D.from_pretrained('2D_versatile_fluo')
-    model = StarDist3D.from_pretrained('3D_demo')
+    model = StarDist2D.from_pretrained('2D_versatile_fluo')
+    # model = StarDist3D.from_pretrained('3D_demo')
 
     # loop through sections/quaters and segment each
     for section in sections:
-        # single_layer = Path(
-        #    processed / f'{section}/morphology/single_layer/'
-        # )
-        img_path = Path(
-            processed /
-            f'{section}/morphology/multi_layer/morphology.ome.tif'
-        )
-        img = imread(img_path)
-        labels, _ = model.predict_instances(normalize(img))
-
-        output_dir = Path(results / f'{section}')
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        np.save(
-            output_dir / 'output.npy',
-            labels
-        )
-        imwrite(
-            output_dir / 'output.tif',
-            labels
-        )
         for L, p in enumerate(planes):
+            img_path = Path(
+                processed /
+                f'{section}/morphology/'
+                f'single_layer/layer0{p}/morphology.tif'
+            )
+            img = imread(img_path)
+            labels, _ = model.predict_instances(normalize(img))
+
+            output_dir = Path(results / f'{section}')
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            np.save(
+                output_dir / f'prediction_p{p}.npy',
+                labels
+            )
             imwrite(
                 output_dir / f'prediction_p{p}.tif',
-                labels[L, ...]
+                labels
             )

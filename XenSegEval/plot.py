@@ -124,35 +124,6 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-def visualize_cs(
-    eval_path
-):
-    df_cs = pd.read_csv(f'{eval_path}/CS-BENCH.csv')
-    df_u4n = pd.read_csv(f'{eval_patho}/results.csv')
-
-    fig_cs, ax_cs = plt.subplots()
-    fig_u4n, ax_u4n = plt.subplots()
-
-    if 'Method' in df_u4n.columns:
-        ax_u4n.bar(
-            df_u4n[['F1', 'Jaccard']],
-            tick_label=np.round(df_u4n['Threshold'], 2)
-        )
-
-    if 'PQ' in df_cs.columns:
-        ax_cs.bar(
-            df_cs[['f1', 'seg', 'jaccard', 'dice', 'PQ']],
-            tick_label=method
-        )
-
-    ax_cs.legend()
-    ax_u4n.legend()
-
-    fig_u4n.savefig('~/test_u4n.png')
-    fig_cs.savefig('~/test_cs.png')
-    return None
-
-
 def bar_method_eval(
     fig,
     ax,
@@ -168,13 +139,12 @@ def bar_method_eval(
         data = np.array(df[['F1', 'Jaccard']])
         tick_labels = list(np.round(df['Threshold'], 2))
     df = pd.read_csv(cs_path)
-    if True:  # rows = 1:
+    if len(df) == 1:
         data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
         tick_labels.append('cs')
     ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
     ax.legend()
     ax.set_title(method)
-    # fig.savefig(f'/data/cephfs-1/home/users/juno12_c/test.png', dpi=250)
 
     return None
 

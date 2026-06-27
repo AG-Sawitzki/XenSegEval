@@ -131,13 +131,25 @@ token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 [evaluation]
 # if a evaluation should be performed based on
 # Jaccard and related scores
-JACCARD = false
+[evaluation.jaccard]
+use = false
+
 # Jaccard but by cs-benchmark
-CS-BENCH = false
+[evaluation.cs_bench]
+use = false
+
 # not implemented yet
 	# principal components
-	PCA = false
+	[evaluation.pca]
+	use = false
+	
 	# probability density
-	PD = false
+	[evaluation.pd]
+	use = false
 	overlay_image = false
-CROSS = true
+
+[evaluation.cross]
+use = true
+metric = 'dice'
+benchmark = 'cs'
+threshold = 0.5

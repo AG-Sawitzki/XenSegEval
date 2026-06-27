@@ -141,6 +141,7 @@ def get_config_args(
         data_path=data_path,
         sample_name=sample_name,
         sections_path=sections_path,
+        sections=sections,
         processed=processed,
         results=results,
         sbatch_kwargs=sbatch_kwargs,
@@ -162,15 +163,15 @@ def get_config_args(
             variables.update(dict(
                 gt_path=gt_path,
                 methods=methods,
-                PD=evaluation['PD'],
-                PCA=evaluation['PCA'],
-                JACCARD=evaluation['JACCARD'],
-                CS_BENCH=evaluation['CS-BENCH'],
+                PD=evaluation['pd'],
+                PCA=evaluation['pca'],
+                JACCARD=evaluation['jaccard'],
+                CS_BENCH=evaluation['cs_bench'],
             ))
         elif method == 'cross':
             variables.update(dict(
                 methods=methods,
-                CROSS=evaluation['CROSS']
+                CROSS=evaluation['cross']
             ))
         elif method in [
             'transcripts',
@@ -185,11 +186,11 @@ def get_config_args(
         elif method == 'main':
             variables.update(dict(
                 tasks=config['Tasks'],
-                PD=evaluation['PD'],
-                PCA=evaluation['PCA'],
-                JACCARD=evaluation['JACCARD'],
-                CS_BENCH=evaluation['CS-BENCH'],
-                CROSS=evaluation['CROSS']
+                PD=evaluation['pd']['use'],
+                PCA=evaluation['pca']['use'],
+                JACCARD=evaluation['jaccard']['use'],
+                CS_BENCH=evaluation['cs_bench']['use'],
+                CROSS=evaluation['cross']['use']
             ))
 
     return variables
