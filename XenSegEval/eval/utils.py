@@ -74,9 +74,9 @@ def wrapper_cs(
     results = pd.DataFrame(data=object_metrics)
 
     if Path(outdir + 'cs_all.csv').is_file():
-        results.to_csv(outdir + 'cs_all.csv', mode='a')
+        results.to_csv(outdir + f'{method}_cs_all.csv', mode='a')
     else:
-        results.to_csv(outdir + 'cs_all.csv')
+        results.to_csv(outdir + f'{method}_cs_all.csv')
 
     return results
 
