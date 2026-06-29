@@ -259,45 +259,6 @@ tensorflow = ">=2.21.0, <3"
 stardist = ">=0.9.2, <0.10"
 
 
-[feature.ucs]
-platforms = ["linux-64"]
-channels = ["conda-forge", "nodefaults", "pytorch", "nvidia"] 
-
-[feature.ucs.target.linux-64.dependencies]
-python = ">=3.7,<3.11"
-R = "*"
-pyarrow = "*"
-tomlkit = "*"
-pytorch = "==2.2.2"
-pytorch-cuda = "12.*"
-torchaudio= "==2.2.2"
-torchtriton= "==2.2.0"
-torchvision= "==0.17.2"
-anndata = "==0.10.7"
-h5py = "==3.2.1"
-imgaug = "==0.4.0"
-natsort = "==8.4.0"
-numpy = "==1.24.4"
-pandas = "==2.0.3"
-matplotlib = "==3.7.2"
-scipy = "==1.9.0"
-shapely = "==2.0.4"
-tifffile = "2021.7.2.*"
-tqdm = "==4.62.3"
-
-[feature.ucs.target.linux-64.pypi-dependencies]
-cellpose = "==3.0.7"
-opencv-python = "==4.8.0.74"
-rpy2 = "==3.5.16"
-scanpy = "==1.10.1"
-# scikit-image = "==0.18.3"
-# scikit-learn = "==0.24.2"
-scvi = "==0.6.8"
-tables = "==3.6.1"
-# torch = "==2.0.1"
-umap-learn = "*"
-
-
 [environments]
 default = ["process", "uv"]
 eval = ["eval", "uv"]
@@ -307,4 +268,3 @@ dinocell = ["dinocell"]
 dissect = ["dissect", "uv"]
 proseg = ["proseg"]
 stardist = ["stardist"]
-ucs = ["ucs"]
