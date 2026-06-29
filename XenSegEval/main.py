@@ -96,7 +96,6 @@ if __name__ == '__main__':
             sbatch_kwargs['cmd'] = cmd
             if method == 'dissect':
                 sbatch_kwargs['mem'] = 128
-                del sbatch_kwargs['gpu']
             seg.append(
                 subprocess.Popen(
                     submit_sbatch(**sbatch_kwargs),

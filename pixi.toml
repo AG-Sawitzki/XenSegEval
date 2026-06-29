@@ -230,6 +230,7 @@ tomlkit = "*"
 scikit-image = "*"
 psutil = "*"
 shapely = ">=2.0.7,<3"
+tifffile = ">=2024.6.18,<2025"
 
 [feature.dissect.target.linux-64.pypi-dependencies]
 numpy = "<=1.24"

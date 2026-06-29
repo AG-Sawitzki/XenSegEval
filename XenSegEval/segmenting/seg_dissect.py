@@ -3,11 +3,12 @@ from XenSegEval.utils import get_config_args
 import os
 import sys
 import argparse
-
-import dissect
 from pathlib import Path
 
+import dissect
+
 from tomlkit import load
+import tifffile
 import numpy as np
 
 
@@ -57,3 +58,8 @@ if __name__ == '__main__':
             weights_file=str(weights_file),
             output=str(output_dir)
         )
+
+        arr = np.load(output_dir / 'mask.npy', allow_pickle=True)
+
+        np.save(output_dir / 'prediction.npy', arr, allow_pickle=True)
+        tifffile.imwrite(output_dir / 'prediction.tif', arr)

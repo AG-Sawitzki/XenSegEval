@@ -63,10 +63,9 @@ Cellpose can be run using different pretrained models. Simply change the abbrevi
 # available models: cpdino, cpsam_v2, cpdino-vitb, cpsam
 pretrained_model = 'cpsam_v2'
 ```
--->
 ### Dissect
 The object-detection algorithm behind dissect, detectron2, cannot be installed as written in their documentation.
-After cloning and changing to the XenSegEval directory run the following lines.
+After cloning and changing to the XenSegEval directory run the following commands.
 ```
 pixi shell -e dissect
 pip install --extra-index-url https://miropsota.github.io/torch_packages_builder detectron2==0.6+fd27788pt2.4.0cu124
@@ -118,7 +117,7 @@ The Algorithms marked in [green](#overview---segmentation-algorithms) are starte
 and `[Tasks.segment]` is set to `true`.<br>
 Alternatively start them with their bash or python script.
 ## Evaluating
-If `[Tasks.evaluate] = true` all those procedures set to `true` under `[evaluation]` will be used to evaluate the segmentation of all available segmentation methods.
+If `[Tasks.evaluate] = true` all those benchmarks set to `true` under `[evaluation.<benchmark>.use]` will be used to evaluate the segmentation of all available segmentation methods.
 
 # References
 ## Xenium

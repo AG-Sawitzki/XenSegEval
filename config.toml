@@ -150,6 +150,9 @@ use = false
 
 [evaluation.cross]
 use = true
+# choose metric according to benchmark
 metric = 'dice'
+# 'cs' or 'af1'
 benchmark = 'cs'
+# relevant for 'af1'
 threshold = 0.5

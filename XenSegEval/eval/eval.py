@@ -105,64 +105,6 @@ if __name__ == '__main__':
 
         outdir.mkdir(parents=True, exist_ok=True)
 
-        if PCA['use'] and method in PCA_CAPABLE:
-            with open(
-                '/data/cephfs-1/work/groups/sawitzki/'
-                'users/juno12_c/XenSegEval/eval/pca.pickle', 'rb'
-            ) as pkl:
-                PCA = pickle.load(pkl)
-
-            # img = tf.imread(focus_path / 'focus.ome.tif')
-            # print(img.shape)
-            # img = np.moveaxis(img, -1, 0)
-            # print(img.shape)
-            # writer = ome_tiff_writer.OmeTiffWriter()
-            # channel_names = [
-            #     'DAPI',
-            #     'ATP1A1_E-Cadherin_CD45',
-            #     '18S_rRNA',
-            #     'alphaSMA_Vimentin'
-            # ]
-
-            # stats = {
-            #     'dim_order': 'CYX',
-            #     'channel_names': channel_names,
-            #     'image_name': 'focus',
-            #     'pixel_physical_size': 0.2125,
-            #     'channel_colours': ['red', 'green', 'blue', 'yellow']
-            # }
-
-            # writer.save(
-            #     img,
-            #     uri=Path(focus_path / 'aics.ome.tif'),
-            #     **stats
-            # )
-
-            img = AICSImage(
-                focus_path / 'aics.ome.tif',
-                reader=ome_tiff_reader.OmeTiffReader
-            )
-            print(img)
-            # print(img.data)
-            print(img.metadata)
-
-            mask = AICSImage(
-                f'{home}/{sample}/results/mesmer/'
-                f'output/{section}/prediction_mem.tif',
-                reader=tiff_reader.TiffReader
-            )
-            print(mask.shape)
-            # mask = find_boundaries(mask, connectivity=1, mode='inner')
-            # print(type(mask))
-
-            print(
-                single_method_eval(
-                    img, mask, PCA_model=PCA,
-                    output_dir='/data/cephfs-2/unmirrored/groups/'
-                               'sawitzki/Juno/eval-test/PCA'
-                )
-            )
-
         if JACCARD['use']:
             print('jaccard')
             # if method == 'mesmer':
@@ -230,7 +172,3 @@ if __name__ == '__main__':
             # results = pd.DataFrame(data=object_metrics)
             results = wrapper_cs(mask, gt, method=method, outdir=outdir)
             results.to_csv(outdir / 'CS-BENCH.csv', index=False)
-
-        if PD['use']:
-            # nothing
-            print('nothing')
