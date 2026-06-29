@@ -88,7 +88,6 @@ if __name__ == '__main__':
         pB.wait()
 
     if tasks['segment']:
-        print(config['sbatch'])
         sbatch_kwargs['gpu'] = gpu
         print('started segmenting')
         seg = []
@@ -97,6 +96,7 @@ if __name__ == '__main__':
             sbatch_kwargs['cmd'] = cmd
             if method == 'dissect':
                 sbatch_kwargs['mem'] = 128
+                del sbatch_kwargs['gpu']
             seg.append(
                 subprocess.Popen(
                     submit_sbatch(**sbatch_kwargs),
@@ -104,26 +104,41 @@ if __name__ == '__main__':
                 )
             )
             sbatch_kwargs['mem'] = mem
+            sbatch_kwargs['gpu'] = gpu
         for p in seg:
             p.wait()
 
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
-        if PD or PCA or JACCARD or CS_BENCH:
+        if JACCARD or CS_BENCH or PCA or PD:
             for method in config['methods']:
-                cmd = (
-                    f'pixi run -e eval'
-                    f' python -m XenSegEval.eval.eval'
-                    f' -c {config_path} -m {method}'
-                )
-                sbatch_kwargs['cmd'] = cmd
-                evl.append(
-                    subprocess.Popen(
-                        submit_sbatch(**sbatch_kwargs),
-                        shell=True
+                if JACCARD or CS_BENCH:
+                    cmd = (
+                        f'pixi run -e eval'
+                        f' python -m XenSegEval.eval.eval'
+                        f' -c {config_path} -m {method}'
                     )
-                )
+                    sbatch_kwargs['cmd'] = cmd
+                    evl.append(
+                        subprocess.Popen(
+                            submit_sbatch(**sbatch_kwargs),
+                            shell=True
+                        )
+                    )
+                if PCA or PD:
+                    cmd = (
+                        f'pixi run -e aics'
+                        f' python -m XenSegEval.eval.free'
+                        f' -c {config_path} -m {method}'
+                    )
+                    sbatch_kwargs['cmd'] = cmd
+                    evl.append(
+                        subprocess.Popen(
+                            submit_sbatch(**sbatch_kwargs),
+                            shell=True
+                        )
+                    )
         if CROSS:
             cmd = (
                 f'pixi run -e eval'

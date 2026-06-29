@@ -5,7 +5,7 @@ mail = 'julius.normann@bih-charite.de'
 
 [Tasks]
 preprocess = false
-segment = false
+segment = true
 evaluate = true
 
 [paths]
@@ -102,7 +102,7 @@ norm3D = true
 [methods.dinocell]
 
 
-#[methods.dissect]
+[methods.dissect]
 platform = 'Xenium'
 # config_file = 
 # weights_file = 

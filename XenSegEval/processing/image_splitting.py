@@ -16,7 +16,7 @@ from tifffile import imread, imwrite, TiffWriter, TiffFile
 import numpy as np
 import zarr
 import cv2
-from aicsimageio.writers import ome_tiff_writer
+# from aicsimageio.writers import ome_tiff_writer
 
 # types
 from numpy.typing import ArrayLike
@@ -124,11 +124,7 @@ def write_tif(
         {quatered/q0{chunk}.extension if chunk
          else focus. or morphology.extension}'
     """
-    if 'pixelsizeXY' in globals():
-        print('all there :)')
-        # pixelsizeXY = imagestats['pixelsize_xy']
-        # pixelsizeZ = imagestats['pixelsize_z']
-    else:
+    if 'pixelsizeXY' not in globals():
         print('Imagestats are missing "pixelsize_xy" | "pixelsize_z".')
 
     options = dict(
@@ -248,7 +244,11 @@ if __name__ == '__main__':
 
     # load morphology_focus
     focus_org = []
-    for file in Path(f'{data_path}/morphology_focus').glob('*.ome.tif'):
+    focus_files = list(
+        Path(f'{data_path}/morphology_focus').glob('*.ome.tif')
+    )
+    focus_files.sort()
+    for file in focus_files:
         focus_store = imread(
             file,
             aszarr=True,
@@ -291,8 +291,8 @@ if __name__ == '__main__':
 
             write_tif(morphology_section, imagestats, section)
             write_tif(focus_section, imagestats, section)
-            if AICS is True:
-                write_aics(focus_section, section)
+            # if AICS is True:
+            #     write_aics(focus_section, section)
 
             for L, plane in enumerate(planes):
                 write_tif(

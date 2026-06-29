@@ -25,8 +25,6 @@ if __name__ == "__main__":
     variables = get_config_args(config, 'proseg')
     globals().update(variables)
 
-    sections = sections_dictionary.keys()
-
     for section in sections:
         spatialdata = f'{results}/{section}/spatialdata.zarr'
         all_plg = f'{results}/{section}/cell-polygons.geojson.gz'

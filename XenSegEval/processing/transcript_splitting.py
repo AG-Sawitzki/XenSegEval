@@ -110,15 +110,15 @@ def pixelate(
         DataFrame with coordinates in pixel coordinates.
     """
     df['y_location'] = (
-        df['y_location'] / pixelsize[0]
+        df['y_location'].to_numpy() / pixelsize[0]
     ).round(0).astype(np.int64)
 
     df['x_location'] = (
-        df['x_location'] / pixelsize[0]
+        df['x_location'].to_numpy() / pixelsize[0]
     ).round(0).astype(np.int64)
 
     df['z_location'] = (
-        df['z_location'] / pixelsize[1]
+        df['z_location'].to_numpy() / pixelsize[1]
     ).round(0).astype(np.int64)
 
     # print(df.head(n=5))
@@ -129,6 +129,9 @@ def save_section(
     region_name: Any,
     regions: Any,
     df: Any,
+    pixelsizeXY: int,
+    pixelsizeZ: int,
+    processed: Any,
 ) -> None:
     """Saves the DataFrame as .csv, gzip compressed and parquet.
     Args:
@@ -140,7 +143,7 @@ def save_section(
     """
     region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
-
+    del sub_results_df['region']
     sub_results_df = relative(sub_results_df, region_data)
 
     sub_results_df = pixelate(
@@ -148,7 +151,7 @@ def save_section(
         pixelsize=(pixelsizeXY, pixelsizeZ)
     )
 
-    sub_results_df.drop(columns='region', inplace=True)
+    # sub_results_df.drop(columns='region', inplace=True)
     # print(sub_results_df.head(n=10))
     if sub_results_df.size == 0:
         print(f"region {region_name}: no datapoints matching")
@@ -172,7 +175,7 @@ def save_section(
         #     sub_results_pq, Path(output_dir / 'relative.parquet')
         # )
 
-        print(f'region {region_name}: saved restults')
+        print(f'region {region_name}: saved results')
 
 
 if __name__ == '__main__':
@@ -227,8 +230,11 @@ if __name__ == '__main__':
         pool.imap_unordered(
             functools.partial(
                 save_section,
+                regions=regions,
                 df=results_df,
-                regions=regions
+                pixelsizeXY=pixelsizeXY,
+                pixelsizeZ=pixelsizeZ,
+                processed=processed,
             ),
             regions.keys()
         )

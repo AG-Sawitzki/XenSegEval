@@ -55,32 +55,33 @@ cd XenSegEval
 pixi lock
 ```
 
-<!---### CellposeSAM/DINO
-To use the DINO backend of Cellpose install the package with
+### CellposeSAM/DINO
+Cellpose can be run using different pretrained models. Simply change the abbreviation in the `config.toml`
 ```
-pixi shell -e cpsam
-uv pip install git+https://github.com/facebookresearch/dinov3
+[methods.cpsam.model]
+...
+# available models: cpdino, cpsam_v2, cpdino-vitb, cpsam
+pretrained_model = 'cpsam_v2'
 ```
 -->
 ### Dissect
-<!--To install dissect-st run the following commads
+The object-detection algorithm behind dissect, detectron2, cannot be installed as written in their documentation.
+After cloning and changing to the XenSegEval directory run the following lines.
 ```
 pixi shell -e dissect
-python3 -m ensurepip
-python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+pip install --extra-index-url https://miropsota.github.io/torch_packages_builder detectron2==0.6+fd27788pt2.4.0cu124
+uv pip install dissect-st
 ```
-<!-- uv pip install --prerelease=allow deterctron2 -f \
-    https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.10/index.html 
-    https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch1.10/index.html
--->
-(Afterwards) Download the pre-trained model using gdown (v5.2.2).
+This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
+
+Afterwards download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
 The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). After downloading the file add it to the same directory as the weights.
 
 ### Proseg
-Install Proseg by running the command below
+Install Proseg by running the command below in the XenSegEval directory.
 ```
 pixi run -e proseg cargo install proseg
 ```

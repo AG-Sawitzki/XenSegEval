@@ -94,6 +94,7 @@ def relative(
     """
     df['vertex_y'] = (df['vertex_y'] - region_data['y_min'])
     df['vertex_x'] = (df['vertex_x'] - region_data['x_min'])
+
     return df
 
 
@@ -109,13 +110,14 @@ def pixelate(
         DataFrame with coordinates in pixel coordinates.
     """
     df['vertex_y'] = (
-        df['vertex_y'] / pixelsizeXY
+        df['vertex_y'].to_numpy() / pixelsize
     ).round(0).astype(np.int64)
 
     df['vertex_x'] = (
-        df['vertex_y'] / pixelsizeXY
+        df['vertex_y'].to_numpy() / pixelsize
     ).round(0).astype(np.int64)
-    # print(df.head(n=5))
+
+    # print('pixel')
     return df
 
 
@@ -124,6 +126,7 @@ def save_section(
     regions: Any,
     df: Any,
     pixelsizeXY: Any,
+    processed: Any,
     bound: Any = 'cell'
 ) -> None:
     """Saves the DataFrame as parquet.
@@ -139,14 +142,14 @@ def save_section(
     """
     region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
-
+    del sub_results_df['region']
     # remove region offset
     sub_results_df = relative(sub_results_df, region_data)
-
     # pixelation
     sub_results_df = pixelate(sub_results_df, pixelsizeXY)
 
-    sub_results_df.drop(columns='region', inplace=True)
+    # sub_results_df.drop(columns='region', inplace=True)
+    # print(sub_results_df.size)
     if sub_results_df.size == 0:
         print(f'region {region_name}: no datapoints matching')
     else:
@@ -159,7 +162,6 @@ def save_section(
 
         output_dir = Path(processed / f'{region_name}/boundaries/')
         output_dir.mkdir(parents=True, exist_ok=True)
-        print(output_dir)
         f_str = str(bound)
 
         parquet_path = Path(output_dir / f'{f_str}_relative.parquet')
@@ -209,9 +211,10 @@ if __name__ == '__main__':
             pool.imap(
                 functools.partial(
                     save_section,
-                    df=results_df,
                     regions=regions,
+                    df=results_df,
                     pixelsizeXY=pixelsizeXY,
+                    processed=processed,
                     bound=bound
                 ),
                 regions.keys()

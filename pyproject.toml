@@ -17,4 +17,3 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only"
 ]
 version = "0.1.0"
-

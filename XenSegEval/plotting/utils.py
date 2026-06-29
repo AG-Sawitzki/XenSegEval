@@ -1,11 +1,22 @@
+import os
+import gzip
 from pathlib import Path
 
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib
 
+import tifffile
 import numpy as np
 import pandas as pd
+import geopandas as gpd
+
+from typing import Union
+from pathlib import PosixPath
+from geopandas.geodataframe import GeoDataFrame
+from numpy.typing import ArrayLike
 
 
 def heatmap(data, row_labels, col_labels, ax=None,
@@ -59,7 +70,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
 
     ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=1)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
@@ -212,3 +223,75 @@ def bar_compare_eval(
 
     fig_u4n.savefig('/data/cephfs-1/home/users/juno12_c/test_u4n.png')
     fig_cs.savefig('/data/cephfs-1/home/users/juno12_c/test_cs.png')
+
+
+def polygon_overlay(
+    polygons: Union[str, os.PathLike, PathPosix, GeoDataFrame],
+    img: Union[str, os.PathLike, PathPosix, ArrayLike],
+    output_path: Union[str, os.PathLike, PathPosix],
+    fig,
+    ax,
+    pixelsize_xy=0.2125,
+    **kwargs
+) -> None:
+    if ax is None:
+        ax = plt.gca()
+
+    if type(polygons) is not GeoDataFrame:
+        if Path(polygons).suffix == '.gz':
+            with gzip.open(polygons) as file:
+                gdf = gpd.read_file(file)
+        else:
+            gdf = gpd.read_file(polygons)
+    else:
+        gdf = polygons
+
+    if type(img) is not np.ndarray:
+        img = tifffile.imread(img)
+
+    assert type(img) is np.ndarray, f'Img has type {type(img)}.'
+    assert type(gdf) is GeoDataFrame, f'Polygons has {type(gdf)}.'
+
+    if img.shape[-1] == 4:
+        img = img[..., :3]
+
+    img_norm = (img-img.min())/(img.max()-img.min())
+
+    plt.style.use('./segment_style.mplstyle ')
+
+    fz = 48
+    dimy, dimx, c = img.shape
+
+    fig.set_frameon(False)
+    fig.set_size_inches(dimy/100, dimx/100)
+    ax.tick_params(axis='both', which='major', labelsize=fz)
+    ax.set_xlabel('x_location in px', fontsize=fz)
+    ax.set_ylabel('y_location in px', fontsize=fz)
+
+    ax.set_aspect('equal', 'box')
+
+    asb = AnchoredSizeBar(
+        ax.transData,
+        size=941.1764705882354,
+        label='200 µm',
+        loc='lower left',
+        frameon=False,
+        size_vertical=47.05882352941177,
+        color='white',
+        fontproperties=FontProperties(size=fz)
+    )
+    ax.add_artist(asb)
+
+    ax.set_xlim(0, dimx)
+    ax.set_ylim(0, dimy)
+
+    ax.imshow(img_norm)
+
+    gdf.boundary.plot(
+        ax=ax, aspect='equal', color='white'
+    )
+
+    fig.savefig(
+        Path(output_path) / 'outline.png',
+        dpi=100, bbox_inches='tight', pad_inches=0.0
+    )

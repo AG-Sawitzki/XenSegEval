@@ -7,7 +7,7 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # plotting
-from XenSegEval.plot import heatmap, annotate_heatmap
+from XenSegEval.plotting.utils import heatmap, annotate_heatmap
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
@@ -64,8 +64,8 @@ if __name__ == '__main__':
         fig, ax = plt.subplots()
 
         im, cbar = heatmap(
-            results, labels, labels, ax=ax,
-            cmap='YlGn', cbarlabel=CROSS['metric']
+            res, labels, labels, ax=ax,
+            cmap='YlOrRd', cbarlabel=CROSS['metric']
         )
         texts = annotate_heatmap(im, valfmt='{x:.1f}')
         fig.tight_layout()
