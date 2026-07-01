@@ -7,7 +7,7 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # for plotting
-from XenSegEval.plot import heatmap, annotate_heatmap
+from XenSegEval.plotting.utils import heatmap, annotate_heatmap
 
 from skimage.segmentation import relabel_sequential
 from skimage.morphology import label
@@ -67,20 +67,25 @@ def wrapper_cs(
         gt_x = np.expand_dims(gt, axis=0)
         # assert gt.shape == dt.shape, 'DT and GT differ in shape.'
 
+    gt_x = np.int64(gt_x)
+    dt_x = np.int64(dt_x)
+
+    outdir = Path(outdir)
+
     pm = Metrics(method, outdir=outdir)
 
     object_metrics = pm.calc_object_stats(gt_x, dt_x)
 
     results = pd.DataFrame(data=object_metrics, dtype=float)
 
-    if Path(outdir + f'{method}_cs_all.csv').is_file():
+    if Path(outdir / f'{method}_cs_all.csv').is_file():
         results.to_csv(
-            outdir + f'{method}_cs_all.csv',
+            outdir / f'{method}_cs_all.csv',
             mode='a', header=False, index=False
         )
     else:
         results.to_csv(
-            outdir + f'{method}_cs_all.csv',
+            outdir / f'{method}_cs_all.csv',
             index=False
         )
 
@@ -250,15 +255,17 @@ def cross_eval(
                 shape = (1250, 1650)
                 prepare_ProSeg(polygons_path, output_path, shape)
 
-        files = Path(
-            f'{results}/{method}/output/{section}/'
-        ).glob('prediction*.tif')
+        files = list(
+            Path(
+                f'{results}/{method}/output/{section}/'
+            ).glob('prediction*.tif')
+        )
         files.sort()
         for path in files:
-            if method != 'mesmer':
-                gt = tifffile.imread(path)
-            else:
+            if method == 'mesmer':
                 gt = tifffile.imread(path)[0, ...]
+            else:
+                gt = tifffile.imread(path)
 
             gts.append(np.squeeze(gt))
 
@@ -374,6 +381,6 @@ def prepare_ProSeg(
     except KeyError:
         mask = polygon_to_mask(gdf, shape, layer=None)
         tifffile.imwrite(
-            output_path / f'prediction.tif',
+            output_path / 'prediction.tif',
             mask
         )

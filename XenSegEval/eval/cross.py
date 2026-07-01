@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
         print(res)
 
-        np.save(f'{results}/cross_evaluation.npy', res)
+        np.save(f'{results}/cross_evaluation_{section}.npy', res)
 
         fig, ax = plt.subplots()
 
@@ -71,6 +71,6 @@ if __name__ == '__main__':
         fig.tight_layout()
         fig.savefig(
             f'/data/cephfs-1/home/users/juno12_c/'
-            f'cross_{CROSS['benchmark']}_{CROSS['metric']}.png',
+            f'cross_{CROSS['benchmark']}_{CROSS['metric']}_{section}.png',
             dpi=250
         )

@@ -1,4 +1,4 @@
-from XenSegEval.utils import get_config_args
+from XenSegEval.utils import get_section_dims, get_config_args
 
 import os
 import sys
@@ -52,14 +52,25 @@ if __name__ == '__main__':
         output_dir.mkdir(parents=True, exist_ok=True)
         mask = dissect.segmentation(
             img_path=str(img_path),
-            platform='xenium',
             gene_mtx_filename=str(gene_mtx_filename),
             config_file=str(config_file),
             weights_file=str(weights_file),
-            output=str(output_dir)
+            output=str(output_dir),
+            **method
         )
 
         arr = np.load(output_dir / 'mask.npy', allow_pickle=True)
+
+        h, w = get_section_dims(section_dictionary, section)
+        y, x = mask.shape
+
+        if x < w:
+            add = np.zeros((y, w-x))
+            arr = np.hstack((arr, add), dtype=np.int64)
+            y, x = arr.shape
+        if y < h:
+            add = np.zeros((h-y, x))
+            arr = np.vstack((arr, add), dtype=np.int64)
 
         np.save(output_dir / 'prediction.npy', arr, allow_pickle=True)
         tifffile.imwrite(output_dir / 'prediction.tif', arr)

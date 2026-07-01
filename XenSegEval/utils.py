@@ -5,10 +5,40 @@ from time import sleep
 from pathlib import Path
 
 import tomlkit
+import numpy as np
 
 # types
 from numpy.typing import ArrayLike
 from typing import Any, Union
+from pathlib import PosixPath
+
+
+def get_section_dims(
+    dictionary: Union[dict, str, os.PathLike, PosixPath],
+    key: str,
+) -> tuple[int, int]:
+    '''Get w,h from a dictionary organized as described in README.md
+    Args:
+        dictionary: dictionary or path to dictionary.
+        key: key/section name of coordinats.
+    Returns:
+        height and width of given rectangle.
+    '''
+    if type(dictionary) in [str, os.PathLike, PosixPath]:
+        with open(dictionary) as file:
+            dictionary = json.load(file)
+
+    assert type(dictionary) is dict, (
+        'dictionary is wrong type:'
+        f'{type(dictionary)}'
+    )
+
+    assert type(key) is str, f'key is not str: {type(key)}'
+    coords = np.array(dictionary[key])
+    height = coords[1][0] - coords[0][0]
+    width = coords[1][1] - coords[0][1]
+
+    return height, width
 
 
 def submit_sbatch(
@@ -76,7 +106,7 @@ def submit_sbatch(
 
 def get_config_args(
     config: Union[str, os.PathLike[Any], dict],
-    method: Union[str, None] = None
+    method: Union[str] = ''
 ) -> dict:
     '''Return config
     Args:

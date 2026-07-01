@@ -226,9 +226,9 @@ def bar_compare_eval(
 
 
 def polygon_overlay(
-    polygons: Union[str, os.PathLike, PathPosix, GeoDataFrame],
-    img: Union[str, os.PathLike, PathPosix, ArrayLike],
-    output_path: Union[str, os.PathLike, PathPosix],
+    polygons: Union[str, os.PathLike, PosixPath, GeoDataFrame],
+    img: Union[str, os.PathLike, PosixPath, ArrayLike],
+    output_path: Union[str, os.PathLike, PosixPath],
     fig,
     ax,
     pixelsize_xy=0.2125,

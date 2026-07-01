@@ -301,6 +301,7 @@ MODEL:
     SIZE: B-22k
     USE_CHECKPOINT: false
   WEIGHTS: /home/heyf/DISSECT/models/swin_base_patch4_window7_224_22k.pkl
+#  WEIGHTS: /data/cephfs-1/home/users/juno12_c/work/XenSegEval/XenSegEval/segmenting/dissect/dissect_weights.pth
 MODEL_EMA:
   DECAY: 0.999
   DEVICE: ''

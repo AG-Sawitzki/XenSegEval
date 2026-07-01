@@ -12,7 +12,7 @@ from XenSegEval.eval.utils import (
     prepare_ProSeg,
     polygon_to_mask,
     wrapper_cs,
-    wrapper_u4n
+    wrapper_af1
 )
 
 import sys
@@ -105,6 +105,11 @@ if __name__ == '__main__':
 
         outdir.mkdir(parents=True, exist_ok=True)
 
+        if method == 'mesmer':
+            mask = mask[0, ...]
+            mask = np.squeeze(mask)
+            print(mask.shape, gt.shape)
+
         if JACCARD['use']:
             print('jaccard')
             # if method == 'mesmer':
@@ -149,7 +154,7 @@ if __name__ == '__main__':
             #     split_merges,
             #     method
             # )
-            results, false_negatives, split_merges = wrapper_u4n(
+            results, false_negatives, split_merges = wrapper_af1(
                 mask,
                 gt,
                 method=method

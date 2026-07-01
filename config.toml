@@ -5,7 +5,7 @@ mail = 'julius.normann@bih-charite.de'
 
 [Tasks]
 preprocess = false
-segment = true
+segment = false
 evaluate = true
 
 [paths]
@@ -103,19 +103,29 @@ norm3D = true
 
 
 [methods.dissect]
-platform = 'Xenium'
+platform = 'xenium'
 # config_file = 
 # weights_file = 
 alpha = 0.5
 expand_by = 5
 gene = true
 #random_seed = No predefined seed
-num_proprosal = 1200
+n_jobs = 16
+#num_proprosal = # none
+#sample_step = #none
+#renewal_thres = #none
 isslice = false
 # x0 = origin if isslice is true
 # y0 = origin if isslice is true
 # length = length (x-axis) of slice if isslice is true
 # width = width (y-axis) of slice if isslice is true
+threshold = -0.20
+minarea = 600
+maxarea = 1200
+#fov = none
+stride = 128
+ratio_stride = 3
+neighbor = 8
 
 [methods.mesmer]
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
@@ -150,9 +160,9 @@ use = false
 
 [evaluation.cross]
 use = true
-# choose metric according to benchmark
-metric = 'dice'
 # 'cs' or 'af1'
-benchmark = 'cs'
+benchmark = 'af1'
+# choose metric according to benchmark
+metric = 'Jaccard'
 # relevant for 'af1'
 threshold = 0.5
