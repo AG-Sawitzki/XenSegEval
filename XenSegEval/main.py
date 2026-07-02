@@ -126,18 +126,19 @@ if __name__ == '__main__':
                         )
                     )
                 if PCA or PD:
-                    cmd = (
-                        f'pixi run -e aics'
-                        f' python -m XenSegEval.eval.free'
-                        f' -c {config_path} -m {method}'
-                    )
-                    sbatch_kwargs['cmd'] = cmd
-                    evl.append(
-                        subprocess.Popen(
-                            submit_sbatch(**sbatch_kwargs),
-                            shell=True
+                    for section in sections:
+                        cmd = (
+                            f'pixi run -e free'
+                            f' python -m XenSegEval.eval.free'
+                            f' -c {config_path} -m {method} -s {section}'
                         )
-                    )
+                        sbatch_kwargs['cmd'] = cmd
+                        evl.append(
+                            subprocess.Popen(
+                                submit_sbatch(**sbatch_kwargs),
+                                shell=True
+                            )
+                        )
         if CROSS:
             cmd = (
                 f'pixi run -e eval'

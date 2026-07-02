@@ -151,7 +151,7 @@ use = false
 # not implemented yet
 	# principal components
 	[evaluation.pca]
-	use = false
+	use = true
 	
 	# probability density
 	[evaluation.pd]
@@ -159,7 +159,7 @@ use = false
 	overlay_image = false
 
 [evaluation.cross]
-use = true
+use = false
 # 'cs' or 'af1'
 benchmark = 'af1'
 # choose metric according to benchmark

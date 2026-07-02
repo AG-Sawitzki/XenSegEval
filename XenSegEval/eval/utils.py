@@ -7,7 +7,7 @@ from XenSegEval.eval.unet4nuclei.evaluation import (
 # for cs-bench
 from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # for plotting
-from XenSegEval.plotting.utils import heatmap, annotate_heatmap
+# from XenSegEval.plotting.utils import heatmap, annotate_heatmap
 
 from skimage.segmentation import relabel_sequential
 from skimage.morphology import label
@@ -384,3 +384,29 @@ def prepare_ProSeg(
             output_path / 'prediction.tif',
             mask
         )
+
+
+def plot_precision_recall(precision, recall, methods, sample_ids):
+    points = {m: [] for m in methods}
+
+    for sid in sample_ids:
+        for i, rad in enumerate(radii):
+            for m in methods:
+                p = precision[sid][rad][m]
+                r = recall[sid][rad][m]
+                points[m].append((r, p))
+
+    fig, ax = plt.subplots(1, len(methods), figsize=(20, 2))
+    fig.text(0.5, -0.1, 'precision', ha='center', va='center')
+    fig.text(0.1, 0.5, 'recall', ha='center', va='center', rotation='vertical')
+    for method, a in zip(methods, fig.axes):
+        a.set_xlim(0.3, 1)
+        a.set_ylim(0.5, 1)
+        a.set_title(method)
+
+        xs = [x for x, y in points[method]]
+        ys = [y for x, y in points[method]]
+
+        sns.kdeplot(x=xs, y=ys, clip=(0, 1), ax=a)
+        a.scatter(xs, ys)
+    plt.show()
