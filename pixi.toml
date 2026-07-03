@@ -63,6 +63,9 @@ channels = ["conda-forge", "nodefaults"]
 python = ">=3.9,<=3.12"
 tifffile = ">=2021.8.30,<2023.3.15"
 scikit-image = "*"
+scikit-learn = "<1.8.0"
+# if scikit-learn >=1.8.0 we'll get AttribtueError 
+# in ss.transform for xp.astype from get_namespace
 tqdm = "*"
 matplotlib = "*"
 scipy = "*"

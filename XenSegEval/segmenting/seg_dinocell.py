@@ -46,4 +46,8 @@ if __name__ == '__main__':
         output_dir.mkdir(parents=True, exist_ok=True)
 
         imwrite(output_dir / 'prediction.tif', output)
-        np.save(output_dir / 'prediction.npy', output)
+        np.save(
+            output_dir / 'prediction.npy',
+            output,
+            allow_pickle=True
+        )

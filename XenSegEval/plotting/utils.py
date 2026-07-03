@@ -257,7 +257,7 @@ def polygon_overlay(
 
     img_norm = (img-img.min())/(img.max()-img.min())
 
-    plt.style.use('./segment_style.mplstyle ')
+    # plt.style.use('./segment_style.mplstyle ')
 
     fz = 48
     dimy, dimx, c = img.shape
@@ -270,20 +270,23 @@ def polygon_overlay(
 
     ax.set_aspect('equal', 'box')
 
+    size = dimx/10
+    length = np.round(size*pixelsize_xy, 0)
+
     asb = AnchoredSizeBar(
         ax.transData,
-        size=941.1764705882354,
-        label='200 µm',
+        size=size,
+        label=f'{length} µm',
         loc='lower left',
         frameon=False,
-        size_vertical=47.05882352941177,
+        size_vertical=10/pixelsize_xy,
         color='white',
         fontproperties=FontProperties(size=fz)
     )
     ax.add_artist(asb)
 
     ax.set_xlim(0, dimx)
-    ax.set_ylim(0, dimy)
+    ax.set_ylim(dimy, 0)
 
     ax.imshow(img_norm)
 
@@ -292,6 +295,6 @@ def polygon_overlay(
     )
 
     fig.savefig(
-        Path(output_path) / 'outline.png',
-        dpi=100, bbox_inches='tight', pad_inches=0.0
+        Path(output_path),
+        dpi=250, bbox_inches='tight', pad_inches=0.0
     )

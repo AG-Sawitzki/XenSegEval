@@ -80,3 +80,8 @@ if __name__ == '__main__':
                 output_dir / f'prediction_p{p}.tif',
                 masks[L, ...]
             )
+            np.save(
+                output_dir / f'prediction_p{p}.tif',
+                masks[L, ...],
+                allow_pickle=True
+            )

@@ -86,7 +86,8 @@ if __name__ == '__main__':
 
             np.save(
                 output_dir / f'prediction_{identifier}.npy',
-                res
+                res,
+                allow_pickle=True
             )
             imwrite(
                 output_dir / f'prediction_{identifier}.tif',

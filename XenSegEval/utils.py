@@ -3,9 +3,13 @@ import gzip
 import json
 from time import sleep
 from pathlib import Path
+from multiprocessing import cpu_count, Pool
 
 import tomlkit
 import numpy as np
+import cv2
+from shapely import Polygon
+import geopandas as gpd
 
 # types
 from numpy.typing import ArrayLike
@@ -76,6 +80,8 @@ def submit_sbatch(
         name = name.replace('-', '')
         if name == 'eval':
             name += '_'+cmd[cmd.rfind('-m')+3:]
+        if name == 'free':
+            name += '_'+cmd[cmd.rfind('-m')+3:cmd.rfind('-s')-1]
     with open(f'{job_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
@@ -346,7 +352,7 @@ def mask_to_polygons(npy_data, output_path):
     print(' - Extracting ROI')
     try:
         masks = npy_data.item().get("masks")
-    except AttributeError:
+    except (AttributeError, ValueError) as e:
         masks = npy_data
     masks = masks.squeeze()
     # change the index order:
@@ -375,3 +381,4 @@ def mask_to_polygons(npy_data, output_path):
     gdf.set_index(['layer', 'name'])
     print(' - Saving GeoDataFrame')
     gdf.to_file(output_path, driver='GeoJSON', index=True)
+    return gdf

@@ -72,5 +72,9 @@ if __name__ == '__main__':
             add = np.zeros((h-y, x))
             arr = np.vstack((arr, add), dtype=np.int64)
 
-        np.save(output_dir / 'prediction.npy', arr, allow_pickle=True)
+        np.save(
+            output_dir / 'prediction.npy',
+            arr,
+            allow_pickle=True
+        )
         tifffile.imwrite(output_dir / 'prediction.tif', arr)

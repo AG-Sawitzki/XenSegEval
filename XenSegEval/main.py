@@ -8,6 +8,15 @@ import os
 
 import tomlkit
 
+PCA_CAPABLE = [
+    # 'cpsam',
+    # 'dinocell',
+    # 'dissect',
+    'mesmer',
+    # 'proseg',
+    # 'stardist'
+]
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -125,7 +134,7 @@ if __name__ == '__main__':
                             shell=True
                         )
                     )
-                if PCA or PD:
+                if ((PCA and method in PCA_CAPABLE) or PD):
                     for section in sections:
                         cmd = (
                             f'pixi run -e free'
