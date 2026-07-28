@@ -1,7 +1,7 @@
 # TOML for XenSegEval
 [owner]
 name = 'Normann-BPh'
-mail = 'julius.normann@bih-charite.de'
+mail = 'philomina-lillie.normann@bih-charite.de'
 
 [Tasks]
 preprocess = false
@@ -21,7 +21,7 @@ gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole
 # path to the user-defined section
 # one must have the same coordinates
 # as the gt-masks
-sections_path = "mem_section.json"
+sections_path = 'mem_section.json'
 
 
 [ImageStats]
@@ -36,7 +36,7 @@ x = 51096
 
 [sbatch]
 # sbatch job specifications
-gpu = "gpu:l40:1"
+gpu = 'gpu:l40:1'
 # time in days
 time = 2
 # RAM in gigabyte
@@ -100,9 +100,15 @@ norm3D = true
 
 
 [methods.dinocell]
+# If installed via PyPi the algorthim 
+# has no parameters to easily define.
+# one can rewrite the main.py file in 
+# .pixi/envs/dinocell/lib/python3.14/site-packages/dinocell/
+# in line 17.
 
 
 [methods.dissect]
+# consult dissect/segmentation.py#L28 for context
 platform = 'xenium'
 # config_file = 
 # weights_file = 
@@ -127,12 +133,55 @@ stride = 128
 ratio_stride = 3
 neighbor = 8
 
+
 [methods.mesmer]
+# consult deepcell/applications/mesmer.py#L210
+batch_size = 4
+# preprocess_kwargs = {}
+compartment = 'whole-cell'
+pad_mode = 'constant'
+# preprocess_kwargs_whole_cell = {}
+# preprocess_kwargs_nuclear = {}
+# --------------------------------------
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
+
 [methods.proseg]
+# consult https://github.com/dcjones/proseg#general-arguments
+# nthreads = N # best not provided to use all cores available
+# output-spatialdata = # set by the pipeline
+overwrite = true
+# voxel-layers = # unless expected to be constrained let proseg decide
+samples = 4
+burnin-samples = 2
+# voxel-size = # set by the pipeline
+# burnin-voxel-size = # set by the pipeline
+# --------------------------------------
+# consult proseg#output-arguments
+output-counts = true
+output-expected-counts = false
+output-cell-metadata = flase
+output-transcript-metadata = false
+output-gene-metadata = false
+output-rates = false
+# -------------------
+output-cell-polygons = true
+output-cell-polygons-layers = true
+# --------------------------------------
+# consult proseg#model-arguments
+ncompnents = 10
+no-diffusion = false
+diffusion-probability = 0.2
+diffusion-sigma-far = 4
+diffusion-sigma-near = 1
+nuclear-reassignment_prob = 0.2
+cell-compactness = 0.03
+# -------------------------------------
+
 
 [methods.stardist]
+# no configuration available.
+
 
 #[methods.ucs]
 # check_gene_map = false
