@@ -10,9 +10,12 @@ Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[1
 - [X] make chunks optional
 - [X] make single-layer optional
 - [ ] make boundaries optional (only used by UCS)
+- [ ] cellpose version in file name
+- [ ] all available predictions in cross-eval
 - [X] doc-strings
 - [X] proseg in pixi.toml
 - [ ] add PCA
+    - [X] mesmer
 - [ ] add PD
     - [ ] and source
 - [X] add sources
