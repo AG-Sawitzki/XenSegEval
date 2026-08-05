@@ -28,11 +28,18 @@ def regions_to_extract(
     pixelsizeXY: float
 ) -> dict:
     """Change unit of regions of interest from dictionary.
-    Args:
-        sections_dict: Dictionary of bounding boxes.
-        pixelsizeXY: Float of size of one pixel in x,y dimension.
-    Returns:
-        Dictionary of Dictionaries with coordinates in micrometers.
+
+    Parameters
+    ----------
+        sections_dict : dict
+            Dictionary of bounding boxes.
+        pixelsizeXY : float
+            Float of size of one pixel in x,y dimension.
+
+    Returns
+    ----------
+        out : Dict
+            Dictionary of Dictionaries with coordinates in micrometers.
     """
     regions = {}
 
@@ -55,11 +62,18 @@ def process_chunk(
     regions: dict
 ) -> DataFrame:
     """Assign region to coordniates in DataFrame.
-    Args:
-        df: DataFrame with x and y vertex.
-        regions: Dictionary with coordinates of bbox.
-    Returns:
-        DataFrame with each row assigned to a region in 'regions'.
+
+    Parameters
+    ----------
+        df : DataFrame
+            DataFrame with x and y vertex.
+        regions : dict
+            Dictionary with coordinates of bbox.
+
+    Returns
+    ----------
+        out : DataFrame
+            DataFrame with each row assigned to a region in 'regions'.
     """
     region_mapping = pd.Series(index=df.index, dtype=str). fillna('')
 
@@ -82,15 +96,21 @@ def process_chunk(
 
 
 def relative(
-    df: Any,
-    region_data: Any
+    df: DataFrame,
+    region_data: dict
 ) -> DataFrame:
     """Subtract region origin from vertex.
-    Args:
-        df: DataFrame with x and y vertex.
-        regions_data: Dictionary with coordinates of bbox-corners.
-    Returns:
-        DataFrame with coordinates relative to region origin.
+
+    Parameters
+    ----------
+        df : DataFrame
+            DataFrame with x and y position.
+        regions_data :  Dictionary with coordinates of bbox-corners.
+
+    Returns
+    ----------
+        out : DataFrame
+            DataFrame with coordinates relative to region origin.
     """
     df['y_location'] = (df['y_location'] - region_data['y_min'])
     df['x_location'] = (df['x_location'] - region_data['x_min'])
@@ -131,16 +151,28 @@ def save_section(
     df: Any,
     pixelsizeXY: int,
     pixelsizeZ: int,
-    processed: Any,
+    outdir: Any,
 ) -> None:
-    """Saves the DataFrame as .csv, gzip compressed and parquet.
-    Args:
-        region_name: Key of regions for region to save.
-        region_data: Dictionary with coordinates of bbox-corners.
-        df: DataFrame to save a region of.
-    Returns:
-        None.
-    """
+    '''Saves the DataFrame as .csv, gzip compressed and parquet.
+
+    Parameters
+    ----------
+        region_name : str
+            Key of regions for region to save.
+        region_data : dict
+            Dictionary with coordinates of bbox-corners.
+        df : DataFrame
+            DataFrame to save a region of.
+        pixelsizeXY : float
+            Size of a pixel in x,y direction
+        pixelsizeZ : float
+            Size of a pixel in z direction.
+
+    Returns
+    ----------
+        out : None
+            Saves the DataFrame under `outdir`.
+    '''
     region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
     del sub_results_df['region']
@@ -157,7 +189,7 @@ def save_section(
         print(f"region {region_name}: no datapoints matching")
     else:
         # save thingy
-        output_dir = Path(processed / f'{region_name}/transcripts/')
+        output_dir = Path(outdir / f'{region_name}/transcripts/')
         output_dir.mkdir(parents=True, exist_ok=True)
 
         sub_results_df.to_csv(Path(output_dir / 'relative.csv'), index=False)
@@ -234,7 +266,7 @@ if __name__ == '__main__':
                 df=results_df,
                 pixelsizeXY=pixelsizeXY,
                 pixelsizeZ=pixelsizeZ,
-                processed=processed,
+                outdir=processed,
             ),
             regions.keys()
         )

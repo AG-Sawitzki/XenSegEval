@@ -16,7 +16,7 @@ PCA_CAPABLE = [
     # 'proseg',
     # 'stardist'
 ]
-
+'''LIST OF CURRENTLY SUPPORTED ALGORITHMS FOR CSEs PCA analysis'''
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -31,23 +31,36 @@ if __name__ == '__main__':
         default='config.toml',
         help='Optional. Path to a config file like "config.toml".'
     )
-    parser.add_argument(
-        '-s', '--Section',
-        default=None,
-        help='Optional. Path to dictionary of Sections.'
-    )
+    # parser.add_argument(
+    #     '-s', '--Section',
+    #     default=None,
+    #     help='Optional. Path to dictionary of Sections.'
+    # )
     args = parser.parse_args()
 
     config_path = args.Config
-    sections = args.Section
+    # sections = args.Section
+
+    if config_path is None:
+        cwd = os.getcwd()
+        config_path = cwd + '/config.toml'
+    print(config_path)
 
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
 
-    if sections is not None:
-        config['paths']['sections_path'] = str(sections)
-        with open(config_path, 'w') as f:
-            tomlkit.dump(config, f)
+    if (
+        (sections is None or gt_path is None)
+        and tasks['evaluate'] is True
+    ):
+        print(
+            'No section and/or ground truth provided for evaluation.'
+            ' Please check "[preprocessing]".'
+        )
+
+    #     config['paths']['sections_path'] = str(sections)
+    #     with open(config_path, 'w') as f:
+    #         tomlkit.dump(config, f)
 
     variables = get_config_args(config, 'main')
     globals().update(variables)
@@ -134,7 +147,7 @@ if __name__ == '__main__':
                             shell=True
                         )
                     )
-                if ((PCA and method in PCA_CAPABLE) or PD):
+                if (PCA and method in PCA_CAPABLE):
                     for section in sections:
                         cmd = (
                             f'pixi run -e free'

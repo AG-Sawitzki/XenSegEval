@@ -38,19 +38,28 @@ from pathlib import PosixPath
 def wrapper_cs(
     dt: ArrayLike,
     gt: ArrayLike,
+    outdir: Union[str, os.PathLike, PosixPath],
     method: str = 'cross',
-    outdir: Union[str, os.PathLike, PosixPath] = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/'
 ) -> pd.core.frame.DataFrame:
     '''Wrapper for cs-benchmark. See [13] in README.md.
-    Args:
-        mask: Prediction to test against Ground Truth.
-        gt: Ground Truth to test Prediction on.
-        method (optional):
+
+    Parameters
+    ----------
+        mask : ArrayLike
+            Prediction to test against Ground Truth.
+        gt : ArrayLike
+            Ground Truth to test Prediction on.
+        outdir : Path, optional
+            Output directory to save json under. See above.
+        method : str, optional
             Method name that is evaluated.
             Determines filename of json. See cs-benchmark docs.
-        outdir (optional): Output directory to save json under. See above.
+            Default is `cross`.
     Retruns:
-        object_metrics in DataFrame.
+    ----------
+        out : DataFrame
+            object_metrics in DataFrame.
+        If `outdir` given then saved as json.
     '''
     if type(dt) is list:
         dt_x = np.array([
@@ -78,16 +87,17 @@ def wrapper_cs(
 
     results = pd.DataFrame(data=object_metrics, dtype=float)
 
-    if Path(outdir / f'{method}_cs_all.csv').is_file():
-        results.to_csv(
-            outdir / f'{method}_cs_all.csv',
-            mode='a', header=False, index=False
-        )
-    else:
-        results.to_csv(
-            outdir / f'{method}_cs_all.csv',
-            index=False
-        )
+    if outdir is not None:
+        if Path(outdir / f'{method}_cs_all.csv').is_file():
+            results.to_csv(
+                outdir / f'{method}_cs_all.csv',
+                mode='a', header=False, index=False
+            )
+        else:
+            results.to_csv(
+                outdir / f'{method}_cs_all.csv',
+                index=False
+            )
 
     return results
 
@@ -95,23 +105,29 @@ def wrapper_cs(
 def wrapper_af1(
     dt: ArrayLike,
     gt: ArrayLike,
-    method='cross'
+    method: str = 'cross'
 ) -> tuple[
     pd.core.frame.DataFrame,
     pd.core.frame.DataFrame,
     pd.core.frame.DataFrame,
 ]:
     '''Wrapper for carpenterlab's evalutaion. See [12] in README.md.
-    Args:
-        dt: Prediction to test against Ground Truth.
-        gt: Ground Truth to test Prediction on.
-        method (optional):
+    Parameters
+    ----------
+        dt : ArrayLike
+            Prediction to test against Ground Truth.
+        gt : ArrayLike
+            Ground Truth to test Prediction on.
+        method : str, otpional
             Method name that is evaluated.
             Appears in rows of results.
+            Default is `cross`
     Returns:
-        df of metrics,
-        df of false negatives,
-        df of split merges
+    ----------
+        out : tuple
+            df of metrics,
+            df of false negatives,
+            df of split merges
     '''
     dt = np.squeeze(dt)
     gt = np.squeeze(gt)
@@ -169,28 +185,36 @@ def eval_mask(
     arr: ArrayLike,
     metric: str = 'f1',
     benchmark: str = 'cs',
-    threshold: int = 0.5,
+    threshold: float = 0.5,
 ) -> ArrayLike:
     '''Evaluate a single mask agains all other masks.
-    Args:
-        gt:
+    Parameters
+    ----------
+        gt : Path
             Path to or Array of prediction to test.
             Functions as ground truth.
-        dts:
+        dts : list
             list of Paths to and/or Arrays of predictions.
             Function as predictions.
-        arr: Array the metric is appended to.
-        metric (default: "f1"):
+        arr : ArrayLike
+             Array the metric is appended to.
+        metric : str, optional
             if benchmark = "cs":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
             if benchmark = "af1":
                 "F1" | "Jaccard"
-        benchmark (default: "cs"):
+            Default is `f1`
+        benchmark : str, optional
             either "cs" for cs-benchmark (see [13])
             or "af1" for Caicedos method (see [12])
-        threshold (defaults: 0.5): Threshold for af1. elem(0.5, 0.95)
-    Retruns:
-        arr
+            Default is `cs`
+        threshold : float, optional
+            Threshold for af1. elem(0.5, 0.95)
+            Default is `0.5`
+    Retruns
+    ----------
+        out : ArrayLike
+            Array of metric of len dts.
     '''
     if benchmark == 'cs':
         results = wrapper_cs(dts, gt)
@@ -209,7 +233,7 @@ def eval_mask(
 
 def cross_eval(
     results: Union[str, os.PathLike, PosixPath],
-    run: Union[str, os.PathLike, PosixPath],
+    # run: Union[str, os.PathLike, PosixPath],
     methods: list,
     section: str,
     metric: str = 'f1',
@@ -217,22 +241,33 @@ def cross_eval(
     threshold: int = 0.5,
 ) -> tuple[ArrayLike, list]:
     '''Evaluate each mask against every other.
-    Args:
-        results: path to directory containing all results.
-        run: path to directory for run metrics and logs.
-        methdos: list of all methods used for segmentation.
-        section: string of section evaluation is running on.
-        metric (default: "f1"):
+
+    Parameters
+    ----------
+        results : Path
+            Path to directory containing all results.
+        # run : Path
+            # path to directory for run metrics and logs.
+        methods : list
+            List of all methods used for segmentation.
+        section : str
+            String of section evaluation is running on.
+        metric : str, optional
             if benchmark = "cs":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
             if benchmark = "af1":
                 "F1" | "Jaccard"
-        benchmark (default: "cs"):
+            Default is `f1`
+        benchmark : str, optional
             either "cs" for cs-benchmark (see [13])
             or "af1" for Caicedos method (see [12])
+            Default is `cs`
         threshold (default: 0.5): Threshold for af1. elem(0.5, 0.95)
-    Returns:
-        2D array of metric, labels ordered by evaluation
+
+    Returns
+    ----------
+        out : tuple
+            2D array of metric, labels ordered by evaluation
     '''
     arr = np.array([], dtype=float)
 
@@ -298,11 +333,19 @@ def check_colour(
     b: int
 ) -> tuple:
     '''Gives a new rgb colour-tuple, incremented by 1.
-    Args:
-        r: red,
-        g: green,
-        b: blue
-    Returns:
+
+    Parameters
+    ----------
+        r : int
+            red
+        g : int
+            green
+        b : int 
+            blue
+
+    Returns
+    ----------
+        out : tuple
         Tuple of (r,g,b)
     '''
     if r < 255:
@@ -327,11 +370,20 @@ def polygon_to_mask(
     layer: int,
 ) -> ArrayLike:
     '''GeoJson Polygons to masks in a TIF.
-    Args:
-        gdf: path to geojson(.gz) or geodataframe.
-        output_path: path to output location. might not be necessary.
-    Retruns:
-        Masks in numpy-array.
+
+    Parameters
+    ----------
+        gdf : GeoDataFrame
+            path to geojson(.gz) or geodataframe.
+        shape : tuple
+            Shape of the image the Polygons belong to.
+        layer : int
+            Layer to keep.
+
+    Retruns
+    ----------
+        out : ArrayLike
+            Masks in numpy-array.
     '''
     r, g, b = (0,)*3
     img = np.zeros(shape, np.uint8)
@@ -353,12 +405,20 @@ def prepare_ProSeg(
     shape: tuple
 ) -> None:
     '''A wrapper for polygon_to_mask.
-    Args:
-        polygons: path to the geojson file or GeoDataFrame.
-        output_path: path to the dir to save the masks under.
-        shape: shape of the corresponding groundtruth or known area shape.
-    Returns:
-        None. Saves masks as .tif in output_dir.
+
+    Parameters
+    ----------
+        polygons : Path
+            Path to the geojson file or GeoDataFrame.
+        output_path : Path
+            Path to the dir to save the masks under.
+        shape : tuple
+            Shape of the corresponding groundtruth or known area shape.
+
+    Returns
+    ----------
+        out : None
+            Saves masks as `.tif` in output_dir.
     '''
     if Path(polygons).suffix == '.gz':
         with gzip.open(polygons) as file:

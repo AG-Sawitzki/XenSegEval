@@ -18,14 +18,20 @@ from pathlib import PosixPath
 
 
 def get_section_dims(
-    dictionary: Union[dict, str, os.PathLike, PosixPath],
+    dictionary: Union[dict, str, os.PathLike[Any], PosixPath],
     key: str,
 ) -> tuple[int, int]:
     '''Get w,h from a dictionary organized as described in README.md
-    Args:
-        dictionary: dictionary or path to dictionary.
-        key: key/section name of coordinats.
-    Returns:
+
+    Parameters
+    ----------
+        dictionary : dict or Path
+            Dictionary or Path to a json-file containing the dictionary.
+        key : str
+            key/section name of coordinats.
+
+    Returns
+    ----------
         height and width of given rectangle.
     '''
     if type(dictionary) in [str, os.PathLike, PosixPath]:
@@ -46,29 +52,44 @@ def get_section_dims(
 
 
 def submit_sbatch(
-    job_dir: Union[str, os.PathLike[Any]],
+    job_dir: Union[str, os.PathLike[Any], PosixPath],
     time: int,
     mem: int,
     cpu: int,
-    log_path: Union[str, os.PathLike[Any]],
+    log_path: Union[str, os.PathLike[Any], PosixPath],
     cmd: str,
     gpu: Union[str, None] = None,
     mail: Union[str, None] = None,
 ) -> str:
     '''Writes a job-file for sbatch and returns the command to submit it.
-    Args:
-        tempfile_dir: path to a directory
-                      where the sbatch files will be saved.
-        time: days to reserve the node for.
-        mem: how much RAM to request.
-        cpu: how many cpu-cores to request.
-        log_path: path to directory
-                  where the logs will be saved.
-        cmd: the command to run on the node.
-        gpu(optional): wether to run on a gpu node or not.
-        mail(optional): the mail-address to send sbatch updates to.
-    Returns:
-        string with which the job can be submitted
+
+    Parameters
+    ----------
+        tempfile_dir : Path
+            Path to a directory
+            Where the sbatch files will be saved.
+        time : int
+            Days to reserve the node for.
+        mem : int
+            How much RAM in GB to request.
+        cpu :  int
+            How many cpu-cores to request.
+        log_path : Path
+            Path to directory
+            Where the logs will be saved.
+        cmd : str
+            The command to run on the node.
+        gpu : str, optional
+            Wether to run on a gpu node or not.
+            Default is `None`.
+        mail : str, optional
+            The mail-address to send sbatch updates to.
+            Default is `None`.
+
+    Returns
+    ----------
+        out : str
+            String with which the job can be submitted
     '''
     if cmd.partition(' ')[0] == 'bash':
         file = cmd[cmd.find('Xen'):cmd.rfind('.sh')]
@@ -111,15 +132,23 @@ def submit_sbatch(
 
 
 def get_config_args(
-    config: Union[str, os.PathLike[Any], dict],
+    config: Union[str, os.PathLike[Any], PosixPath, dict],
     method: Union[str] = ''
 ) -> dict:
     '''Return config
-    Args:
-        config: string or path to config.toml or dict of parsed config.
-        method: string of pipeline step.
-    Returns:
-        dictionary of parsed config.
+
+    Parameters
+    ----------
+        config : Path or dict
+            Path to config.toml or dict of parsed config.
+        method : str, optional
+            String of pipeline step.
+            Default is `''` (empty).
+
+    Returns
+    ----------
+        out : dict
+            Dictionary of parsed config.
     '''
     variables = dict()
 
@@ -221,7 +250,7 @@ def get_config_args(
             ))
         elif method == 'main':
             variables.update(dict(
-                tasks=config['Tasks'],
+                tasks=config['tasks'],
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],
@@ -235,6 +264,7 @@ def get_config_args(
 # function form cellpose.utils
 def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
     '''Get outlines of masks as a list to loop over for plotting.
+
     Args:
         masks (ndarray): Array of masks.
         multiprocessing_threshold (int, optional):
@@ -242,10 +272,13 @@ def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
             multiprocessing. Defaults to 1000.
         multiprocessing (bool, optional):
             Flag to enable multiprocessing. Defaults to None.
+
     Returns:
         list: List of outlines.
+
     Raises:
         None
+
     Notes:
         - This function is a wrapper for outlines_list_single and
           outlines_list_multi.
@@ -272,8 +305,10 @@ def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
 # function form cellpose.utils
 def outlines_list_single(masks):
     '''Get outlines of masks as a list to loop over for plotting.
+
     Args:
         masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
+
     Returns:
         list: List of outlines as pixel coordinates.
 
@@ -299,8 +334,10 @@ def outlines_list_single(masks):
 # function form cellpose.utils
 def outlines_list_multi(masks, num_processes=None):
     '''Get outlines of masks as a list to loop over for plotting.
+
     Args:
         masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
+
     Returns:
         list: List of outlines as pixel coordinates.
     '''
@@ -318,8 +355,10 @@ def outlines_list_multi(masks, num_processes=None):
 # function form cellpose.utils
 def get_outline_multi(args):
     '''Get the outline of a specific mask in a multi-mask image.
+
     Args:
         args (tuple): A tuple containing the masks and the mask number.
+
     Returns:
         numpy.ndarray: The outline of the specified mask as an array
                        of coordinates.
@@ -342,12 +381,20 @@ def get_outline_multi(args):
 # function form stackoverflow
 # adapted to return shapely Polygons
 def mask_to_polygons(npy_data, output_path):
-    '''Mask to Polygons in GeoDataFrame (geojson) using Cellpose.utils.
-    Args:
-        npy_data: The numpy.ndarray of the masks.
-        npy_base_output_path: Path to save the geojson.
-    Returns:
-        Nothing. Automatically saves the GDF.
+    '''Get the polgyons from the prediction-masks using cellpose.utils functions
+    Saves them as a GeoDataFrame (geojson)
+
+    Parameters
+    ----------
+        npy_data : ArrayLike
+            The numpy.ndarray of the masks.
+        npy_base_output_path : Path
+            Path to save the geojson.
+
+    Returns
+    ----------
+        out : None
+            Automatically saves the GDF under npy_base_output_path.
     '''
     print(' - Extracting ROI')
     try:

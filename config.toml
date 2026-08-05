@@ -3,7 +3,7 @@
 name = 'Normann-BPh'
 mail = 'philomina-lillie.normann@bih-charite.de'
 
-[Tasks]
+[tasks]
 preprocess = false
 segment = false
 evaluate = true
@@ -160,7 +160,7 @@ burnin-samples = 2
 # consult proseg#output-arguments
 output-counts = true
 output-expected-counts = false
-output-cell-metadata = flase
+output-cell-metadata = false
 output-transcript-metadata = false
 output-gene-metadata = false
 output-rates = false
@@ -197,11 +197,11 @@ use = false
 [evaluation.cs_bench]
 use = false
 
+# principal components
+[evaluation.pca]
+use = true
+
 # not implemented yet
-	# principal components
-	[evaluation.pca]
-	use = true
-	
 	# probability density
 	[evaluation.pd]
 	use = false

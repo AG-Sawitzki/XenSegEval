@@ -18,7 +18,8 @@ import pandas as pd
 import numpy as np
 
 # types
-from typing import Any
+from typing import Any, Union
+from pathlib import PosixPath
 from pandas.core.frame import DataFrame
 
 
@@ -27,11 +28,18 @@ def define_regions_to_extract(
     pixelsizeXY: float
 ) -> dict:
     """Restructure the sectios_dictionary.
-    Args:
-        sections_dict: Dictionary of bounding boxes.
-        pixelsizeXY: Float of size of one pixel in x,y dimension.
-    Returns:
-        Reorganized and refactored coordinates of bbox as dictionary.
+
+    Parameters
+    ----------
+        sections_dict : dict
+            Dictionary of bounding boxes.
+        pixelsizeXY : float
+            Float of size of one pixel in x,y dimension.
+
+    Returns
+    ----------
+        out : dict
+            Reorganized and refactored coordinates of bbox as dictionary.
     """
     regions = {}
 
@@ -54,11 +62,18 @@ def process_chunk(
     regions: dict
 ) -> DataFrame:
     """Assign region to coordniates in DataFrame.
-    Args:
-        df: Parquet with x and y vertex.
-        regions: Dictionary with coordinates of bbox.
-    Returns:
-        DataFrame with each row assigned to a region in 'regions'.
+
+    Parameters
+    ----------
+        df : Parquet-DataFrame
+            Parquet with x and y vertex.
+        regions : dict
+            Dictionary with coordinates of bbox.
+
+    Returns
+    ----------
+        out : DataFrame
+            DataFrame with each row assigned to a region in 'regions'.
     """
     df = df.to_pandas()
     regions_mapping = pd.Series(index=df.index, dtype=str).fillna('')
@@ -82,15 +97,22 @@ def process_chunk(
 
 
 def relative(
-    df: Any,
-    region_data: Any
+    df: DataFrame,
+    region_data: dict
 ) -> DataFrame:
     """Subtract region origin from vertex.
-    Args:
-        df: DataFrame with x and y vertex.
-        regions_data: Dictionary with coordinates of bbox-corners.
-    Returns:
-        DataFrame with coordinates relative to region origin.
+
+    Parameters
+    ----------
+        df : DataFrame
+            DataFrame with x and y vertex.
+        regions_data : dict
+            Dictionary with coordinates of bbox-corners.
+
+    Returns
+    ----------
+        out : DataFrame
+            DataFrame with coordinates relative to region origin.
     """
     df['vertex_y'] = (df['vertex_y'] - region_data['y_min'])
     df['vertex_x'] = (df['vertex_x'] - region_data['x_min'])
@@ -99,15 +121,22 @@ def relative(
 
 
 def pixelate(
-    df: Any,
-    pixelsize: Any
+    df: DataFrame,
+    pixelsize: float,
 ) -> DataFrame:
     """Devide by pixelsize.
-    Args:
-        df: DataFrame with x and y vertex.
-        pixelsize: Pixelsize of XY [unit of image]/px.
-    Returns:
-        DataFrame with coordinates in pixel coordinates.
+
+    Parameters
+    ----------
+        df : DataFrame
+             DataFrame with x and y vertex.
+        pixelsize : float
+            Pixelsize of XY [unit of image]/px.
+
+    Returns
+    ----------
+        out : DataFrame
+            DataFrame with coordinates in pixel coordinates.
     """
     df['vertex_y'] = (
         df['vertex_y'].to_numpy() / pixelsize
@@ -122,23 +151,36 @@ def pixelate(
 
 
 def save_section(
-    region_name: Any,
-    regions: Any,
-    df: Any,
-    pixelsizeXY: Any,
-    processed: Any,
-    bound: Any = 'cell'
+    region_name: str,
+    regions: dict,
+    df: DataFrame,
+    pixelsizeXY: float,
+    outdir: Union[str, os.PathLike, PosixPath],
+    bound: str = 'cell'
 ) -> None:
     """Saves the DataFrame as parquet.
-    Args:
-        region_name: Key of regions for region to save.
-        region_data: Dictionary with coordinates of bbox-corners.
-        df: DataFrame to save a region of.
-        bound: Either 'cell' or 'nucleus'.
-               Defines which boundaries file was read
-               and adds an identifier to the path.
-    Returns:
-        None.
+
+    Parameters
+    ----------
+        region_name : str
+            Key of regions for region to save.
+        regions : dict
+            Dictionary with coordinates of bbox-corners.
+        df : DataFrame
+            DataFrame to save a region of.
+        pixelsizeXY : float
+            Size of a pixel in x-y direction.
+        outdir : Path
+            Path to the output directory.
+        bound : str, optional
+            Either 'cell' or 'nucleus'.
+            Defines which boundaries file was read
+            and adds an identifier to the path.
+            Default is `cell`
+    Returns
+    ----------
+        out : None
+            Saves the output using 
     """
     region_data = regions[region_name]
     sub_results_df = df[df['region'] == region_name]
@@ -160,7 +202,7 @@ def save_section(
         # print(sub_results_pq)
         # del sub_results_df
 
-        output_dir = Path(processed / f'{region_name}/boundaries/')
+        output_dir = Path(outdir / f'{region_name}/boundaries/')
         output_dir.mkdir(parents=True, exist_ok=True)
         f_str = str(bound)
 
@@ -214,7 +256,7 @@ if __name__ == '__main__':
                     regions=regions,
                     df=results_df,
                     pixelsizeXY=pixelsizeXY,
-                    processed=processed,
+                    outdir=processed,
                     bound=bound
                 ),
                 regions.keys()

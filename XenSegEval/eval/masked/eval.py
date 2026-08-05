@@ -38,15 +38,6 @@ from skimage.morphology import label
 # )
 # from aicsimageio.writers import ome_tiff_writer
 
-PCA_CAPABLE = [
-    'cpsam',
-    'dinocell',
-    'dissect',
-    'mesmer',
-    'proseg',
-    'stardist'
-]
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Eval.')

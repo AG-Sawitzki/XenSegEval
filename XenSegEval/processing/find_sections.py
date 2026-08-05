@@ -29,13 +29,22 @@ def get_weighted_distance(
     weighty: float = 1
 ) -> float:
     """Get weighted distance of an area's centre from [0,0].
-    Args:
-        centre: Centre of the area. (y,x).
-        weightx, weighty: How large the impact of x,y is on the distance.
+
+    Parameters:
+    ----------
+        centre : tuple or list
+            Centre of the area. Given in (y,x).
+        weightx : float
+            How large the impact of x is on the distance.
             lower x = similar y values have lower distance.
+        weighty : float
+            How large the impact of x,y is on the distance.
             lower y = similar x values have lower distance.
-    Retruns:
-        Distance as float.
+
+    Retruns
+    ----------
+        out : float
+            Distance as float.
     """
     x, y = centre
     return np.sqrt((x*weightx)**2 + (y*weighty)**2)
@@ -47,14 +56,21 @@ def find_rois(
     n_roi: int
 ) -> Union[list, ArrayLike]:
     """Sort the contours by area.
-    Args:
-        shape_org: Max resolution of img.
-        image_subres: Lowest subresolution of image.
-        n_roi: Expected # of regions of interest.
-               Should be equivalent to
-               the number of tissue-samples on the slide.
-    Returns:
-        Contours of significant size.
+
+    Parameters:
+    ----------
+        shape_org : tuple
+            Max resolution of img.
+        image_subres : ArrayLike
+            Lowest subresolution of image.
+        n_roi : int
+            Expected # of regions of interest.
+            Should be equivalent to the number of tissue-samples on the slide.
+
+    Returns
+    ----------
+        out : ArrayLike or list
+            Contours of significant size.
     """
     z, y, x = shape_org
 

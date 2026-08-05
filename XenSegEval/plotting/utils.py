@@ -298,3 +298,23 @@ def polygon_overlay(
         Path(output_path),
         dpi=250, bbox_inches='tight', pad_inches=0.0
     )
+
+
+# add a function to asign colors based on config?
+# below from IBM
+# \definecolor{cpsam}{HTML}{FFB000}
+# \definecolor{dinocell}{HTML}{FE6100}
+# \definecolor{dissect}{HTML}{DC267F}
+# \definecolor{mesmer}{HTML}{785EF0}
+# \definecolor{proseg}{HTML}{648FFF}
+# \definecolor{stardist}{HTML}{79AB59}
+# below from BIH
+# \definecolor{blau}{HTML}{003754}
+# \definecolor{weiss}{HTML}{FFFFFF}
+# \definecolor{schwarz}{HTML}{000000}
+# \definecolor{hellrosa}{HTML}{FFB0AC}
+# \definecolor{dunkelrot}{HTML}{AF1821}
+# \definecolor{korall}{HTML}{EA5451}
+# \definecolor{gold}{HTML}{9D7220}
+# \definecolor{mineral}{HTML}{009AA9}
+# \definecolor{lavendel}{HTML}{7876B6}

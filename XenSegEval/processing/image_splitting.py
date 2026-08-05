@@ -24,9 +24,12 @@ from typing import Any, Union
 
 
 def get_memory_usage_percentage() -> float:
-    """Get the memory usage as percantage.
-    Returns:
-        Float of currently used memory.
+    """Get the memory usage as percentage.
+
+    Returns
+    ----------
+        out : float
+            Float of currently used memory in percentage.
     """
     process = psutil.Process()
     # Total system memory in bytes
@@ -44,11 +47,18 @@ def chunk_size(
     chunks: int
 ) -> int:
     """Calculate the size of a chunk of a region.
-    Args:
-        var: Total region width or height.
-        chunks: Total numbr of chunks.
-    Returns:
-        Width or Height of chunk.
+
+    Parameters
+    ----------
+        var : int 
+            Total region width or height.
+        chunks : int
+            Total numbr of chunks.
+
+    Returns
+    ----------
+        out : int
+            Width or Height of chunk.
     """
     return int(var*np.sqrt(chunks)/chunks)
 
@@ -61,15 +71,28 @@ def tif_path(
     layer: int = None
 ) -> Path:
     """Create the path to the tif file.
-    Args:
-        Section: Which sample on the slide is examined.
-        p_processed: The path so the 'processed' directory.
-        ome: Boolean. If file will be ome or not.
-        focus: Boolean. If file contains channels or layers.
-        chunk: the chunk of the section.
-        layer: ome-layer of the source image.
+
+    Parameters
+    ----------
+        section : str
+            Which sample on the slide is examined.
+        ome : bool, optional
+            If file will be ome or not.
+            Default is `True`.
+        focus : bool
+            If file contains channels or layers.
+            Default is `False`.
+        chunk : int, optional
+            The chunk of the section.
+            Default is `None`.
+        layer : int, optional
+            OME-layer of the source image.
+            Default is `None`.
+
     Returns:
-        pathlib.Path
+    ----------
+        out : PosixPath
+            Path to the image.
     """
 
     f_str = '/'.join([str(section), 'morphology'])
@@ -109,20 +132,32 @@ def write_tif(
     chunk: int = None
 ) -> None:
     """Write an array into a tif file.
-    Args:
-        image: numpy.ndarray of the image.
-        section: ROI name.
-        imagestats: Dictionary containing stats of the image.
-        layer: The layer of the morphology image being written.
-               Passed on to tif_path.
-        chunk: Chunk corresponding to image being written.
-               Passed on to tif_path.
-    Retruns:
-        None. Saves file under
-        'processed/{section}/morphology/
-        {focus or multi_layer or single_layer/layer0{layer}}/
-        {quatered/q0{chunk}.extension if chunk
-         else focus. or morphology.extension}'
+
+    Parameters:
+    ----------
+        image : ArrayLike
+            numpy.ndarray of the image.
+        imagestats : dict
+            Dictionary containing stats of the image.
+        section : str or int
+            ROI name. The section the image represents.
+        layer : int, optional
+            The layer of the morphology image being written.
+            Passed on to tif_path.
+            Default is `None`.
+        chunk : int
+            Chunk corresponding to image being written.
+            Passed on to tif_path.
+            Default is `None`.
+
+    Retruns
+    ----------
+        out : None
+            Saves file under
+            'processed/{section}/morphology/
+            {focus or multi_layer or single_layer/layer0{layer}}/
+            {quatered/q0{chunk}.extension if chunk
+                else focus. or morphology.extension}'
     """
     if 'pixelsizeXY' not in globals():
         print('Imagestats are missing "pixelsize_xy" | "pixelsize_z".')
@@ -180,11 +215,18 @@ def write_aics(
     section: Union[str, int],
 ) -> None:
     '''Save focus-image for PCA analysis.
-    Args:
-        image: CYX array of the image.
-        section: the section the image represents.
-    Retruns:
-        None. Saves the image using AICSImageIO.
+
+    Parameters
+    ----------
+        image : ArrayLike
+            CYX array of the image.
+        section : str or int
+            ROI name. The section the image represents.
+
+    Retruns
+    ----------
+        out : None
+            Saves the image using AICSImageIO.
     '''
     image = np.moveaxis(image, -1, 0)
 

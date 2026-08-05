@@ -126,17 +126,21 @@ def get_outline_multi(args):
 # function form stackoverflow
 # adapted to return shapely Polygons
 def process_roi(npy_data, npy_base_output_path):
-    """
-    Get the polgyons from the prediction-masks using cellpose.utils functions
+    '''Get the polgyons from the prediction-masks using cellpose.utils functions
     Saves them as a GeoDataFrame (geojson)
 
-    Args:
-        npy_data: The numpy.ndarray of the masks.
-        npy_base_output_path: Path to save the geojson.
+    Parameters
+    ----------
+        npy_data : ArrayLike
+            The numpy.ndarray of the masks.
+        npy_base_output_path : Path
+            Path to save the geojson.
 
-    Returns:
-        Nothing. Automatically saves the GDF.
-    """
+    Returns
+    ----------
+        out : None
+            Automatically saves the GDF under npy_base_output_path.
+    '''
     print(' - Extracting ROI')
     try:
         masks = npy_data.item().get("masks")
