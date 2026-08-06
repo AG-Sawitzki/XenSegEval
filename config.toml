@@ -33,7 +33,6 @@ pixelsize_z = 3.0000
 y = 64612
 x = 51096
 
-
 [sbatch]
 # sbatch job specifications
 gpu = 'gpu:l40:1'
@@ -146,37 +145,93 @@ pad_mode = 'constant'
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
 
-[methods.proseg]
+[methods.proseg.general]
+# --------------------------------------
+# general options
+# --------------------------------------
 # consult https://github.com/dcjones/proseg#general-arguments
-# nthreads = N # best not provided to use all cores available
-# output-spatialdata = # set by the pipeline
+# or run `proseg --help` in the terminal after installing
+# set to 0 to use all cores available
+nthreads = 0
+# set by the pipeline. best left empty.
+output-spatialdata = ''
 overwrite = true
-# voxel-layers = # unless expected to be constrained let proseg decide
-samples = 4
-burnin-samples = 2
-# voxel-size = # set by the pipeline
-# burnin-voxel-size = # set by the pipeline
+# 'planes' -> equivalent to length of preprocessing.planes
+# or if expected set to an integer(!).
+voxel-layers = 'planes'
+samples = 200
+burnin-samples = 200
+# set by the pipeline. best left empty.
+voxel-size = ''
+# set by the pipeline. best left empty.
+burnin-voxel-size = ''
+
 # --------------------------------------
-# consult proseg#output-arguments
-output-counts = true
-output-expected-counts = false
-output-cell-metadata = false
-output-transcript-metadata = false
-output-gene-metadata = false
-output-rates = false
+# advanced options
+# --------------------------------------
+[methods.proseg.output]
+# consult /proseg#output-arguments
+# leave `path` empty for automatic path-construction.
+path = ''
+counts = true
+expected-counts = false
+rates = false
+cell-metadata = false
+transcript-metadata = false
+gene-metadata = false
+metagene-rates = false
+metagene-loadings = false
+voxel-counts = false
 # -------------------
-output-cell-polygons = true
-output-cell-polygons-layers = true
+cell-polygons = true
+union-cell-polygons = false
+cell-polygon-layers = true
 # --------------------------------------
-# consult proseg#model-arguments
-ncompnents = 10
+[methods.proseg.model]
+# consult /proseg#model-arguments
+min-qv = 0
+cells-per-chunk = 100
+ncomponents = 10
+nhidden = 200
+hillclimb = 50
+recorded-samples = 100
+cell-compactness = 0.04
+morphology-steps-per-iter = 4000
+nuclear-reassignment-prob = 0.2
+prior-seg-reassignment-prob = 0.5
+prior-weight = 1
+coordinate-scale = 1
+quad-size = 150
+max-transcript-nucleus-distance = 60
+burnin-dispersion = 1
+ab-nihlo-bubble-prob = 0.05
+monitor-cell-polygons-freq = 10
+nunfactored = 200
+hyperparam-e-phi = 1
+hyperparam-f-phi = 1
+hyperparam-neg-mu-phi = 1
+hyperparam-tau-phi = 0.1
+density-bandwidth = 0.5
+density-bins = 5
+# -------------------
+ignore-z-coord = false
+variable-burnin-dispersion = false
+check-consistency = false
+exclude-spatialdata-transcripts = false
+monitor-cell-polygons = false
+enforce-connectivity = false
+no-factorization = false
+include-neg-ctrls = false
+use-scaled-cells = false
+# --------------------------------------
+[methods.proseg.diffusion]
 no-diffusion = false
 diffusion-probability = 0.2
-diffusion-sigma-far = 4
 diffusion-sigma-near = 1
-nuclear-reassignment_prob = 0.2
-cell-compactness = 0.03
-# -------------------------------------
+diffusion-sigma-far = 4
+diffusion-sigma-z = 0.1
+diffusion-proposal-sigma = 4
+diffusion-proposal-sigma-z = 0.2
 
 
 [methods.stardist]
@@ -208,10 +263,36 @@ use = true
 	overlay_image = false
 
 [evaluation.cross]
-use = false
-# 'cs' or 'af1'
-benchmark = 'af1'
+use = true
+# 'cs' or 'u4n'
+# benchmark = 'u4n'
 # choose metric according to benchmark
-metric = 'Jaccard'
-# relevant for 'af1'
+## cs: f1, seg, jaccard, dice, PQ
+## u4n: F1, Jaccard
+metric = 'dice'
+# relevant for 'u4n'
+## [0.5,0.9]
 threshold = 0.5
+
+
+[plotting]
+cross = true
+bars = true
+# not yet implemented
+overlay = false
+
+[plotting.colors]
+cpsam = '#ffb000'
+dinocell = '#fe6100'
+dissect = '#dc267f'
+mesmer = '#785ef0'
+proseg = '#648fff'
+stardist = '#79ab59'
+
+[plotting.cmap]
+color1 = '#002552'
+color2 = '#004d9b'
+color3 = '#ffffff'
+color4 = '#ffdf43'
+color5 = '#fab600'
+color6 = '#e31f2c'

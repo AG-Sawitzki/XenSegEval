@@ -165,6 +165,7 @@ def get_config_args(
     preprocessing = config['preprocessing']
     methods = config['methods']
     evaluation = config['evaluation']
+    plotting = config['plotting']
 
     if 'mail' in owner:
         mail = owner['mail']
@@ -256,6 +257,16 @@ def get_config_args(
                 JACCARD=evaluation['jaccard']['use'],
                 CS_BENCH=evaluation['cs_bench']['use'],
                 CROSS=evaluation['cross']['use']
+            ))
+        elif method == 'plot':
+            # colors = [
+            #     methods[method]['color'] for method in methods
+            # ]
+            variables.update(dict(
+                colors=plotting['colors'],
+                cmap=plotting['cmap'],
+                CROSS=evaluation['cross'],
+                methods=methods,
             ))
 
     return variables

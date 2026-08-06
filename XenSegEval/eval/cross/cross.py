@@ -28,14 +28,25 @@ import pandas as pd
 import tifffile as tf
 import geopandas as gpd
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='CrossEval.')
-    parser.add_argument('-c', '--Config', help='Path to the config file.')
+    parser.add_argument(
+        '-c', '--Config',
+        default='config.toml',
+        help='Path to the config file.'
+    )
+    parser.add_argument(
+        '-p', '--Plot',
+        action='store_true',
+        help='Use if cross evaluation should be plotted after calculation.'
+    )
     args = parser.parse_args()
 
     config_path = args.Config
+    plot = args.Config
 
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
@@ -47,30 +58,42 @@ if __name__ == '__main__':
 
     for section in sections:
         if CROSS['use']:
+            metric = str(CROSS['metric'])
+            if metric.istitle():
+                benchmark = 'u4n'
+            else:
+                benchmark = 'cs'
             res, labels = cross_eval(
                 results,
-                run,
+                # run,
                 methods,
                 section,
-                metric=CROSS['metric'],
-                benchmark=CROSS['benchmark'],
+                metric=metric,
+                benchmark=benchmark,
                 threshold=CROSS['threshold']
             )
 
-        print(res)
+            print(res)
 
-        np.save(f'{results}/cross_evaluation_{section}.npy', res)
+            path = (
+                f'{results}/{CROSS["metric"]}_{CROSS["benchmark"]}'
+                '_cross_evaluation_{section}'
+            )
+            np.save(path + '.npy', res)
+            with open(path, 'w') as f:
+                for label in labels:
+                    f.write(f' {label}')
 
-        fig, ax = plt.subplots()
+            if plot:
+                fig, ax = plt.subplots()
 
-        im, cbar = heatmap(
-            res, labels, labels, ax=ax,
-            cmap='YlOrRd', cbarlabel=CROSS['metric']
-        )
-        texts = annotate_heatmap(im, valfmt='{x:.1f}')
-        fig.tight_layout()
-        fig.savefig(
-            f'/data/cephfs-1/home/users/juno12_c/'
-            f'cross_{CROSS['benchmark']}_{CROSS['metric']}_{section}.png',
-            dpi=250
-        )
+                im, cbar = heatmap(
+                    res, labels, labels, ax=ax,
+                    cmap='YlOrRd', cbarlabel=CROSS['metric']
+                )
+                texts = annotate_heatmap(im, valfmt='{x:.1f}')
+                fig.tight_layout()
+                fig.savefig(
+                    f'/data/cephfs-1/home/users/juno12_c/'
+                    f'cross_{CROSS['benchmark']}_{CROSS['metric']}_{section}.pdf'
+                )

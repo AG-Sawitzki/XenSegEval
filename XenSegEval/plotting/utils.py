@@ -16,36 +16,64 @@ import geopandas as gpd
 
 from typing import Any, Union
 from pathlib import PosixPath
+from matplotlib.figure import Figure
+from matplotlib.axes._axes import Axes
 from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
 
 
-colors = dict(
-    cpsam='#FFB000',
-    dinocell='#FE6100',
-    dissect='#DC267F',
-    mesmer='#785EF0',
-    proseg='#648FFF',
-    stardist='#79AB59',
-)
-'''Colors for the Algorithms.'''
+def hex_to_rgb(
+    color: str
+) -> tuple:
+    '''Turn a Hex RGB code into a tuple RGB with values between [0,1].
+    
+    Parameters
+    ----------
+        color
+            Hex string of RGB(A).
+            Alpha is possible put will be ignored.
+    Retruns
+    ----------
+        out
+            Tuple of (r, g, b) with values between [0,1].
+    '''
+    h = color.lstrip('#')
+    H = h.upper()
+    rgb = tuple(
+        int(H[i:i+2], 16) for i in (0, 2, 4)
+    )
+    rgb = tuple(c/255 for c in rgb)
+
+    return rgb
 
 
-def hex_to_rgb(color, reduce):
-    color = color.lstrip('#')
-    r = int(color[0:2], 16)*(1-reduce)
-    g = int(color[2:4], 16)*(1-reduce)
-    b = int(color[4:6], 16)*(1-reduce)
+def new_color(
+    color: Union[str, tuple],
+    reduce: float
+) -> tuple:
+    '''Reduces the brightnes of the given color by `reduce`.
 
-    return tuple(r, g, b)
+    Parameters
+    ----------
+        color
+            Hex string or tuple of a RGB color.
+        reduce
+            Float between [0,1]
 
-
-def assign_color(colors, method, label, color, reduce):
-    new_color = hex_to_rgb(color, reduce)
-    pos = list(colors.keys().index(method))
-    items = list(colors.items())
-    items.insert(pos, (label, new_color))
-    return dict(items)
+    Returns
+    ----------
+        out
+            Tuple of (r, g, b)
+    '''
+    if isinstance(color, str):
+        rgb = hex_to_rgb(color)
+    elif isinstance(color, tuple):
+        rgb = color[:3]
+    else:
+        print(f'Not a valid format. {type(color)}')
+    rgb = tuple(c*(1-reduce) for c in rgb)
+    # rgb = (c/255 for c in rgb)
+    return rgb
 
 
 def heatmap(data, row_labels, col_labels, ax=None,
@@ -164,108 +192,133 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-def bar_method_eval(
-    fig,
-    ax,
-    results,
-    method,
-    section
-):
-    '''Plots the evaluation results from cs and/or u4n in a bar plot for a
-        sepicified method.
+def get_data(
+    arr: ArrayLike,
+    path: Union[str, os.PathLike, PosixPath],
+    vals: list,
+) -> ArrayLike:
+    '''Get the metrics from a DataFrame. Append to `arr`.
 
     Parameters
     ----------
-        fig : figure
-            A figure to plot onto.
-        ax : ax
-            The Axes of the figure.
-        results : Path 
-            Path to the results folder.
-        method : str
-            Name of the method. Same as the name in config.toml
-        section : str or int
-            ROI segmentation was performed on.
+        arr
+            The array to contain the metrics for plotting.
+        path
+            Path to the DataFrame of the metrics.
+        vals
+            Values, i.e. Metrics, of interest.
 
     Returns
     ----------
-        out : None
-            Plots the bars.
-    '''
-    eval_path = f'{results}/{method}/evaluation/{section}/'
-    u4n_path = f'{eval_path}/results.csv'
-    cs_path = f'{eval_path}/CS-BENCH.csv'
-    if Path(u4n_path).is_file():
-        df = pd.read_csv(u4n_path)
-        if 'Method' in df.columns:
-            data = np.array(df[['F1', 'Jaccard']])
-            tick_labels = list(np.round(df['Threshold'], 2))
-    else:
-        data = np.array([np.nan, np.nan])
-
-    if Path(cs_path).is_file():
-        df = pd.read_csv(cs_path)
-        if len(df) == 1:
-            data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
-            tick_labels.append('cs')
-    else:
-        data = np.vstack((data, np.array([np.nan, np.nan])))
-
-    ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
-    ax.legend()
-    ax.set_title(method)
-
-    return None
-
-
-def get_data(
-    arr,
-    path,
-    vals,
-):
-    '''Get the metrics from a DataFrame.
-
-    Parameters
-    ----------
-        arr : ArrayLike
-            The array to contain the metrics for plotting.
-        path : Path
-            Path to the DataFrame of the metrics.
-        vals : str or list
-            Values, i.e. Metrics, of interest.
+        out
+            `arr` with values appended.
     '''
     df = pd.read_csv(path)
 
     if arr.shape == (0,):
         if len(vals) > 1:
-            arr = np.array(df[[vals]]).T
-        else:
             arr = np.array(df[vals])
+        else:
+            arr = np.array(df[vals]).T
     else:
         if len(vals) > 1:
-            data = np.array(df[[vals]]).T
-        else:
             data = np.array(df[vals])
+        else:
+            data = np.array(df[vals]).T
         arr = np.vstack((arr, data))
 
     return arr
 
 
+# def bar_method_eval(
+#     fig: Figure,
+#     ax: Axes,
+#     results: Union[str, os.PathLike, PosixPath],
+#     method: str,
+#     section: Union[str, int],
+# ) -> None:
+#     '''Plots the evaluation results from cs and/or u4n in a bar plot for a
+#         sepicified method.
+
+#     Parameters
+#     ----------
+#         fig : figure
+#             A figure to plot onto.
+#         ax : ax
+#             The Axes of the figure.
+#         results : Path
+#             Path to the results folder.
+#         method : str
+#             Name of the method. Same as the name in config.toml
+#         section : str or int
+#             ROI segmentation was performed on.
+
+#     Returns
+#     ----------
+#         out : None
+#             Plots the bars.
+#     '''
+#     eval_path = f'{results}/{method}/evaluation/{section}/'
+#     u4n_path = f'{eval_path}/results.csv'
+#     cs_path = f'{eval_path}/CS-BENCH.csv'
+#     tick_labels = []
+#     if Path(u4n_path).is_file():
+#         df = pd.read_csv(u4n_path)
+#         if 'Method' in df.columns:
+#             data = np.array(df[['F1', 'Jaccard']])
+#             tick_labels.append(list(np.round(df['Threshold'], 2)))
+#     else:
+#         data = np.array([np.nan, np.nan])
+
+#     if Path(cs_path).is_file():
+#         df = pd.read_csv(cs_path)
+#         if len(df) == 1:
+#             data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
+#             tick_labels.append('cs')
+#     else:
+#         data = np.vstack((data, np.array([np.nan, np.nan])))
+
+#     ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
+#     ax.legend()
+#     ax.set_title(method)
+#     fig.savefig(f'{results}/test.pdf')
+
+
 def bar_compare_eval(
     methods: list,
     results: Union[str, os.PathLike, PosixPath],
-    section: str,
-    fig: Any,
-    ax: Any,
-    colors: Union[dict, str, os.PathLike, PosixPath],
-    eval: str = 'cs',
-):
-    if type(colors) is not dict:
-        with open(colors, 'r') as f:
-            colors = json.load(f)
+    section: Union[str, int],
+    fig: Figure,
+    ax: Axes,
+    colors: dict,
+    benchmark: str = 'cs',
+) -> None:
+    '''Plot the metrics as grouped bar plots.
 
-    if method == 'u4n':
-        vals = 'F1'
+    Parameters
+    ----------
+        methods
+            List of Algorithms to compare. Must have been evaluated.
+        results
+            Results path. /.../<sample_name>/results/
+        section
+            Section name. Equivalent to the gt section.
+        fig
+            A matplotlib figure.
+        ax
+            A matplotlib axis.
+        colors
+            Dictionary of method : color. See config file.
+        benchmark
+            Evaluation method to plot. `u4n` or `cs`.
+
+    Returns
+    ----------
+        out
+            None. Saves the plot as a pdf in `results`.
+    '''
+    if benchmark == 'u4n':
+        vals = ['F1']
         tick_labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
         file = 'results.csv'
     else:
@@ -274,39 +327,44 @@ def bar_compare_eval(
         file = 'CS-BENCH.csv'
 
     arr = np.array([])
-
+    color_list = []
     labels = []
     for method in methods:
         eval_path = f'{results}/{method}/evaluation/{section}/'
-        subdirs = list(Path(eval_path).glob('_*'))
-        if len(subdirs) != 0:
-            i = 1
+        subdirs = list(Path(eval_path).glob('_*/'))
+        if subdirs:
+            reduce = 0.15
             for subdir in subdirs:
                 path = Path(f'{subdir}/{file}')
                 if path.is_file():
                     label = method+'_'+subdir.stem
                     labels.append(label)
-                    colors = assign_color(
-                        colors, method, label,
+                    color = new_color(
                         color=colors[method],
-                        reduce=0.2*i,
+                        reduce=reduce,
                     )
+                    color_list.append(color)
                     arr = get_data(
-                        arr, arr, vals
+                        arr, path, vals
                     )
-                i += 1
-            del colors[method]
+                    reduce += 0.15
         else:
+            color = hex_to_rgb(colors[method])
+            color_list.append(color)
             labels.append(method)
             path = f'{eval_path}/{file}'
             arr = get_data(
-                arr, arr, vals
+                arr, path, vals
             )
-    color_list = [value for key, value in colors.items()]
-    ax.grouped_bar(arr, tick_labels=tick_labels, labels=labels, colors=color_list)
+    ax.grouped_bar(
+        arr.T,
+        tick_labels=tick_labels, labels=labels,
+        colors=color_list
+    )
     ax.tick_params(axis='x', rotation=35)
     ax.legend()
-    ax.savefig(f'/data/cephfs-1/home/users/juno12_c/test_{eval}.pdf')
+    fig.tight_layout()
+    fig.savefig(f'{results}/{benchmark}_bars.pdf')
 
 
 def polygon_overlay(
@@ -377,29 +435,8 @@ def polygon_overlay(
     gdf.boundary.plot(
         ax=ax, aspect='equal', color='white'
     )
-
+    fig.tight_layout()
     fig.savefig(
         Path(output_path),
         dpi=250, bbox_inches='tight', pad_inches=0.0
     )
-
-
-
-# add a function to asign colors based on config?
-# below from IBM
-# \definecolor{cpsam}{HTML}{FFB000}
-# \definecolor{dinocell}{HTML}{FE6100}
-# \definecolor{dissect}{HTML}{DC267F}
-# \definecolor{mesmer}{HTML}{785EF0}
-# \definecolor{proseg}{HTML}{648FFF}
-# \definecolor{stardist}{HTML}{79AB59}
-# below from BIH
-# \definecolor{blau}{HTML}{003754}
-# \definecolor{weiss}{HTML}{FFFFFF}
-# \definecolor{schwarz}{HTML}{000000}
-# \definecolor{hellrosa}{HTML}{FFB0AC}
-# \definecolor{dunkelrot}{HTML}{AF1821}
-# \definecolor{korall}{HTML}{EA5451}
-# \definecolor{gold}{HTML}{9D7220}
-# \definecolor{mineral}{HTML}{009AA9}
-# \definecolor{lavendel}{HTML}{7876B6}

@@ -38,7 +38,7 @@ from pathlib import PosixPath
 def wrapper_cs(
     dt: ArrayLike,
     gt: ArrayLike,
-    outdir: Union[str, os.PathLike, PosixPath],
+    # outdir: Union[str, os.PathLike, PosixPath],
     method: str = 'cross',
 ) -> pd.core.frame.DataFrame:
     '''Wrapper for cs-benchmark. See [13] in README.md.
@@ -79,25 +79,25 @@ def wrapper_cs(
     gt_x = np.int64(gt_x)
     dt_x = np.int64(dt_x)
 
-    outdir = Path(outdir)
+    # outdir = Path(outdir)
 
-    pm = Metrics(method, outdir=outdir)
+    pm = Metrics(method)
 
     object_metrics = pm.calc_object_stats(gt_x, dt_x)
 
     results = pd.DataFrame(data=object_metrics, dtype=float)
 
-    if outdir is not None:
-        if Path(outdir / f'{method}_cs_all.csv').is_file():
-            results.to_csv(
-                outdir / f'{method}_cs_all.csv',
-                mode='a', header=False, index=False
-            )
-        else:
-            results.to_csv(
-                outdir / f'{method}_cs_all.csv',
-                index=False
-            )
+    # if outdir is not None:
+    #     if Path(outdir / f'{method}_cs_all.csv').is_file():
+    #         results.to_csv(
+    #             outdir / f'{method}_cs_all.csv',
+    #             mode='a', header=False, index=False
+    #         )
+    #     else:
+    #         results.to_csv(
+    #             outdir / f'{method}_cs_all.csv',
+    #             index=False
+    #         )
 
     return results
 
