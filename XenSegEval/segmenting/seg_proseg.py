@@ -59,6 +59,7 @@ def get_arguments(
 
     outputs = []
     for arg, value in method['output'].items():
+        name = arg
         arg = 'output-' + arg
         if 'path' in arg:
             if value:
@@ -69,11 +70,11 @@ def get_arguments(
         else:
             if value:
                 if 'counts' in arg:
-                    value = f'{arg}.mtx.gz'
+                    value = f'{name}.mtx.gz'
                 elif 'meta' in arg or 'rates' in arg:
-                    value = f'{arg}.csv.gz'
+                    value = f'{name}.csv.gz'
                 elif 'polygon' in arg:
-                    value = f'{arg}.geojson.gz'
+                    value = f'{name}.geojson.gz'
                 outputs = add_arg(outputs, arg, value)
 
     general = []

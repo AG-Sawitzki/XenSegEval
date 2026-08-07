@@ -18,8 +18,8 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA2'
 # path to ground_truth
 gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
-# path to the user-defined section
-# one must have the same coordinates
+# path to the user-defined section;
+# at least one must have the same coordinates
 # as the gt-masks
 sections_path = 'mem_section.json'
 
@@ -35,7 +35,7 @@ x = 51096
 
 [sbatch]
 # sbatch job specifications
-gpu = 'gpu:l40:1'
+gpu = 'gpu:h200:1'
 # time in days
 time = 2
 # RAM in gigabyte
@@ -234,6 +234,10 @@ diffusion-proposal-sigma = 4
 diffusion-proposal-sigma-z = 0.2
 
 
+[methods.segger]
+# TODO: add parameters.
+
+
 [methods.stardist]
 # no configuration available.
 
@@ -243,6 +247,7 @@ diffusion-proposal-sigma-z = 0.2
 
 
 [evaluation]
+include_xenium = true
 # if a evaluation should be performed based on
 # Jaccard and related scores
 [evaluation.jaccard]
@@ -287,6 +292,7 @@ dinocell = '#fe6100'
 dissect = '#dc267f'
 mesmer = '#785ef0'
 proseg = '#648fff'
+segger = '#ba5e3e'
 stardist = '#79ab59'
 
 [plotting.cmap]

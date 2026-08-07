@@ -31,15 +31,9 @@ if __name__ == '__main__':
         default='config.toml',
         help='Optional. Path to a config file like "config.toml".'
     )
-    # parser.add_argument(
-    #     '-s', '--Section',
-    #     default=None,
-    #     help='Optional. Path to dictionary of Sections.'
-    # )
     args = parser.parse_args()
 
     config_path = args.Config
-    # sections = args.Section
 
     if config_path is None:
         cwd = os.getcwd()
@@ -57,10 +51,6 @@ if __name__ == '__main__':
             'No section and/or ground truth provided for evaluation.'
             ' Please check "[preprocessing]".'
         )
-
-    #     config['paths']['sections_path'] = str(sections)
-    #     with open(config_path, 'w') as f:
-    #         tomlkit.dump(config, f)
 
     variables = get_config_args(config, 'main')
     globals().update(variables)
@@ -87,7 +77,7 @@ if __name__ == '__main__':
         )
         sbatch_kwargs['cmd'] = cmd
         pI = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
-        print('started image splitting.')
+        print('Started image splitting.')
 
         cmd = (
             'pixi run python -m XenSegEval.processing.transcript_splitting'
@@ -95,7 +85,7 @@ if __name__ == '__main__':
         )
         sbatch_kwargs['cmd'] = cmd
         pT = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
-        print('started transcript splitting.')
+        print('Started transcript splitting.')
 
         cmd = (
             'pixi run python -m XenSegEval.processing.boundaries_splitting'
@@ -103,11 +93,21 @@ if __name__ == '__main__':
         )
         sbatch_kwargs['cmd'] = cmd
         pB = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
-        print('started boundary splitting.')
+        print('Started boundary splitting.')
+
+        pB.wait()
+
+        if include_xenium:
+            cmd = (
+                'pixi run python -m XenSegEval.processing.prepare_xenium-seg'
+                f' -c {config_path}'
+            )
+            sbatch_kwargs['cmd'] = cmd
+            pX = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+            print('Preparing Xenium Boundaries.')
 
         pI.wait()
         pT.wait()
-        pB.wait()
 
     if tasks['segment']:
         sbatch_kwargs['gpu'] = gpu
@@ -115,8 +115,10 @@ if __name__ == '__main__':
         seg = []
         for method in config['methods']:
             cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
+            if method == 'segger':
+                cmd = f'bash XenSegEval/start/{method}.sh {data_path} {results}/{method}/output/'
             sbatch_kwargs['cmd'] = cmd
-            if method == 'dissect':
+            if method in ['dissect', 'segger']:
                 sbatch_kwargs['mem'] = 128
             seg.append(
                 subprocess.Popen(

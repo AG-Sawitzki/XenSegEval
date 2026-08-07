@@ -3,6 +3,7 @@ from XenSegEval.plotting.utils import (
     annotate_heatmap,
 )
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'plot')
     globals().update(variables)
 
-    cmap = ListedColormap([h for _,h in cmap.items()])
+    cmap = ListedColormap([h for _, h in cmap.items()])
 
     if metric == 'all':
         metrics = choices[1:]

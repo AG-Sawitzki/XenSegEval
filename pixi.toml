@@ -1,5 +1,5 @@
 [workspace]
-channels = ["conda-forge", "nodefaults"]
+channels = ["conda-forge", "rapidsai", "nvidia", "pytorch"]
 platforms = ["linux-64"]
 preview = ["pixi-build"]
 
@@ -30,6 +30,7 @@ tqdm = ">=4.68.1,<5"
 geojson = "*"
 geopandas = "*"
 shapely = "*"
+fiona = "*"
 
 [feature.process.target.linux-64.pypi-dependencies]
 opencv-python = ">=4.13.0.92, <5"
@@ -254,6 +255,7 @@ dinocell = ">=0.74, <0.75"
 
 
 [feature.dissect]
+platforms = ["linux-64"]
 channels = ["conda-forge", "pytorch", "nvidia"]
 
 [feature.dissect.target.linux-64.dependencies]
@@ -267,19 +269,72 @@ scikit-image = "*"
 psutil = "*"
 shapely = ">=2.0.7,<3"
 tifffile = ">=2024.6.18,<2025"
+numpy = "<=1.24"
 
 [feature.dissect.target.linux-64.pypi-dependencies]
-numpy = "<=1.24"
 pyyaml = "*"
 numba = "*"
 timm = "*"
 opencv-python = ">=4.11.0.86, <5"
+# moved numpy to non-pip dependencies - for now it's working. 
 
 [feature.proseg]
 platforms = ["linux-64"]
 
 [feature.proseg.dependencies]
 rust = ">=1.77.2"
+
+[feature.segger]
+channels = ["pytorch", "nvidia", "rapidsai", "conda-forge"]
+
+[feature.segger.system-requirements]
+cuda = "12"
+
+[feature.segger.target.linux-64.dependencies]
+python = ">=3.11,<3.12"
+cuda-toolkit = "12.*"
+# anndata = "*"
+# cyclopts = "*"
+# geopandas = "==0.14.4"
+# numba = "*"
+# numpy = "*"
+# pandas = "*"
+# polars = "*"
+# pyarrow = "*"
+# scanpy = "*"
+# scipy = "*"
+# shapely = "*"
+# scikit-image = "*"
+# scikit-learn = "*"
+# tifffile = "*"
+# tqdm = "*"
+
+[feature.segger.pypi-options]
+prerelease-mode = "allow"
+index-strategy = "unsafe-best-match"
+index-url = "https://pypi.org/simple"
+extra-index-urls = [
+    "https://pypi.nvidia.com",
+    "https://download.pytorch.org/whl/cu121"
+]
+find-links = [
+    { url = "https://data.pyg.org/whl/torch-2.5.0+cu121.html" }
+]
+
+[feature.segger.target.linux-64.pypi-dependencies]
+opencv-python = "*"
+torch = "==2.5.*"
+torchvision = "==0.20.*"
+lightning = "*"
+torch_geometric = "*"
+torch-scatter = "*"
+torch-sparse = "*"
+cuspatial-cu12 = "==24.10.*"
+cudf-cu12 = "==24.10.*"
+cuml-cu12 = "==24.10.*"
+cugraph-cu12 = "==24.10.*"
+cupy-cuda12x = ">=12.2,<13.0"
+segger = { git = "https://github.com/dpeerlab/segger.git" }
 
 
 [feature.stardist]
@@ -306,4 +361,5 @@ deepcell = ["deepcell", "docs"]
 dinocell = ["dinocell", "docs"]
 dissect = ["dissect", "uv", "docs"]
 proseg = ["proseg", "docs"]
+segger = ["segger"]
 stardist = ["stardist", "docs"]

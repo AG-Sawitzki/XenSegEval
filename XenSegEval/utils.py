@@ -252,6 +252,7 @@ def get_config_args(
         elif method == 'main':
             variables.update(dict(
                 tasks=config['tasks'],
+                include_xenium=evaluation['include_xenium'],
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],
