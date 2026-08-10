@@ -33,7 +33,7 @@ if __name__ == '__main__':
         default='all',
         choices=choices,
         help=(
-            'Which metric to load and plot for.'
+            'Which metric(1) to load and plot for.'
             ' lower case and PQ are from `cs`'
             ' upper case are from `u4n`'
             ' enter `all` to plot for all metrics'
@@ -78,7 +78,7 @@ if __name__ == '__main__':
             cross_res = np.load(arr_path, allow_pickle=True)
             with open(path, 'r') as f:
                 labels = f.load()
-                labels = labels.split(' ')[1:]
+                labels = labels.split(' ')
 
             fig, ax = plt.subplots()
 

@@ -1,4 +1,8 @@
-from XenSegEval.utils import get_config_args
+from XenSegEval.utils import (
+    get_config_args,
+    get_memory_usage_percentage,
+    get_section_coords,
+)
 
 from itertools import product
 from pathlib import Path
@@ -21,25 +25,6 @@ import cv2
 # types
 from numpy.typing import ArrayLike
 from typing import Any, Union
-
-
-def get_memory_usage_percentage() -> float:
-    """Get the memory usage as percentage.
-
-    Returns
-    ----------
-        out : float
-            Float of currently used memory in percentage.
-    """
-    process = psutil.Process()
-    # Total system memory in bytes
-    total_memory = psutil.virtual_memory().total
-    # Resident Set Size in bytes
-    mem_info = process.memory_info()
-    used_memory = mem_info.rss
-    # Calculate percentage
-    memory_percentage = (used_memory / total_memory) * 100
-    return memory_percentage
 
 
 def chunk_size(
@@ -311,10 +296,12 @@ if __name__ == '__main__':
         chunks = preprocessing['chunks']
         overlap = preprocessing['overlap']
 
-        for section, bbox in section_dictionary.items():
-            y_min, x_min = bbox[0]
-            y_max, x_max = bbox[1]
-            resolution = (y_max-y_min, x_max-x_min)
+        for section in section_dictionary.keys():
+            coords = get_section_coords(section_dictionary, section)
+            x_min, x_max = bbox[0]
+            y_min, y_max = bbox[1]
+            height, width = get_section_dims(section_dictionary, section)
+            resolution = (height, width)
 
             # assigning the arrays take ~4min
             morphology_section = morphology_org[

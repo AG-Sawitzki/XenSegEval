@@ -69,7 +69,7 @@ After cloning and changing to the XenSegEval directory run the following command
 ```
 pixi shell -e dissect
 pip install --extra-index-url https://miropsota.github.io/torch_packages_builder detectron2==0.6+fd27788pt2.4.0cu124
-uv pip install dissect-st
+uv pip install "dissect-st>=0.5.4,<0.6"
 ```
 This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
 
@@ -82,7 +82,7 @@ The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/z
 ### Proseg
 Install Proseg by running the command below in the XenSegEval directory.
 ```
-pixi run -e proseg cargo install proseg
+pixi run -e proseg cargo install --version 3.2.0 proseg
 ```
 
 # Pipeline

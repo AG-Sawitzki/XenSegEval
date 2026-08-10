@@ -76,13 +76,11 @@ if __name__ == '__main__':
             print(res)
 
             path = (
-                f'{results}/{CROSS["metric"]}_{CROSS["benchmark"]}'
-                '_cross_evaluation_{section}'
+                f'{results}/{CROSS["metric"]}_cross_evaluation_{section}'
             )
             np.save(path + '.npy', res)
-            with open(path, 'w') as f:
-                for label in labels:
-                    f.write(f' {label}')
+            with open(path, 'w') as f: 
+                f.write(' '.join(labels))
 
             # if plot:
             #     fig, ax = plt.subplots()

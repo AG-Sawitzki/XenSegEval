@@ -27,12 +27,137 @@ import tifffile
 from shapely.geometry import Polygon
 import geopandas as gpd
 import cv2
+import matplotlib.pyplot as plt
 
 # types
 from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
 from typing import Any, Union
 from pathlib import PosixPath
+
+
+def check_colour(
+    r: int,
+    g: int,
+    b: int
+) -> tuple:
+    '''Gives a new rgb colour-tuple, incremented by 1.
+
+    Parameters
+    ----------
+        r : int
+            red
+        g : int
+            green
+        b : int 
+            blue
+
+    Returns
+    ----------
+        out : tuple
+        Tuple of (r,g,b)
+    '''
+    if r < 255:
+        r += 1
+    else:
+        if g < 255:
+            g += 1
+            r = 0
+        else:
+            if b < 255:
+                b += 1
+                g = 0
+                r = 0
+            else:
+                return None
+    return (r, g, b)
+
+
+def polygon_to_mask(
+    gdf: GeoDataFrame,
+    shape: tuple,
+    layer: int,
+) -> ArrayLike:
+    '''GeoJson Polygons to masks in a TIF.
+
+    Parameters
+    ----------
+        gdf : GeoDataFrame
+            path to geojson(.gz) or geodataframe.
+        shape : tuple
+            Shape of the image the Polygons belong to.
+        layer : int
+            Layer to keep.
+
+    Retruns
+    ----------
+        out : ArrayLike
+            Masks in numpy-array.
+    '''
+    r, g, b = (0,)*3
+    img = np.zeros(shape, np.uint8)
+    if type(layer) is int:
+        gds = gdf[gdf['layer'] == layer]['geometry']
+    else:
+        gds = gdf['geometry']
+    for mpg in gds:
+        for lr in mpg.geoms:
+            pl = np.array(list(lr.exterior.coords))
+            cv2.fillPoly(img, np.int32([pl]), (r, g, b))
+            r, g, b = check_colour(r, g, b)
+    return img
+
+
+def wrap_ptm(
+    polygons: Union[str, os.PathLike, GeoDataFrame],
+    output_path: Union[str, os.PathLike],
+    shape: tuple,
+    mode: str = None,
+) -> None:
+    '''A wrapper for polygon_to_mask.
+
+    Parameters
+    ----------
+        polygons : Path
+            Path to the geojson file or GeoDataFrame.
+        output_path : Path
+            Path to the dir to save the masks under.
+        shape : tuple
+            Shape of the corresponding groundtruth or known area shape.
+
+    Returns
+    ----------
+        out : None
+            Saves masks as `.tif` in output_dir.
+    '''
+    if Path(polygons).suffix == '.gz':
+        with gzip.open(polygons) as file:
+            gdf = gpd.read_file(file)
+    elif Path(polygons).suffix == 'geojson':
+        gdf = gpd.read_file(polygons)
+    elif type(polygons) is GeoDataFrame:
+        gdf = polygons
+    else:
+        print('input not path nor GeoDataFrame.')
+
+    try:
+        layers = max(gdf['layer'])
+        for layer in range(layers+1):
+            mask = polygon_to_mask(gdf, shape, layer)
+            tifffile.imwrite(
+                output_path / f'prediction_l{layer}.tif',
+                mask
+            )
+    except KeyError:
+        mask = polygon_to_mask(gdf, shape, layer=None)
+        if mode != None:
+            file = output_path / 'prediction_{mode}.tif'
+        else:
+            file = output_path / 'prediction.tif'
+        tifffile.imwrite(
+            file,
+            mask
+        )
 
 
 def wrapper_cs(
@@ -273,7 +398,7 @@ def cross_eval(
 
     gts = []
     labels = []
-
+    
     for method in methods:
         if method == 'proseg':
             files = [
@@ -288,8 +413,18 @@ def cross_eval(
                     f'{results}/{method}/output/{section}'
                 )
                 shape = (1250, 1650)
-                prepare_ProSeg(polygons_path, output_path, shape)
-
+                wrap_ptm(polygons_path, output_path, shape)
+        if method == 'segger':
+            for mode in ['cell', 'nucleus']:
+                file = f'boundaries_{mode}.geojson'
+                polygons_path = Path(
+                    f'{results}/{method}/output/{section}/{file}'
+                )
+                output_path = Path(
+                    f'{results}/{method}/output/'
+                )
+                shape = (1250, 1650)
+                wrap_ptm(polygons_path, output_path, shape, mode=mode)
         files = list(
             Path(
                 f'{results}/{method}/output/{section}/'
@@ -327,146 +462,27 @@ def cross_eval(
     return res, labels
 
 
-def check_colour(
-    r: int,
-    g: int,
-    b: int
-) -> tuple:
-    '''Gives a new rgb colour-tuple, incremented by 1.
+# def plot_precision_recall(precision, recall, methods, sample_ids):
+#     points = {m: [] for m in methods}
 
-    Parameters
-    ----------
-        r : int
-            red
-        g : int
-            green
-        b : int 
-            blue
+#     for sid in sample_ids:
+#         for i, rad in enumerate(radii):
+#             for m in methods:
+#                 p = precision[sid][rad][m]
+#                 r = recall[sid][rad][m]
+#                 points[m].append((r, p))
 
-    Returns
-    ----------
-        out : tuple
-        Tuple of (r,g,b)
-    '''
-    if r < 255:
-        r += 1
-    else:
-        if g < 255:
-            g += 1
-            r = 0
-        else:
-            if b < 255:
-                b += 1
-                g = 0
-                r = 0
-            else:
-                return None
-    return (r, g, b)
+#     fig, ax = plt.subplots(1, len(methods), figsize=(20, 2))
+#     fig.text(0.5, -0.1, 'precision', ha='center', va='center')
+#     fig.text(0.1, 0.5, 'recall', ha='center', va='center', rotation='vertical')
+#     for method, a in zip(methods, fig.axes):
+#         a.set_xlim(0.3, 1)
+#         a.set_ylim(0.5, 1)
+#         a.set_title(method)
 
+#         xs = [x for x, y in points[method]]
+#         ys = [y for x, y in points[method]]
 
-def polygon_to_mask(
-    gdf: GeoDataFrame,
-    shape: tuple,
-    layer: int,
-) -> ArrayLike:
-    '''GeoJson Polygons to masks in a TIF.
-
-    Parameters
-    ----------
-        gdf : GeoDataFrame
-            path to geojson(.gz) or geodataframe.
-        shape : tuple
-            Shape of the image the Polygons belong to.
-        layer : int
-            Layer to keep.
-
-    Retruns
-    ----------
-        out : ArrayLike
-            Masks in numpy-array.
-    '''
-    r, g, b = (0,)*3
-    img = np.zeros(shape, np.uint8)
-    if type(layer) is int:
-        gds = gdf[gdf['layer'] == layer]['geometry']
-    else:
-        gds = gdf['geometry']
-    for mpg in gds:
-        for lr in mpg.geoms:
-            pl = np.array(list(lr.exterior.coords))
-            cv2.fillPoly(img, np.int32([pl]), (r, g, b))
-            r, g, b = check_colour(r, g, b)
-    return img
-
-
-def prepare_ProSeg(
-    polygons: Union[str, os.PathLike, GeoDataFrame],
-    output_path: Union[str, os.PathLike],
-    shape: tuple
-) -> None:
-    '''A wrapper for polygon_to_mask.
-
-    Parameters
-    ----------
-        polygons : Path
-            Path to the geojson file or GeoDataFrame.
-        output_path : Path
-            Path to the dir to save the masks under.
-        shape : tuple
-            Shape of the corresponding groundtruth or known area shape.
-
-    Returns
-    ----------
-        out : None
-            Saves masks as `.tif` in output_dir.
-    '''
-    if Path(polygons).suffix == '.gz':
-        with gzip.open(polygons) as file:
-            gdf = gpd.read_file(file)
-    elif Path(polygons).suffix == 'geojson':
-        gdf = gpd.read_file(polygons)
-    elif type(polygons) is GeoDataFrame:
-        gdf = polygons
-    else:
-        print('input not path nor GeoDataFrame.')
-
-    try:
-        layers = max(gdf['layer'])
-        for layer in range(layers+1):
-            mask = polygon_to_mask(gdf, shape, layer)
-            tifffile.imwrite(
-                output_path / f'prediction_l{layer}.tif',
-                mask
-            )
-    except KeyError:
-        mask = polygon_to_mask(gdf, shape, layer=None)
-        tifffile.imwrite(
-            output_path / 'prediction.tif',
-            mask
-        )
-
-
-def plot_precision_recall(precision, recall, methods, sample_ids):
-    points = {m: [] for m in methods}
-
-    for sid in sample_ids:
-        for i, rad in enumerate(radii):
-            for m in methods:
-                p = precision[sid][rad][m]
-                r = recall[sid][rad][m]
-                points[m].append((r, p))
-
-    fig, ax = plt.subplots(1, len(methods), figsize=(20, 2))
-    fig.text(0.5, -0.1, 'precision', ha='center', va='center')
-    fig.text(0.1, 0.5, 'recall', ha='center', va='center', rotation='vertical')
-    for method, a in zip(methods, fig.axes):
-        a.set_xlim(0.3, 1)
-        a.set_ylim(0.5, 1)
-        a.set_title(method)
-
-        xs = [x for x, y in points[method]]
-        ys = [y for x, y in points[method]]
-
-        sns.kdeplot(x=xs, y=ys, clip=(0, 1), ax=a)
-        a.scatter(xs, ys)
-    plt.show()
+#         sns.kdeplot(x=xs, y=ys, clip=(0, 1), ax=a)
+#         a.scatter(xs, ys)
+#     plt.show()
