@@ -76,6 +76,7 @@ tomlkit = "*"
 seaborn = "*"
 shapely = "*"
 geopandas = "*"
+psutil = "*"
 
 [feature.free.target.linux-64.pypi-dependencies]
 aicsimageio = ">=4.14.0, <5"
@@ -323,8 +324,7 @@ cudf-cu12 = "==24.10.*"
 cuml-cu12 = "==24.10.*"
 cugraph-cu12 = "==24.10.*"
 cupy-cuda12x = ">=12.2,<13.0"
-segger = { git = "https://github.com/dpeerlab/segger.git", rev = '98765aaacc3e62eba8a3a9f80fc35222d1a831ba' }
-# rev = "f7b39b1612aec1940fa0a45106e8bc1944a82129" }
+segger = { git = "https://github.com/dpeerlab/segger.git", rev = 'f7b39b1612aec1940fa0a45106e8bc1944a82129' }
 
 
 [feature.stardist]

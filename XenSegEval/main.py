@@ -43,6 +43,9 @@ if __name__ == '__main__':
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
 
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
+
     if (
         (sections is None or gt_path is None)
         and tasks['evaluate'] is True
@@ -51,9 +54,6 @@ if __name__ == '__main__':
             'No section and/or ground truth provided for evaluation.'
             ' Please check "[preprocessing]".'
         )
-
-    variables = get_config_args(config, 'main')
-    globals().update(variables)
 
     gpu = sbatch_kwargs['gpu']
     mem = sbatch_kwargs['mem']

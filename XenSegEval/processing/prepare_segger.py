@@ -2,17 +2,13 @@ from XenSegEval.utils import (
     get_config_args,
     get_section_coords
 )
-from XenSegEval.processing import (
-    wrap_parquet_actions
+from XenSegEval.processing.utils import (
+    wrap_table_actions
 )
 
 import multiprocessing as mp
 from pathlib import Path
-import configparser
-import functools
 import argparse
-import sys
-import os
 
 import tomlkit
 import json
@@ -32,10 +28,16 @@ if __name__ == '__main__':
         default='config.toml',
         help='Path to the config file.'
     )
+    parser.add_argument(
+        '-m', '--Mode',
+        choices=['cell', 'nucleus'],
+        help='The segmentation mode of segger.'
+    )
 
     args = parser.parse_args()
 
     config_path = args.Config
+    mode = args.Mode
 
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
@@ -43,26 +45,27 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'segger')
     globals().update(variables)
 
+    path = Path(
+        f'{results}/{mode}/cell_boundaries.parquet'
+    )
     for section in sections:
-        for mode in method['prediction']['prediction-mode']:
-            table = pq.read_table(
-                f'{results}/{mode}/cell_boundaries.parquet'
-            )
-            gdf = wrap_parquet_actions(table, filter_type='wkb')
+        section_dict = section_dictionary[section]
+        sub_gdf = wrap_table_actions(
+            path, action='location', 
+            section_dict=section_dict, 
+            pixelsize_xy=pixelsizeXY
+        )
+        print(sub_gdf)
+        out = Path(f'{results}/{section}')
+        out.mkdir(parents=True, exist_ok=True)
+        sub_geoj = sub_gdf.to_json()
+        with open(out/f'boundaries_{mode}.geojson', 'w') as f:
+            f.write(sub_geoj)
 
-            if 'cell_id' in gdf.columns:
-                gdf.drop('cell_id', axis=1)
-
-            x_coords, y_coords = get_section_coords(section_dictionary, section)
-            x_min, x_max = x_coords
-            y_min, y_max = y_coords
-            polygon = shapely.Polygon([
-                (x_min, y_min), (x_max, y_min),
-                (x_min, y_max), (x_max, y_max),
-            ])
-            check = gdf['geometry'].within(polygon)
-            sub_gdf = gdf[check]
-            sub_gdf.to_file(
-                f'{results}/segger/output/{section}/boundaries_{mode}.geojson',
-                driver='GEOJson'
-            )
+        sub_gdf_relative = wrap_table_actions(
+            sub_gdf, action='relative',
+            section_dict=section_dict
+        )
+        sub_geoj_relative = sub_gdf_relative.to_json()
+        with open(out/f'relative_boundaries_{mode}.geojson', 'w') as f:
+            f.write(sub_geoj_relative)

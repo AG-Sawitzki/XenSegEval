@@ -56,8 +56,8 @@ if __name__ == '__main__':
 
     run = Path(f'{home}/{sample_name}/run/')
 
-    for section in sections:
-        if CROSS['use']:
+    if CROSS['use']:
+        for section in sections:
             metric = str(CROSS['metric'])
             if metric.istitle():
                 benchmark = 'u4n'
@@ -81,7 +81,6 @@ if __name__ == '__main__':
             np.save(path + '.npy', res)
             with open(path, 'w') as f: 
                 f.write(' '.join(labels))
-
             # if plot:
             #     fig, ax = plt.subplots()
 

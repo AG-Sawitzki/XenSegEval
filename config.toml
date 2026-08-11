@@ -286,11 +286,11 @@ segmentation-loss-weight-end = 0.5
 
 [methods.segger.export]
 output = ['anndata', 'boundaries', 'transcripts']
-method = 'delauny'
+method = 'delaunay'
 chaikin-iterations= 0
-include-all-transcript = true
+include-all-transcripts = true
 # min-similarity = 
-min-transcript = 10
+min-transcripts = 10
 
 [methods.stardist]
 # no configuration available.
@@ -346,11 +346,12 @@ mesmer = '#785ef0'
 proseg = '#648fff'
 segger = '#ba5e3e'
 stardist = '#79ab59'
+xenium = '#6E006E'
 
 [plotting.cmap]
-color1 = '#002552'
-color2 = '#004d9b'
-color3 = '#ffffff'
-color4 = '#ffdf43'
-color5 = '#fab600'
-color6 = '#e31f2c'
+charite-dunkelblau = '#002552'
+charite-blau = '#004d9b'
+weiss = '#ffffff'
+charite-rapsgeld = '#ffdf43'
+charite-mango = '#fab600'
+charite-rot = '#e31f2c'

@@ -1,3 +1,9 @@
+from XenSegEval.utils import (
+    get_config_args,
+)
+from XenSegEval.eval.utils import (
+    mean_cross_eval,
+)
 from XenSegEval.plotting.utils import (
     heatmap,
     annotate_heatmap,
@@ -8,8 +14,12 @@ from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
+import tomlkit
 
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import (
+    ListedColormap,
+    LinearSegmentedColormap,
+)
 
 if __name__ == '__main__':
     choices = ['all', 'f1', 'seg', 'jaccard', 'dice', 'PQ', 'F1', 'Jaccard']
@@ -57,8 +67,11 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'plot')
     globals().update(variables)
 
-    cmap = ListedColormap([h for _, h in cmap.items()])
-
+    nodes = [0.0, 0.3, 0.4, 0.5, 0.75, 1.0]
+    cmap = LinearSegmentedColormap.from_list(
+        'charite',
+        list(zip(nodes, [h for _, h in cmap.items()][::-1]))
+    )
     if metric == 'all':
         metrics = choices[1:]
     else:
@@ -69,22 +82,38 @@ if __name__ == '__main__':
             benchmark = 'u4n'
         else:
             benchmark = 'cs'
-        path = Path(
-            f'{results}/{metric}_{benchmark}'
-            f'_cross_evaluation_{section}'
+        # path = Path(
+        #     f'{results}/{metric}_{benchmark}'
+        #     f'_cross_evaluation_{section}'
+        # )
+        # arr_path = path + '.npy'
+        arr_path = Path(
+            '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/cross_evaluation_newmem.npy'
         )
-        arr_path = path + '.npy'
-        if path.is_file():
+        if arr_path.is_file():
             cross_res = np.load(arr_path, allow_pickle=True)
-            with open(path, 'r') as f:
-                labels = f.load()
-                labels = labels.split(' ')
-
+            # with open(path, 'r') as f:
+            #     labels = f.load()
+            #     labels = labels.split(' ')
+            labels = [
+                'cpsam5', 'cpsam6', 'cpsam7', 
+                'dinocell', 'dissect', 
+                'mesmerMEM', 'mesmerMT', 'mesmerRB', 
+                'proseg', 'proseg0', 'proseg1', 
+                'proseg2', 'proseg3', 
+                'stardist5', 'stardist6', 'stardist7'
+            ]
+            avg_hori, avg_vert, cross_with_avg = mean_cross_eval(
+                cross_res,
+                methods,
+                labels
+            )
+            labels.append('avg')
             fig, ax = plt.subplots()
 
             im, cbar = heatmap(
-                cross_res, labels, labels, ax=ax,
-                cmap=cmap, cbarlabel=CROSS['metric']
+                cross_with_avg, labels, labels, ax=ax,
+                cmap=cmap, cbarlabel=metric
             )
             texts = annotate_heatmap(im, valfmt='{x:.1f}')
             fig.tight_layout()

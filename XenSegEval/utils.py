@@ -18,6 +18,15 @@ from typing import Any, Union
 from pathlib import PosixPath
 
 
+def depth(
+    d: dict
+) -> int:
+    if isinstance(d, dict):
+        return 1 + (max(map(depth, d.values())) if d else 0)
+    return 0
+
+
+
 def get_memory_usage_percentage() -> float:
     """Get the memory usage as percentage.
 
@@ -59,7 +68,7 @@ def get_section_coords(
                 dictionary = json.load(file)
     
     assert type(dictionary) is dict, \
-        f'dictionary is wrong type: {type(dictionary)}'
+        f'Input is wrong type: {type(dictionary)}'
     assert type(key) is str, f'key is not str: {type(key)}'
 
     coords = dictionary[key]
@@ -266,6 +275,11 @@ def get_config_args(
         section_dictionary=section_dictionary
     ))
 
+    if gt_path:
+        variables.update(dict(
+            gt_path=gt_path,
+        ))
+
     if method in methods:
         results = Path(results / f'{method}/output/')
         results.mkdir(parents=True, exist_ok=True)
@@ -278,7 +292,6 @@ def get_config_args(
     else:
         if method == 'eval':
             variables.update(dict(
-                gt_path=gt_path,
                 methods=methods,
                 PD=evaluation['pd'],
                 PCA=evaluation['pca'],

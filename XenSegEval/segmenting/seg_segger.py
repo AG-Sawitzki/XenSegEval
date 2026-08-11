@@ -91,8 +91,6 @@ def get_arguments_segger(
 
     arguments = in_out + node + transcripts + prediction + tiling + model + loss
 
-    print(arguments)
-
     segment_cmd = ' '.join(arguments)
     segment_cmd = ' '.join((base, segment_cmd))
 
@@ -131,7 +129,6 @@ if __name__ == "__main__":
     globals().update(variables)
 
     for mode in method['prediction']['prediction-mode']:
-        print(f'Predicting {mode}.')
         segment_cmd, export_cmd = get_arguments_segger(
             method=method,
         )
@@ -144,14 +141,17 @@ if __name__ == "__main__":
         input_output = f'-i {data_path} -o {out}'
         segment_cmd = ' '.join((segment_cmd, input_output))
 
-        seggerT = subprocess.Popen(segment_cmd, shell=True)
-        seggerT.wait()
+        print(f'Predicting {mode}.')
+        # seggerT = subprocess.Popen(segment_cmd, shell=True)
+        # seggerT.wait()
 
         input_output = ' '.join((f' -s {out}/segger_segmentation.parquet', input_output))
         export_cmd = ' '.join((export_cmd, input_output))
-        exportT = subprocess.Popen(export_cmd, shell=True)
-        exportT.wait()
+        print(f'Exporting for {mode}.')
+        # exportT = subprocess.Popen(export_cmd, shell=True)
+        # exportT.wait()
 
-        prepare_cmd = 'python -m XenSegEval.processing.prepare_segger'
+        print(f'Preparing GeoJSON for {mode}.')
+        prepare_cmd = f'python -m XenSegEval.processing.prepare_segger -m {mode}'
         prepareT = subprocess.Popen(prepare_cmd, shell=True)
         prepareT.wait()

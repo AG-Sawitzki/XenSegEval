@@ -30,10 +30,40 @@ import cv2
 import matplotlib.pyplot as plt
 
 # types
-from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
 from typing import Any, Union
 from pathlib import PosixPath
+
+TABLE = pa.lib.Table
+GDF = gpd.geodataframe.GeoDataFrame
+PDF = pl.dataframe.frame.DataFrame
+DF = pd.DataFrame
+
+
+def mean_cross_eval(
+    arr,
+    methods,
+    labels,
+):
+    avg = []
+    avgT = []
+    for method in methods:
+        indices = [
+            i for i,x in enumerate(labels) if method in x
+        ]
+        for i in indices:
+            a = arr[i]
+            aT = arr.T[i]
+            a = np.delete(a, indices, axis=0)
+            aT = np.delete(aT, indices, axis=0)
+            avg = np.append(avg, np.mean(a))
+            avgT = np.append(avgT, np.mean(aT))
+    avg = np.expand_dims(avg, axis=1)
+    avgT = np.append(avgT, np.nan)
+    avgT = np.expand_dims(avgT, axis=0)
+    arr = np.hstack((arr, avg))
+    arr = np.vstack((arr, avgT))
+    return avg, avgT, arr
 
 
 def check_colour(
@@ -74,7 +104,7 @@ def check_colour(
 
 
 def polygon_to_mask(
-    gdf: GeoDataFrame,
+    gdf: GDF,
     shape: tuple,
     layer: int,
 ) -> ArrayLike:
@@ -109,7 +139,7 @@ def polygon_to_mask(
 
 
 def wrap_ptm(
-    polygons: Union[str, os.PathLike, GeoDataFrame],
+    polygons: Union[str, os.PathLike, GDF],
     output_path: Union[str, os.PathLike],
     shape: tuple,
     mode: str = None,
@@ -133,9 +163,9 @@ def wrap_ptm(
     if Path(polygons).suffix == '.gz':
         with gzip.open(polygons) as file:
             gdf = gpd.read_file(file)
-    elif Path(polygons).suffix == 'geojson':
+    elif Path(polygons).suffix == '.geojson':
         gdf = gpd.read_file(polygons)
-    elif type(polygons) is GeoDataFrame:
+    elif isinstance(gdf, GDF):
         gdf = polygons
     else:
         print('input not path nor GeoDataFrame.')
@@ -150,7 +180,7 @@ def wrap_ptm(
             )
     except KeyError:
         mask = polygon_to_mask(gdf, shape, layer=None)
-        if mode != None:
+        if mode:
             file = output_path / 'prediction_{mode}.tif'
         else:
             file = output_path / 'prediction.tif'
@@ -231,11 +261,7 @@ def wrapper_af1(
     dt: ArrayLike,
     gt: ArrayLike,
     method: str = 'cross'
-) -> tuple[
-    pd.core.frame.DataFrame,
-    pd.core.frame.DataFrame,
-    pd.core.frame.DataFrame,
-]:
+) -> tuple[GDF, GDF, GDF]:
     '''Wrapper for carpenterlab's evalutaion. See [12] in README.md.
     Parameters
     ----------
@@ -364,6 +390,8 @@ def cross_eval(
     metric: str = 'f1',
     benchmark: str = 'cs',
     threshold: int = 0.5,
+    gt_path: Union[str, os.PathLike, PosixPath] = None,
+    xenium: bool = False,
 ) -> tuple[ArrayLike, list]:
     '''Evaluate each mask against every other.
 
@@ -398,7 +426,29 @@ def cross_eval(
 
     gts = []
     labels = []
-    
+
+    if gt_path:
+        gt = tifffile.imread(gt_path)
+        shape = gt.shape()
+        labels.append('GT')
+    else:
+        files = list(
+            Path(f'{results}/{methods[0]}/output/{section}/').glob(
+                'prediction*.tif'
+            )
+        )
+        img = tifffile.imread(files[0])
+        shape = img.shape[:2]
+        print(
+            f'No GT given. Using {methods[0]} as example for shape: ', shape
+        )
+
+    if xenium:
+        output_path = Path(f'{results}/xenium/output/{section}')
+        file = 'cell_polygons.geojson'
+        wrap_ptm(output_path / file, output_path, shape)
+        labels.append('xenium')
+
     for method in methods:
         if method == 'proseg':
             files = [
@@ -412,18 +462,16 @@ def cross_eval(
                 output_path = Path(
                     f'{results}/{method}/output/{section}'
                 )
-                shape = (1250, 1650)
                 wrap_ptm(polygons_path, output_path, shape)
         if method == 'segger':
             for mode in ['cell', 'nucleus']:
                 file = f'boundaries_{mode}.geojson'
-                polygons_path = Path(
-                    f'{results}/{method}/output/{section}/{file}'
-                )
                 output_path = Path(
-                    f'{results}/{method}/output/'
+                    f'{results}/{method}/output/{section}/'
                 )
-                shape = (1250, 1650)
+                polygons_path = Path(
+                    output_path / f'{file}'
+                )
                 wrap_ptm(polygons_path, output_path, shape, mode=mode)
         files = list(
             Path(

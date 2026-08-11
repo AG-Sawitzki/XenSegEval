@@ -1313,6 +1313,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pillow-12.3.0-py312h50c33e8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pixman-0.46.4-h54a6638_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/proj-9.8.1-he0df7b0_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/psutil-7.2.2-py312h5253ce2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pthread-stubs-0.4-hb9d3cd8_1002.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pyogrio-0.13.0-py312hdb6ebaa_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pyproj-3.7.2-py312hbc8341d_4.conda
@@ -1648,7 +1649,7 @@ environments:
       - conda: https://conda.anaconda.org/nvidia/noarch/cuda-nvcc-dev_linux-64-12.9.86-0.conda
       - conda: https://conda.anaconda.org/nvidia/noarch/cuda-nvvm-dev_linux-64-12.9.86-0.conda
       - conda: https://conda.anaconda.org/nvidia/noarch/cuda-version-12.9-h4f385c5_4.conda
-      - pypi: git+https://github.com/dpeerlab/segger.git?rev=98765aaacc3e62eba8a3a9f80fc35222d1a831ba#98765aaacc3e62eba8a3a9f80fc35222d1a831ba
+      - pypi: git+https://github.com/dpeerlab/segger.git?rev=f7b39b1612aec1940fa0a45106e8bc1944a82129#f7b39b1612aec1940fa0a45106e8bc1944a82129
       - pypi: https://data.pyg.org/whl/torch-2.5.0%2Bcu121/torch_scatter-2.1.2%2Bpt25cu121-cp311-cp311-linux_x86_64.whl
       - pypi: https://data.pyg.org/whl/torch-2.5.0%2Bcu121/torch_sparse-0.6.18%2Bpt25cu121-cp311-cp311-linux_x86_64.whl
       - pypi: https://download-r2.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-linux_x86_64.whl
@@ -12874,7 +12875,7 @@ packages:
   run_exports: {}
   size: 7189
   timestamp: 1724179791784
-- pypi: git+https://github.com/dpeerlab/segger.git?rev=98765aaacc3e62eba8a3a9f80fc35222d1a831ba#98765aaacc3e62eba8a3a9f80fc35222d1a831ba
+- pypi: git+https://github.com/dpeerlab/segger.git?rev=f7b39b1612aec1940fa0a45106e8bc1944a82129#f7b39b1612aec1940fa0a45106e8bc1944a82129
   name: segger
   version: 0.1.0
   requires_dist:
@@ -12893,6 +12894,7 @@ packages:
   - scikit-image
   - scikit-learn
   - tifffile
+  - tqdm
   requires_python: '>=3.11'
 - pypi: git+https://github.com/facebookresearch/dinov3#346f38fee679c56a6888f91c51670fae61d364e0
   name: dinov3
