@@ -142,13 +142,21 @@ if __name__ == '__main__':
 
     focus_path = Path(f'{processed}/{section}/morphology/focus/')
 
+
     mask_path = f'{results}/{method}/output/{section}/'
 
+    files = sorted(Path(mask_path).glob('prediction*.tif'))
+    if method in ['segger', 'xenium']:
+        masks = [tifffle.imread(mask) for mask in files]
+        masks = [np.array([masks])]
+    else:
+        masks = [tifffile.imread(mask) for mask in files]
+
     #if PCA['use'] and method in PCA_CAPABLE:
-    with open(
-        './XenSegEval/eval/pca.pickle', 'rb'
-    ) as pkl:
-        pca = pickle.load(pkl)
+    # with open(
+    #     './XenSegEval/eval/pca.pickle', 'rb'
+    # ) as pkl:
+    #     pca = pickle.load(pkl)
 
     img = tifffile.imread(focus_path / 'focus.ome.tif')
     print(img.shape)
@@ -188,34 +196,20 @@ if __name__ == '__main__':
     # print(img.data)
     print(img.metadata)
 
-    for file in sorted(Path(mask_path).glob('prediction*.tif')):
-        print(file)
-
-        dir_name = file.stem.replace('prediction', '')
-
-        if dir_name != '':
-            outdir = Path(
-                f'{home}/{sample_name}/results/{method}/'
-                f'evaluation/{section}/{dir_name}'
-            )
-        else:
-            outdir = Path(
-                f'{home}/{sample_name}/results/{method}/evaluation/{section}'
-            )
-
+    for i, mask in enumerate(masks):
+        outdir = mask_path.parents[1] / 'evaluation'
         outdir.mkdir(parents=True, exist_ok=True)
 
-        #if PCA['use'] and method in PCA_CAPABLE:
-        mask = tifffile.imread(file)
         mask = np.squeeze(mask, )
         mask = mask.astype(np.int32)
         # mask = AICSImage(
         #     file,
         #     reader=tiff_reader.TiffReader
         # )
+        new_file = Path(files[i].parent / f'aics_{files[i].name}')
         writer.save(
             mask,
-            uri=Path(file.parent / f'aics_{file.name}'),
+            uri=new_file,
             dim_order='CYX',
             image_name=f'{method}_{file.stem}',
             # channel_names=[
@@ -239,7 +233,7 @@ if __name__ == '__main__':
         # )
         output = read_and_eval_seg(
             focus_path / 'aics.ome.tif',
-            file.parent / f'aics_{file.name}',
+            new_file,
             PCA_model='2Dv1.5',
             outdir=(
                 f'{outdir}'

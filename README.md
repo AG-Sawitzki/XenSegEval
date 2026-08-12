@@ -69,7 +69,7 @@ After cloning and changing to the XenSegEval directory run the following command
 ```
 pixi shell -e dissect
 pip install --extra-index-url https://miropsota.github.io/torch_packages_builder detectron2==0.6+fd27788pt2.4.0cu124
-uv pip install "dissect-st>=0.5.4,<0.6"
+pip install "dissect-st>=0.5.4,<0.6"
 ```
 This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
 
@@ -90,8 +90,10 @@ This repository can prepare and segment on Xenium v2, and soon v3, output. If a 
 
 The preprocessing steps can be performed without pre-defined ROIs, but **for the evaluation a json file with coordinates** must be provided. Structured as below.
 ```
-{"name":
-    [[y0, x0], [y1, x1]]
+{"name": {
+    "x": [x0, x1], 
+    "y": [y0, y1],
+    }
 }
 ```
 Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]` or include the `--Section` flag when starting `XenSegEval.main`.

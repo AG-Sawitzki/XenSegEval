@@ -1,3 +1,6 @@
+from XenSegEval.processing.utils import (
+    wrap_ptm
+)
 # for jaccard
 from XenSegEval.eval.unet4nuclei.evaluation import (
     compute_af1_results,
@@ -19,6 +22,9 @@ import pickle
 import functools
 from pathlib import Path
 import multiprocessing as mp
+
+import polars as pl
+import pyarrow as pa
 
 import pandas as pd
 import numpy as np
@@ -63,131 +69,7 @@ def mean_cross_eval(
     avgT = np.expand_dims(avgT, axis=0)
     arr = np.hstack((arr, avg))
     arr = np.vstack((arr, avgT))
-    return avg, avgT, arr
-
-
-def check_colour(
-    r: int,
-    g: int,
-    b: int
-) -> tuple:
-    '''Gives a new rgb colour-tuple, incremented by 1.
-
-    Parameters
-    ----------
-        r : int
-            red
-        g : int
-            green
-        b : int 
-            blue
-
-    Returns
-    ----------
-        out : tuple
-        Tuple of (r,g,b)
-    '''
-    if r < 255:
-        r += 1
-    else:
-        if g < 255:
-            g += 1
-            r = 0
-        else:
-            if b < 255:
-                b += 1
-                g = 0
-                r = 0
-            else:
-                return None
-    return (r, g, b)
-
-
-def polygon_to_mask(
-    gdf: GDF,
-    shape: tuple,
-    layer: int,
-) -> ArrayLike:
-    '''GeoJson Polygons to masks in a TIF.
-
-    Parameters
-    ----------
-        gdf : GeoDataFrame
-            path to geojson(.gz) or geodataframe.
-        shape : tuple
-            Shape of the image the Polygons belong to.
-        layer : int
-            Layer to keep.
-
-    Retruns
-    ----------
-        out : ArrayLike
-            Masks in numpy-array.
-    '''
-    r, g, b = (0,)*3
-    img = np.zeros(shape, np.uint8)
-    if type(layer) is int:
-        gds = gdf[gdf['layer'] == layer]['geometry']
-    else:
-        gds = gdf['geometry']
-    for mpg in gds:
-        for lr in mpg.geoms:
-            pl = np.array(list(lr.exterior.coords))
-            cv2.fillPoly(img, np.int32([pl]), (r, g, b))
-            r, g, b = check_colour(r, g, b)
-    return img
-
-
-def wrap_ptm(
-    polygons: Union[str, os.PathLike, GDF],
-    output_path: Union[str, os.PathLike],
-    shape: tuple,
-    mode: str = None,
-) -> None:
-    '''A wrapper for polygon_to_mask.
-
-    Parameters
-    ----------
-        polygons : Path
-            Path to the geojson file or GeoDataFrame.
-        output_path : Path
-            Path to the dir to save the masks under.
-        shape : tuple
-            Shape of the corresponding groundtruth or known area shape.
-
-    Returns
-    ----------
-        out : None
-            Saves masks as `.tif` in output_dir.
-    '''
-    if Path(polygons).suffix == '.gz':
-        with gzip.open(polygons) as file:
-            gdf = gpd.read_file(file)
-    elif Path(polygons).suffix == '.geojson':
-        gdf = gpd.read_file(polygons)
-    elif isinstance(gdf, GDF):
-        gdf = polygons
-    else:
-        print('input not path nor GeoDataFrame.')
-
-    try:
-        layers = max(gdf['layer'])
-        for layer in range(layers+1):
-            mask = polygon_to_mask(gdf, shape, layer)
-            tifffile.imwrite(
-                output_path / f'prediction_l{layer}.tif',
-                mask
-            )
-    except KeyError:
-        mask = polygon_to_mask(gdf, shape, layer=None)
-        if mode:
-            file = output_path / 'prediction_{mode}.tif'
-        else:
-            file = output_path / 'prediction.tif'
-        tifffile.imwrite(
-            file,
-            mask
-        )
+    return arr, avg, avgT
 
 
 def wrapper_cs(
@@ -427,52 +309,47 @@ def cross_eval(
     gts = []
     labels = []
 
-    if gt_path:
-        gt = tifffile.imread(gt_path)
-        shape = gt.shape()
-        labels.append('GT')
-    else:
-        files = list(
-            Path(f'{results}/{methods[0]}/output/{section}/').glob(
-                'prediction*.tif'
-            )
-        )
-        img = tifffile.imread(files[0])
-        shape = img.shape[:2]
-        print(
-            f'No GT given. Using {methods[0]} as example for shape: ', shape
-        )
+    processed = Path(f'{results}').parent / 'processed'
+    file = Path(f'{processed}/{section}/morphology/focus.ome.tif')
+    img = tifffile.imread(file)
+    shape = img.shape[:2]
 
-    if xenium:
-        output_path = Path(f'{results}/xenium/output/{section}')
-        file = 'cell_polygons.geojson'
-        wrap_ptm(output_path / file, output_path, shape)
-        labels.append('xenium')
+    # if gt_path:
+    #     gt = tifffile.imread(gt_path)
+    #     labels.append('GT')
+
+    # if xenium:
+    #     output_path = Path(f'{results}/xenium/output/{section}')
+    #     file = 'cell_polygons.geojson'
+    #     wrap_ptm(output_path / file, output_path, shape)
+    #     labels.append('xenium')
+
+    methods = list(methods).append('xenium')
 
     for method in methods:
-        if method == 'proseg':
-            files = [
-                'cell-polygons.geojson.gz',
-                'cell-polygons_layers.geojson.gz'
-            ]
-            for file in files:
-                polygons_path = Path(
-                    f'{results}/{method}/output/{section}/{file}'
-                )
-                output_path = Path(
-                    f'{results}/{method}/output/{section}'
-                )
-                wrap_ptm(polygons_path, output_path, shape)
-        if method == 'segger':
-            for mode in ['cell', 'nucleus']:
-                file = f'boundaries_{mode}.geojson'
-                output_path = Path(
-                    f'{results}/{method}/output/{section}/'
-                )
-                polygons_path = Path(
-                    output_path / f'{file}'
-                )
-                wrap_ptm(polygons_path, output_path, shape, mode=mode)
+        # if method == 'proseg':
+        #     files = [
+        #         'cell-polygons.geojson.gz',
+        #         'cell-polygons_layers.geojson.gz'
+        #     ]
+        #     for file in files:
+        #         polygons_path = Path(
+        #             f'{results}/{method}/output/{section}/{file}'
+        #         )
+        #         output_path = Path(
+        #             f'{results}/{method}/output/{section}'
+        #         )
+        #         wrap_ptm(polygons_path, output_path, shape)
+        # if method == 'segger':
+        #     for mode in ['cell', 'nucleus']:
+        #         file = f'boundaries_{mode}.geojson'
+        #         output_path = Path(
+        #             f'{results}/{method}/output/{section}/'
+        #         )
+        #         polygons_path = Path(
+        #             output_path / f'{file}'
+        #         )
+        #         wrap_ptm(polygons_path, output_path, shape, mode=mode)
         files = list(
             Path(
                 f'{results}/{method}/output/{section}/'
@@ -488,7 +365,7 @@ def cross_eval(
             gts.append(np.squeeze(gt))
 
             if method != 'dinocell':
-                labels.append(method + path.stem[-3:])
+                labels.append(method + path.stem[path.rfind('_'):])
             else:
                 labels.append(method)
 

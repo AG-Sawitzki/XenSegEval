@@ -4,9 +4,10 @@ name = 'Normann-BPh'
 mail = 'philomina-lillie.normann@bih-charite.de'
 
 [tasks]
-preprocess = false
-segment = false
+preprocess = true
+segment = true
 evaluate = true
+plot = true
 
 [paths]
 # directory the processed data will be saved to
@@ -35,7 +36,7 @@ x = 51096
 
 [sbatch]
 # sbatch job specifications
-gpu = 'gpu:h200:1'
+gpu = 'gpu:1'
 # time in days
 time = 2
 # RAM in gigabyte
@@ -335,8 +336,7 @@ threshold = 0.5
 [plotting]
 cross = true
 bars = true
-# not yet implemented
-overlay = false
+overlay = true
 
 [plotting.colors]
 cpsam = '#ffb000'

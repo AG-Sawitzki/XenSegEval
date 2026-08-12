@@ -111,8 +111,6 @@ def get_arguments(
 
     arguments = outputs + general + model + diffusion
 
-    print(arguments)
-
     cmd = ' '.join(arguments)
     cmd = ' '.join((base, cmd))
 
@@ -136,6 +134,8 @@ if __name__ == "__main__":
     variables = get_config_args(config, 'proseg')
     globals().update(variables)
 
+    subprocesses = []
+
     for section in sections:
         cmd = get_arguments(
             results=results,
@@ -150,4 +150,14 @@ if __name__ == "__main__":
         proseg_cmd = ' '.join((cmd, SRT_path))
 
         print(proseg_cmd)
-        subprocess.Popen(proseg_cmd, shell=True)
+        subprocesses.append(
+            subprocess.Popen(proseg_cmd, shell=True)
+        )
+    for p in subprocesses:
+        p.wait()
+
+    subprocess.Popen(
+        ('pixi run python -m XenSegEval.processing.polygon_to_mask'
+         ' -m proseg'),
+        shell=True
+    )

@@ -46,7 +46,7 @@ if __name__ == '__main__':
             'Which metric(1) to load and plot for.'
             ' lower case and PQ are from `cs`'
             ' upper case are from `u4n`'
-            ' enter `all` to plot for all metrics'
+            ' enter `all` to plot for all metrics available'
         )
     )
     parser.add_argument(
@@ -82,28 +82,28 @@ if __name__ == '__main__':
             benchmark = 'u4n'
         else:
             benchmark = 'cs'
-        # path = Path(
-        #     f'{results}/{metric}_{benchmark}'
-        #     f'_cross_evaluation_{section}'
-        # )
-        # arr_path = path + '.npy'
-        arr_path = Path(
-            '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/cross_evaluation_newmem.npy'
+        path = Path(
+            f'{results}/{metric}_{benchmark}'
+            f'_cross_evaluation_{section}'
         )
+        arr_path = path + '.npy'
+        # arr_path = Path(
+        #     '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/cross_evaluation_newmem.npy'
+        # )
         if arr_path.is_file():
             cross_res = np.load(arr_path, allow_pickle=True)
-            # with open(path, 'r') as f:
-            #     labels = f.load()
-            #     labels = labels.split(' ')
-            labels = [
-                'cpsam5', 'cpsam6', 'cpsam7', 
-                'dinocell', 'dissect', 
-                'mesmerMEM', 'mesmerMT', 'mesmerRB', 
-                'proseg', 'proseg0', 'proseg1', 
-                'proseg2', 'proseg3', 
-                'stardist5', 'stardist6', 'stardist7'
-            ]
-            avg_hori, avg_vert, cross_with_avg = mean_cross_eval(
+            with open(path, 'r') as f:
+                labels = f.load()
+                labels = labels.split(' ')
+            # labels = [
+            #     'cpsam5', 'cpsam6', 'cpsam7', 
+            #     'dinocell', 'dissect', 
+            #     'mesmerMEM', 'mesmerMT', 'mesmerRB', 
+            #     'proseg', 'proseg0', 'proseg1', 
+            #     'proseg2', 'proseg3', 
+            #     'stardist5', 'stardist6', 'stardist7'
+            # ]
+            cross_with_avg, avg_hori, avg_vert = mean_cross_eval(
                 cross_res,
                 methods,
                 labels

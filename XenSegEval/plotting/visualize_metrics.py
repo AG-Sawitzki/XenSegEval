@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Metrics')
     parser.add_argument(
         '-b', '--Benchmark',
-        default='',
+        default=None,
         help=(
             'Which evaluation methods metrics to plot.'
             ' `u4n`, `cs` or none.If none do both.'

@@ -14,9 +14,19 @@ PCA_CAPABLE = [
     # 'dissect',
     'mesmer',
     # 'proseg',
-    # 'stardist'
+    # 'stardist',
+    'segger',
+    'xenium'
 ]
 '''LIST OF CURRENTLY SUPPORTED ALGORITHMS FOR CSEs PCA analysis'''
+
+TO_MASK = [
+    'proseg',
+    'segger',
+    'xenium'
+]
+'''LIST OF ALGORITHMS THAT ONLY PROVIDE POLYGONS AS OUTPUT.'''
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -99,13 +109,14 @@ if __name__ == '__main__':
 
         if include_xenium:
             cmd = (
-                'pixi run python -m XenSegEval.processing.prepare_xenium-seg'
+                'pixi run python -m XenSegEval.processing.prepare_xenium'
                 f' -c {config_path}'
             )
             sbatch_kwargs['cmd'] = cmd
-            pX = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
             print('Preparing Xenium Boundaries.')
-
+            pX = subprocess.Popen(submit_sbatch(**sbatch_kwargs), shell=True)
+            
+            pX.wait()
         pI.wait()
         pT.wait()
 
@@ -116,7 +127,7 @@ if __name__ == '__main__':
         for method in config['methods']:
             cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
             if method == 'segger':
-                cmd = f'bash XenSegEval/start/{method}.sh {data_path} {results}/{method}/output/'
+                cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
             sbatch_kwargs['cmd'] = cmd
             if method in ['dissect', 'segger']:
                 sbatch_kwargs['mem'] = 128
@@ -131,6 +142,26 @@ if __name__ == '__main__':
         for p in seg:
             p.wait()
 
+    masking = []
+    for method in TO_MASK:
+        cmd = f'pixi run -m XenSegEval.processing.polygon_to_mask -m {method}'
+        sbatch_kwargs['cmd'] = cmd
+        masking.append(
+            subprocess.Popen(
+                submit_sbatch(**sbatch_kwargs),
+                shell=True
+            )
+        )
+    for p in masking:
+        p.wait()
+
+    polygoning = []
+    for method in methods:
+        if method not in TO_MASK:
+            cmd = ('pixi run -m XenSegEval.processing.mask_to_polygon'
+                   f' -m {method}')
+
+
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
@@ -139,7 +170,7 @@ if __name__ == '__main__':
                 if JACCARD or CS_BENCH:
                     cmd = (
                         f'pixi run -e eval'
-                        f' python -m XenSegEval.eval.eval'
+                        f' python -m XenSegEval.eval.masked.eval'
                         f' -c {config_path} -m {method}'
                     )
                     sbatch_kwargs['cmd'] = cmd
@@ -153,7 +184,7 @@ if __name__ == '__main__':
                     for section in sections:
                         cmd = (
                             f'pixi run -e free'
-                            f' python -m XenSegEval.eval.free'
+                            f' python -m XenSegEval.eval.free.free'
                             f' -c {config_path} -m {method} -s {section}'
                         )
                         sbatch_kwargs['cmd'] = cmd
@@ -166,7 +197,7 @@ if __name__ == '__main__':
         if CROSS:
             cmd = (
                 f'pixi run -e eval'
-                f' python -m XenSegEval.eval.cross'
+                f' python -m XenSegEval.eval.cross.cross'
                 f' -c {config_path}'
             )
             sbatch_kwargs['cmd'] = cmd
@@ -178,6 +209,37 @@ if __name__ == '__main__':
             )
 
         for p in evl:
+            p.wait()
+
+    if tasks['plot']:
+        cmds = []
+        plots = []
+        if PLOT['cross']:
+            for section in sections:
+                cmd.append(
+                    f'pixi run python -m XenSegEval.plotting.visualize_cross_eval'
+                    f' -c {config_path} -m {CROSS_METRIC} -s {section}'
+                )
+        if PLOT['bars']:
+            for section in sections:
+                cmd.append(
+                    f'pixi run python -m XenSegEval.plotting.visualize_metrics'
+                    f' -s {section}'
+                )
+        if PLOT['overlay']:
+            for section in sectins:
+                for method in methods:
+                    cmd.append(
+                        f'pixi run python -m XenSegEval.plotting.visualize_segmentation'
+                        f' - '
+                    )
+        for cmd in cmds:
+            plots.append(
+                subprocess.Popen(
+                    cmd, shell=True
+                )
+            )
+        for p in plots:
             p.wait()
 
     print('done :3')

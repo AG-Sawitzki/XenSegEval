@@ -59,13 +59,12 @@ if __name__ == '__main__':
         out = Path(f'{results}/{section}')
         out.mkdir(parents=True, exist_ok=True)
         sub_geoj = sub_gdf.to_json()
-        with open(out/f'boundaries_{mode}.geojson', 'w') as f:
-            f.write(sub_geoj)
 
         sub_gdf_relative = wrap_table_actions(
             sub_gdf, action='relative',
             section_dict=section_dict
         )
+        print('Relative')
         sub_geoj_relative = sub_gdf_relative.to_json()
-        with open(out/f'relative_boundaries_{mode}.geojson', 'w') as f:
+        with open(out/f'{mode}_polygons.geojson', 'w') as f:
             f.write(sub_geoj_relative)

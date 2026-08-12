@@ -142,14 +142,14 @@ if __name__ == "__main__":
         segment_cmd = ' '.join((segment_cmd, input_output))
 
         print(f'Predicting {mode}.')
-        # seggerT = subprocess.Popen(segment_cmd, shell=True)
-        # seggerT.wait()
+        seggerT = subprocess.Popen(segment_cmd, shell=True)
+        seggerT.wait()
 
         input_output = ' '.join((f' -s {out}/segger_segmentation.parquet', input_output))
         export_cmd = ' '.join((export_cmd, input_output))
         print(f'Exporting for {mode}.')
-        # exportT = subprocess.Popen(export_cmd, shell=True)
-        # exportT.wait()
+        exportT = subprocess.Popen(export_cmd, shell=True)
+        exportT.wait()
 
         print(f'Preparing GeoJSON for {mode}.')
         prepare_cmd = f'python -m XenSegEval.processing.prepare_segger -m {mode}'

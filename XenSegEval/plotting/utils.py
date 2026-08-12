@@ -21,6 +21,8 @@ from matplotlib.axes._axes import Axes
 from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
 
+GDF = gpd.geodataframe.GeoDataFrame
+
 
 def hex_to_rgb(
     color: str
@@ -371,18 +373,15 @@ def polygon_overlay(
     polygons: Union[str, os.PathLike, PosixPath, GeoDataFrame],
     img: Union[str, os.PathLike, PosixPath, ArrayLike],
     output_path: Union[str, os.PathLike, PosixPath],
-    fig,
-    ax,
-    pixelsize_xy=0.2125,
+    fig: Figuer,
+    ax: Axes,
+    pixelsize_xy: float,
     **kwargs
 ) -> None:
-    if ax is None:
-        ax = plt.gca()
-
-    if type(polygons) is not GeoDataFrame:
-        if Path(polygons).suffix == '.gz':
-            with gzip.open(polygons) as file:
-                gdf = gpd.read_file(file)
+    if not isinstance(polygons, GDF):
+        if '.gz' in polygons.suffixes:
+            with gzip.open(polygons) as f:
+                gdf = gpd.read_file(f)
         else:
             gdf = gpd.read_file(polygons)
     else:
@@ -412,7 +411,7 @@ def polygon_overlay(
 
     ax.set_aspect('equal', 'box')
 
-    size = dimx/10
+    size = dimx/100
     length = np.round(size*pixelsize_xy, 0)
 
     asb = AnchoredSizeBar(
@@ -438,5 +437,5 @@ def polygon_overlay(
     fig.tight_layout()
     fig.savefig(
         Path(output_path),
-        dpi=250, bbox_inches='tight', pad_inches=0.0
+        dpi=100, bbox_inches='tight', pad_inches=0.0
     )

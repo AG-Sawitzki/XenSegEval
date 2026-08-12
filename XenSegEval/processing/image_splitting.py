@@ -2,6 +2,7 @@ from XenSegEval.utils import (
     get_config_args,
     get_memory_usage_percentage,
     get_section_coords,
+    get_section_dims
 )
 
 from itertools import product
@@ -298,8 +299,8 @@ if __name__ == '__main__':
 
         for section in section_dictionary.keys():
             coords = get_section_coords(section_dictionary, section)
-            x_min, x_max = bbox[0]
-            y_min, y_max = bbox[1]
+            x_min, x_max = coords[0]
+            y_min, y_max = coords[1]
             height, width = get_section_dims(section_dictionary, section)
             resolution = (height, width)
 

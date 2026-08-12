@@ -15,7 +15,6 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='boundaries')
     parser.add_argument(
