@@ -4,10 +4,12 @@ name = 'Normann-BPh'
 mail = 'philomina-lillie.normann@bih-charite.de'
 
 [tasks]
-preprocess = true
-segment = true
-evaluate = true
+preprocess = false
+segment = false
+skip_prepare = true
+evaluate = false
 plot = true
+
 
 [paths]
 # directory the processed data will be saved to
@@ -23,6 +25,7 @@ gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole
 # at least one must have the same coordinates
 # as the gt-masks
 sections_path = 'gt_section.json'
+gt_name = 'newmem'
 
 
 [ImageStats]
@@ -293,13 +296,13 @@ include-all-transcripts = true
 # min-similarity = 
 min-transcripts = 10
 
+
 [methods.stardist]
 # no configuration available.
 
 
-#[methods.ucs]
-# check_gene_map = false
-
+[methods.xenium]
+# 
 
 [evaluation]
 include_xenium = true
@@ -314,7 +317,7 @@ use = false
 
 # principal components
 [evaluation.pca]
-use = true
+use = false
 
 # not implemented yet
 	# probability density
@@ -334,9 +337,9 @@ threshold = 0.5
 
 
 [plotting]
-cross = true
+cross = false
 bars = true
-overlay = true
+overlay = false
 
 [plotting.colors]
 cpsam = '#ffb000'
@@ -346,7 +349,7 @@ mesmer = '#785ef0'
 proseg = '#648fff'
 segger = '#ba5e3e'
 stardist = '#79ab59'
-xenium = '#6E006E'
+xenium = '#6e006e'
 
 [plotting.cmap]
 charite-dunkelblau = '#002552'

@@ -145,7 +145,7 @@ if __name__ == "__main__":
             pixelsizeXY=pixelsizeXY
         )
 
-        SRT_path = f'{processed}/{section}/transcripts/relative.csv.gz'
+        SRT_path = f'{processed}/{section}/transcripts/relative.parquet'
 
         proseg_cmd = ' '.join((cmd, SRT_path))
 

@@ -1,4 +1,4 @@
-from XenSegEval.utils import get_config_args, mask_to_polygons
+from XenSegEval.utils import get_config_args 
 from XenSegEval.plotting.utils import polygon_overlay
 
 import gzip
@@ -44,7 +44,28 @@ if __name__ == '__main__':
 
     mask_path = Path(f'{results}/{method}/output/{section}/')
 
-    for file in sorted(Path(mask_path).glob(f'*.geojson*')):
+    files = sorted(Path(mask_path).glob(f'*.geojson*'))
+
+    gdfs = []
+    labels = []
+
+    if method == 'proseg':
+        for file in files:
+            with gzip.open(file) as f:
+                gdf = gpd.read_file(f)
+            if 'layer' in gdf.columns:
+                for layer in set(gdf['layer']):
+                    gdfs.append(gdf[gdf['layer']==layer])
+                    labels.append(file.stem+str(layer))
+            else:
+                gdfs.append(gdf)
+                labels.append(file.stem+'all')
+    else:
+        for file in files:
+            gdfs.append(gpd.read_file(file))
+            labels.append(file.stem)
+
+    for i, gdf in enumerate(gdfs):
         output_path = Path(f'{results}/{method}/visualisation/')
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -52,7 +73,7 @@ if __name__ == '__main__':
 
         polygon_overlay(
             gdf, img,
-            Path(output_path) / f'outline_{method}_{file.stem}.png',
+            Path(output_path) / f'outline_{method}_{labels[i]}.png',
             fig, ax,
             pixelsize_xy=pixelsizeXY
         )

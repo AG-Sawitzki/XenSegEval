@@ -9,13 +9,15 @@ import tomlkit
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
+    choices = ['both', 'u4n', 'cs']
     parser = argparse.ArgumentParser(prog='Metrics')
     parser.add_argument(
         '-b', '--Benchmark',
         default=None,
+        choices=choices,
         help=(
             'Which evaluation methods metrics to plot.'
-            ' `u4n`, `cs` or none.If none do both.'
+            ' `u4n`, `cs` or none. If none do both.'
         )
     )
     parser.add_argument(
@@ -40,22 +42,19 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'plot')
     globals().update(variables)
 
-    benchmarks = ['cs', 'u4n']
-
-    fig, ax = plt.subplots()
-
-    if benchmark in benchmarks:
-            bar_compare_eval(
-                methods, results, section,
-                fig, ax, colors,
-                benchmark
-            )
-    elif not benchmark:
+    if benchmark in choices:
+        if benchmark == 'both':
+            benchmarks = choices[1:]
+        else:
+            benchmarks = [benchmark]
         for benchmark in benchmarks:
+            fig, ax = plt.subplots()
             bar_compare_eval(
                 methods, results, section,
                 fig, ax, colors,
                 benchmark
             )
     else:
-        print(f'Given benchmark not available. Choose from {benchmarks}')
+        print(f'Given benchmark not available. Choose from {choices}')
+
+    

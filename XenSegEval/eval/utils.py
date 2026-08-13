@@ -98,7 +98,9 @@ def wrapper_cs(
             object_metrics in DataFrame.
         If `outdir` given then saved as json.
     '''
+    print('starting')
     if type(dt) is list:
+        # print('is list')
         dt_x = np.array([
             np.squeeze(i) for i in dt
         ])
@@ -107,6 +109,7 @@ def wrapper_cs(
             gt for i in range(len(dt))
         ])
     else:
+        # print('is single')
         dt = np.squeeze(dt)
         dt_x = np.expand_dims(dt, axis=0)
         gt = np.squeeze(gt)
@@ -115,13 +118,13 @@ def wrapper_cs(
 
     gt_x = np.int64(gt_x)
     dt_x = np.int64(dt_x)
-
+    # print('could convert')
     # outdir = Path(outdir)
 
     pm = Metrics(method)
 
     object_metrics = pm.calc_object_stats(gt_x, dt_x)
-
+    # print('could calc')
     results = pd.DataFrame(data=object_metrics, dtype=float)
 
     # if outdir is not None:
@@ -166,13 +169,13 @@ def wrapper_af1(
     gt = np.squeeze(gt)
 
     assert gt.shape == dt.shape, 'DT and GT differ in shape.'
-
+    # print('are same shape')
     dt_l = label(dt)
     gt_l = label(gt)
 
     dt_rl = relabel_sequential(dt_l)[0]
     gt_rl = relabel_sequential(gt_l)[0]
-
+    # print('relabled')
     results = pd.DataFrame(
         columns=[
             'Method', 'Threshold', 'F1',
@@ -208,7 +211,7 @@ def wrapper_af1(
         split_merges,
         method
     )
-
+    # print('got all clacs done')
     return results, false_negatives, split_merges
 
 
@@ -310,7 +313,7 @@ def cross_eval(
     labels = []
 
     processed = Path(f'{results}').parent / 'processed'
-    file = Path(f'{processed}/{section}/morphology/focus.ome.tif')
+    file = Path(f'{processed}/{section}/morphology/focus/focus.ome.tif')
     img = tifffile.imread(file)
     shape = img.shape[:2]
 
@@ -324,7 +327,8 @@ def cross_eval(
     #     wrap_ptm(output_path / file, output_path, shape)
     #     labels.append('xenium')
 
-    methods = list(methods).append('xenium')
+    methods = list(methods)
+    methods.append('xenium')
 
     for method in methods:
         # if method == 'proseg':
@@ -365,7 +369,7 @@ def cross_eval(
             gts.append(np.squeeze(gt))
 
             if method != 'dinocell':
-                labels.append(method + path.stem[path.rfind('_'):])
+                labels.append(method + path.stem[str(path).rfind('_'):])
             else:
                 labels.append(method)
 

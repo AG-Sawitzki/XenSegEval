@@ -65,11 +65,13 @@ if __name__ == '__main__':
         y, x = mask.shape
 
         if x < w:
-            add = np.zeros((y, w-x))
+            add = np.zeros((y, w-x), dtype=np.int64)
+            arr = np.astype(arr, np.int64)
             arr = np.hstack((arr, add), dtype=np.int64)
             y, x = arr.shape
         if y < h:
-            add = np.zeros((h-y, x))
+            add = np.zeros((h-y, x), dtype=np.int64)
+            arr = np.astype(arr, np.int64)
             arr = np.vstack((arr, add), dtype=np.int64)
 
         np.save(

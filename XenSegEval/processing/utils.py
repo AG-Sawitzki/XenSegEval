@@ -145,7 +145,7 @@ def wrap_ptm(
             gdf = gpd.read_file(file)
     elif Path(polygons).suffix == '.geojson':
         gdf = gpd.read_file(polygons)
-    elif isinstance(gdf, GDF):
+    elif isinstance(polygons, GDF):
         gdf = polygons
     else:
         print('input not path nor GeoDataFrame.')
@@ -184,7 +184,6 @@ def pixelate(
             (pl.col(columns[1]) / pixelsize_xy).round(0),
         )
         table = table.update(pixeled)
-        # print(table)
     if isinstance(table, GDF):
         geometry = table['geometry'].transform(
             lambda x: (x * np.array([
@@ -211,9 +210,7 @@ def filter_by_location(
             var_min, var_max = coords
             expr = ((pl.col(column)).is_in(np.arange(var_min, var_max+1,1)))
             table = table.filter(expr)
-            # print(table)
     if isinstance(table, GDF):
-        # print(table['geometry'])
         x_min, x_max = coords['x']
         y_min, y_max = coords['y']
         polygon = Polygon([
@@ -225,7 +222,6 @@ def filter_by_location(
         table = table[check]
         if table.index.name in table.columns:
             table.drop(table.index.name, axis=1, inplace=True)
-        # print('sub_table:', table)
     return table
 
 
@@ -366,6 +362,77 @@ def prepare_xenium_parquets(
 
 
 # function form cellpose.utils
+def get_outline_multi(args):
+    """
+    Get the outline of a specific mask in a multi-mask image.
+
+    Args:
+        args (tuple): A tuple containing the masks and the mask number.
+
+    Returns:
+        numpy.ndarray: The outline of the specified mask as an array of coordinates.
+
+    """
+    masks, n = args
+    mn = masks == n
+    if mn.sum() > 0:
+        contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
+                                    method=cv2.CHAIN_APPROX_NONE)
+        contours = contours[-2]
+        cmax = np.argmax([c.shape[0] for c in contours])
+        pix = contours[cmax].astype(int).squeeze()
+        return pix if len(pix) > 4 else np.zeros((0, 2))
+    return np.zeros((0, 2))
+
+
+# function form cellpose.utils
+def outlines_list_multi(masks, num_processes=None):
+    """
+    Get outlines of masks as a list to loop over for plotting.
+
+    Args:
+        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
+
+    Returns:
+        list: List of outlines as pixel coordinates.
+    """
+    if num_processes is None:
+        num_processes = cpu_count()
+    unique_masks = np.unique(masks)[1:]
+    with Pool(processes=num_processes) as pool:
+        outpix = pool.map(get_outline_multi, [(masks, n) for n in unique_masks])
+    return outpix
+
+
+# function form cellpose.utils
+def outlines_list_single(masks):
+    """
+    Get outlines of masks as a list to loop over for plotting.
+
+    Args:
+        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
+
+    Returns:
+        list: List of outlines as pixel coordinates.
+
+    """
+    outpix = []
+    for n in np.unique(masks)[1:]:
+        mn = masks == n
+        if mn.sum() > 0:
+            contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
+                                        method=cv2.CHAIN_APPROX_NONE)
+            contours = contours[-2]
+            cmax = np.argmax([c.shape[0] for c in contours])
+            pix = contours[cmax].astype(int).squeeze()
+            if len(pix) > 4:
+                outpix.append(pix)
+            else:
+                outpix.append(np.zeros((0, 2)))
+    return outpix
+
+
+# function form cellpose.utils
 def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
     """
     Get outlines of masks as a list to loop over for plotting.
@@ -402,77 +469,6 @@ def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
         return outlines_list_single(masks)
 
 
-# function form cellpose.utils
-def outlines_list_single(masks):
-    """
-    Get outlines of masks as a list to loop over for plotting.
-
-    Args:
-        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
-
-    Returns:
-        list: List of outlines as pixel coordinates.
-
-    """
-    outpix = []
-    for n in np.unique(masks)[1:]:
-        mn = masks == n
-        if mn.sum() > 0:
-            contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
-                                        method=cv2.CHAIN_APPROX_NONE)
-            contours = contours[-2]
-            cmax = np.argmax([c.shape[0] for c in contours])
-            pix = contours[cmax].astype(int).squeeze()
-            if len(pix) > 4:
-                outpix.append(pix)
-            else:
-                outpix.append(np.zeros((0, 2)))
-    return outpix
-
-
-# function form cellpose.utils
-def outlines_list_multi(masks, num_processes=None):
-    """
-    Get outlines of masks as a list to loop over for plotting.
-
-    Args:
-        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
-
-    Returns:
-        list: List of outlines as pixel coordinates.
-    """
-    if num_processes is None:
-        num_processes = cpu_count()
-    unique_masks = np.unique(masks)[1:]
-    with Pool(processes=num_processes) as pool:
-        outpix = pool.map(get_outline_multi, [(masks, n) for n in unique_masks])
-    return outpix
-
-
-# function form cellpose.utils
-def get_outline_multi(args):
-    """
-    Get the outline of a specific mask in a multi-mask image.
-
-    Args:
-        args (tuple): A tuple containing the masks and the mask number.
-
-    Returns:
-        numpy.ndarray: The outline of the specified mask as an array of coordinates.
-
-    """
-    masks, n = args
-    mn = masks == n
-    if mn.sum() > 0:
-        contours = cv2.findContours(mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
-                                    method=cv2.CHAIN_APPROX_NONE)
-        contours = contours[-2]
-        cmax = np.argmax([c.shape[0] for c in contours])
-        pix = contours[cmax].astype(int).squeeze()
-        return pix if len(pix) > 4 else np.zeros((0, 2))
-    return np.zeros((0, 2))
-
-
 # function form stackoverflow
 # adapted to return shapely Polygons
 def process_roi(npy_data, npy_base_output_path):
@@ -494,7 +490,7 @@ def process_roi(npy_data, npy_base_output_path):
     print(' - Extracting ROI')
     try:
         masks = npy_data.item().get("masks")
-    except AttributeError:
+    except:
         masks = npy_data
     masks = masks.squeeze()
     # change the index order:
@@ -502,9 +498,17 @@ def process_roi(npy_data, npy_base_output_path):
     # thus one would now how the same cell looks on different layers
     data = {'layer': [], 'name': [], 'geometry': []}
     if masks.ndim == 3:
-        for z in range(masks.shape[0]):
+        zs = min(masks.shape)
+        posZ = masks.shape.index(zs)
+        for z in range(zs):
+            if posZ == 0:
+                mask_z = masks[z,...]
+            elif posZ == 1:
+                mask_z = masks[:,z,:]
+            else:
+                mask_z = masks[...,z]
             print(f' - Layer {z}')
-            coords_list = outlines_list(masks[z,:,:])
+            coords_list = outlines_list(mask_z)
             i = 1
             for coords in coords_list:
                 data['layer'].append(z)

@@ -1,9 +1,6 @@
 from XenSegEval.utils import (
     get_config_args,
 )
-from XenSegEval.eval.utils import (
-    mean_cross_eval,
-)
 from XenSegEval.plotting.utils import (
     heatmap,
     annotate_heatmap,
@@ -86,7 +83,7 @@ if __name__ == '__main__':
             f'{results}/{metric}_{benchmark}'
             f'_cross_evaluation_{section}'
         )
-        arr_path = path + '.npy'
+        arr_path = Path(str(path) + '_avg.npy')
         # arr_path = Path(
         #     '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/cross_evaluation_newmem.npy'
         # )
@@ -103,16 +100,11 @@ if __name__ == '__main__':
             #     'proseg2', 'proseg3', 
             #     'stardist5', 'stardist6', 'stardist7'
             # ]
-            cross_with_avg, avg_hori, avg_vert = mean_cross_eval(
-                cross_res,
-                methods,
-                labels
-            )
             labels.append('avg')
             fig, ax = plt.subplots()
 
             im, cbar = heatmap(
-                cross_with_avg, labels, labels, ax=ax,
+                cross_res, labels, labels, ax=ax,
                 cmap=cmap, cbarlabel=metric
             )
             texts = annotate_heatmap(im, valfmt='{x:.1f}')

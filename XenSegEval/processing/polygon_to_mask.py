@@ -38,14 +38,15 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'boundaries')
     globals().update(variables)
 
-    path = Path(f'{results}/{method}/')
+    path = Path(f'{results}/{method}/output/')
     files = list(path.rglob('*.geojson*'))
-
+    print(files)
     processed = Path(f'{results}').parent / 'processed'
     _section_ = list(sections)[0]
-    file = Path(f'{processed}/{_section_}/morphology/focus/focus.ome.tif')
-    img = tifffile.imread(file)
+    focus_path = Path(f'{processed}/{_section_}/morphology/focus/focus.ome.tif')
+    img = tifffile.imread(focus_path)
     shape = img.shape[:2]
+    del img
 
     for file in files:
         if 'cell_' in str(file):
@@ -54,6 +55,7 @@ if __name__ == '__main__':
             mode = 'nucleus'
         else:
             mode = None
+        print(method, mode)
         wrap_ptm(
             file,
             file.parent,

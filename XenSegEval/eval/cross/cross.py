@@ -13,7 +13,8 @@ from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
     # prepare_ProSeg,
     # polygon_to_mask,
-    cross_eval
+    cross_eval,
+    mean_cross_eval
 )
 
 # import sys
@@ -75,10 +76,19 @@ if __name__ == '__main__':
 
             print(res)
 
+            cross_with_avg, avg_hori, avg_vert = mean_cross_eval(
+                res,
+                methods,
+                labels
+            )
+
+            print(cross_with_avg)
+
             path = (
                 f'{results}/{CROSS["metric"]}_cross_evaluation_{section}'
             )
             np.save(path + '.npy', res)
+            np.save(path + '_avg.npy', cross_with_avg)
             with open(path, 'w') as f: 
                 f.write(' '.join(labels))
             # if plot:

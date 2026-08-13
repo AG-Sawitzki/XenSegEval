@@ -52,8 +52,8 @@ if __name__ == '__main__':
         section_dict = section_dictionary[section]
         sub_gdf = wrap_table_actions(
             path, action='location', 
-            section_dict=section_dict, 
-            pixelsize_xy=pixelsizeXY
+            pixelsize_xy=pixelsizeXY,
+            coords=section_dict, 
         )
         print(sub_gdf)
         out = Path(f'{results}/{section}')
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
         sub_gdf_relative = wrap_table_actions(
             sub_gdf, action='relative',
-            section_dict=section_dict
+            coords=section_dict
         )
         print('Relative')
         sub_geoj_relative = sub_gdf_relative.to_json()

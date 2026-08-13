@@ -332,14 +332,14 @@ def bar_compare_eval(
     color_list = []
     labels = []
     for method in methods:
-        eval_path = f'{results}/{method}/evaluation/{section}/'
-        subdirs = list(Path(eval_path).glob('_*/'))
+        eval_path = Path(f'{results}/{method}/evaluation/{section}/')
+        subdirs = sorted(list(eval_path.glob('_*/')))
         if subdirs:
             reduce = 0.15
             for subdir in subdirs:
                 path = Path(f'{subdir}/{file}')
                 if path.is_file():
-                    label = method+'_'+subdir.stem
+                    label = method+subdir.stem
                     labels.append(label)
                     color = new_color(
                         color=colors[method],
@@ -350,11 +350,11 @@ def bar_compare_eval(
                         arr, path, vals
                     )
                     reduce += 0.15
-        else:
+        if Path(eval_path / file).is_file():
             color = hex_to_rgb(colors[method])
             color_list.append(color)
+            path = eval_path / file
             labels.append(method)
-            path = f'{eval_path}/{file}'
             arr = get_data(
                 arr, path, vals
             )
@@ -364,7 +364,7 @@ def bar_compare_eval(
         colors=color_list
     )
     ax.tick_params(axis='x', rotation=35)
-    ax.legend()
+    ax.legend(ncol=2)
     fig.tight_layout()
     fig.savefig(f'{results}/{benchmark}_bars.pdf')
 
@@ -373,7 +373,7 @@ def polygon_overlay(
     polygons: Union[str, os.PathLike, PosixPath, GeoDataFrame],
     img: Union[str, os.PathLike, PosixPath, ArrayLike],
     output_path: Union[str, os.PathLike, PosixPath],
-    fig: Figuer,
+    fig: Figure,
     ax: Axes,
     pixelsize_xy: float,
     **kwargs
@@ -400,7 +400,7 @@ def polygon_overlay(
 
     # plt.style.use('./segment_style.mplstyle ')
 
-    fz = 48
+    fz = 24
     dimy, dimx, c = img.shape
 
     fig.set_frameon(False)
@@ -411,7 +411,7 @@ def polygon_overlay(
 
     ax.set_aspect('equal', 'box')
 
-    size = dimx/100
+    size = dimx/10
     length = np.round(size*pixelsize_xy, 0)
 
     asb = AnchoredSizeBar(

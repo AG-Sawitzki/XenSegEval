@@ -1,3 +1,4 @@
+from XenSegEval.utils import get_config_args
 from XenSegEval.processing.utils import (
     process_roi
 )
@@ -32,30 +33,33 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'boundaries')
     globals().update(variables)
 
-    path = Path(f'{results}/{method}/')
-    files = list(path.rglob('*.tif'))
+    path = Path(f'{results}/{method}/output/')
+    files = list(path.rglob('prediction*.tif'))
 
     processed = Path(f'{results}').parent / 'processed'
     _section_ = list(sections)[0]
-    file = Path(f'{processed}/{_section_}/morphology/focus/focus.ome.tif')
-    img = tifffile.imread(file)
-    shape = img.shape[:2]
+    # file = Path(f'{processed}/{_section_}/morphology/focus/focus.ome.tif')
+    # img = tifffile.imread(file)
+    # shape = img.shape[:2]
 
     for file in files:
-        name = method + file.stem[file.rfind('_'):]
-        if method == mesmer:
-            for i, mode in enumerate(['cell', 'nucleus']):
-                img = tifffile.imread(file)[i, ...]
-                name = '_'.join(name, mode)
-                process_roi(
-                    img,
-                    file.parent / name,
-                )
+        stem = file.stem
+        name = ''.join(['polygons', stem[stem.rfind('_'):]])
+        name = '.'.join([name, 'geojson'])
+        print(name)
+        print(file.parent)
+        if method == 'mesmer':
+            # for i, mode in enumerate(['cell', 'nucleus']):
+            img = tifffile.imread(file)[0, ...]
+            img = np.squeeze(image)
+                # name = '_'.join([name, mode])
         else:
-            process_roi(
-                img,
-                file.parent / name,
-            )
+            img = tifffile.imread(file)
+        print(img.shape)
+        process_roi(
+            img,
+            file.parent / name,
+        )
 
 # use this for saving an overview image for the segmentation
 # and possibly as source for 

@@ -224,3 +224,17 @@ __marimo__/
 # weights
 */segmenting/dissect/*
 *.pth
+
+# membership ?
+*membership*.txt
+
+# rmm ?
+rmm_log.txt
+
+# matplotlibrc
+matplotlibrc
+
+# docs
+make_docs.sh
+Sphinx-docs/*
+docs/*

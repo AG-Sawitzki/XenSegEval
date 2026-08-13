@@ -1,6 +1,7 @@
 import os
 import gzip
 import json
+import shlex
 import psutil
 from time import sleep
 from pathlib import Path
@@ -147,18 +148,35 @@ def submit_sbatch(
         out : str
             String with which the job can be submitted
     '''
-    if cmd.partition(' ')[0] == 'bash':
-        file = cmd[cmd.find('Xen'):cmd.rfind('.sh')]
-        name = Path(file).stem
+    args = shlex.split(cmd)
+    if '-m' not in args:
+    # if args[0] == 'bash':
+        name = Path(args[1]).stem
     else:
-        file = cmd[cmd.find('Xen'):cmd.find(' -c')]
-        name = file.rpartition('.')
-        name = name[-1]
-        name = name.replace('-', '')
-        if name == 'eval':
-            name += '_'+cmd[cmd.rfind('-m')+3:]
-        if name == 'free':
-            name += '_'+cmd[cmd.rfind('-m')+3:cmd.rfind('-s')-1]
+        ms = [idx for idx, a in enumerate(args) if a == '-m']
+        module = Path(args[ms[0]+1])
+        script = str(module.suffix[1:])
+        if '-s' in args:
+            section = args[args.index('-s')+1]
+
+        if len(ms) > 1:
+            method = args[ms[1]+1]
+        else:
+            method = ''
+
+        if 'processing' in str(module):
+            name = script
+            if method:
+                name = '_'.join([method, script])
+        elif 'eval' in script:
+            name = '_'.join(['eval', method])
+        elif 'free' in script:
+            name = '_'.join(['eval', 'free', method, section])
+        elif 'cross' in script:
+            name = '_'.join(['cross', 'eval'])
+        elif 'visualize' in name:
+            metric = method
+            name = '_'.join([script, metric, section])
     with open(f'{job_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
@@ -180,9 +198,9 @@ def submit_sbatch(
         fh.writelines('. ~/.bashrc\n')
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
         fh.writelines('\n#\n')
-        fh.writelines(f'pixi run {cmd}\n')
+        fh.writelines(f'{cmd}\n')
 
-    sleep(2)
+    sleep(3)
 
     return f'sbatch {fh.name}'
 
@@ -232,6 +250,7 @@ def get_config_args(
     data_path = Path(paths['data_path'])
     sample_name = paths['sample_name']
     gt_path = Path(paths['gt_path'])
+    gt_name = paths['gt_name']
     # define sections_dictionary path
     if 'sections_path' in paths:
         sections_path = Path(paths['sections_path'])
@@ -312,6 +331,7 @@ def get_config_args(
         elif method == 'main':
             variables.update(dict(
                 tasks=config['tasks'],
+                gt_name=gt_name,
                 include_xenium=evaluation['include_xenium'],
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],

@@ -50,6 +50,8 @@ shapely = ">=2.1.2,<3"
 pandas = ">=3.0.3,<4"
 numpy = ">=2.4.6,<3"
 tqdm = "*"
+pyarrow = "*"
+polars-lts-cpu = "==1.33.1"
 
 [feature.eval.target.linux-64.pypi-dependencies]
 opencv-python = "*"
@@ -279,6 +281,7 @@ psutil = "*"
 shapely = ">=2.0.7,<3"
 tifffile = ">=2024.6.18,<2025"
 numpy = "<=1.24"
+six = "*"
 
 [feature.dissect.target.linux-64.pypi-dependencies]
 pyyaml = "*"

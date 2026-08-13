@@ -143,12 +143,20 @@ if __name__ == '__main__':
     focus_path = Path(f'{processed}/{section}/morphology/focus/')
 
 
-    mask_path = f'{results}/{method}/output/{section}/'
+    mask_path = Path(f'{results}/{method}/output/{section}/')
+    mask_path.mkdir(parents=True, exist_ok=True)
 
-    files = sorted(Path(mask_path).glob('prediction*.tif'))
+    files = sorted(mask_path.glob('prediction*.tif'))
     if method in ['segger', 'xenium']:
-        masks = [tifffle.imread(mask) for mask in files]
+        masks = [tifffile.imread(mask) for mask in files]
         masks = [np.array([masks])]
+    elif method == 'GT':
+        masks = [
+            tifffile.imread(f'{home}/labels/TMA2_13-3_whole-cell_labels.tif'),
+            tifffile.imread(f'{home}/labels/TMA2_13-3_nucleus_labels_.tif')
+        ]
+        masks = [np.array([masks])]
+        files = [Path(f'{home}/labels/TMA2_13-3_nucleus_labels_.tif')]
     else:
         masks = [tifffile.imread(mask) for mask in files]
 
@@ -197,7 +205,7 @@ if __name__ == '__main__':
     print(img.metadata)
 
     for i, mask in enumerate(masks):
-        outdir = mask_path.parents[1] / 'evaluation'
+        outdir = mask_path.parents[1] / f'evaluation/{section}'
         outdir.mkdir(parents=True, exist_ok=True)
 
         mask = np.squeeze(mask, )
@@ -211,7 +219,7 @@ if __name__ == '__main__':
             mask,
             uri=new_file,
             dim_order='CYX',
-            image_name=f'{method}_{file.stem}',
+            image_name=f'{method}_{files[i].stem}',
             # channel_names=[
             #     'cell',
             #     'nucleus'
