@@ -1,5 +1,5 @@
 # XenSegEval
-Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[13]](#13)</sup> the results if a ground-truth is provided.
+Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[13]](#13)[[14]](#14)</sup> the results if a ground-truth is provided.
 
 > [!IMPORTANT]
 > A Linux-64 system is currently strictly necessary!
@@ -33,10 +33,10 @@ Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[12]](#12)[[1
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
 | pre-trained |  | $$\color{green}\text{CellposeSAM}$$ <sup>[[3]](#3)</sup> <br> $$\color{green}\text{StarDist}$$ <sup>[[1]](#1)[[2]](#2)</sup> <br> $$\color{green}\text{Mesmer}$$ <sup>[[6]](#6)[[7]](#7)[[8]](#8)[[9]](#9)</sup> <br> $$\color{green}\text{DINOCell}$$ <sup>[[4]](#4)</sup> | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$ <sup>[[5]](#5)</sup> |
-| un-trained |  |  | $$\color{red}\text{segger}$$ <br> $$\color{orange}\text{UCS}$$ <sup>[[10]](#10)</sup> |
+| un-trained |  |  | $$\color{green}\text{segger}$$ <sup>[[12]](#12)</sup> <br> $$\color{orange}\text{UCS}$$ <sup>[[10]](#10)</sup> |
 | no-training | $$\color{green}\text{Proseg}$$ <sup>[[11]](#11)</sup> |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
 
-All those in green are currently working. Those in red have been tried and were either uninstallable (segger & SCS) or could not work with the data (ComSeg & RNA2Seg).  
+All those in green are currently working. Those in red have been tried and were either uninstallable (SCS) or could not work with the data (ComSeg & RNA2Seg).  
 "SRT based" includes those that require only the transcriptomics data.  
 "Image based" means the input contains multi-layer or single-layer (tiff) images.  
 "Mixed" are those which require both, image and transcript location.
@@ -72,7 +72,7 @@ After cloning and changing to the XenSegEval directory run the following command
 ```
 pixi shell -e dissect
 pip install --extra-index-url https://miropsota.github.io/torch_packages_builder detectron2==0.6+fd27788pt2.4.0cu124
-uv pip install dissect-st
+pip install "dissect-st>=0.5.4,<0.6"
 ```
 This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
 
@@ -85,7 +85,7 @@ The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/z
 ### Proseg
 Install Proseg by running the command below in the XenSegEval directory.
 ```
-pixi run -e proseg cargo install proseg
+pixi run -e proseg cargo install --version 3.2.0 proseg
 ```
 
 # Pipeline
@@ -93,8 +93,10 @@ This repository can prepare and segment on Xenium v2, and soon v3, output. If a 
 
 The preprocessing steps can be performed without pre-defined ROIs, but **for the evaluation a json file with coordinates** must be provided. Structured as below.
 ```
-{"name":
-    [[y0, x0], [y1, x1]]
+{"name": {
+    "x": [x0, x1], 
+    "y": [y0, y1],
+    }
 }
 ```
 Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]` or include the `--Section` flag when starting `XenSegEval.main`.
@@ -107,7 +109,7 @@ pixi run python -m XenSegEval.main
 ```
 
 ## Preprocessing
-Finds coordinates of ROIs if not provided. Splits morphology.ome.tif and morphology_focus.ome.tif, transcripts.csv, and boundaries.parquet accordingly.<br>
+Finds coordinates of ROIs if not provided. Splits morphology.ome.tif and morphology_focus.ome.tif, transcripts.parquet, and boundaries.parquet accordingly.<br>
 Run `main.py` with `[Tasks.preprocess]` set to `true` in the config.toml.<br>
 Or run the scripts seperately.
 
@@ -184,13 +186,18 @@ Jones, D.C., Elz, A.E., Hadadianpour, A. et al. (2025)<br>
 Cell simulation as cell segmentation.<br>
 [DOI:10.1038/s41592-025-02697-0](doi.org/10.1038/s41592-025-02697-0)
 
-## Evaluation-Methods
 <a id="12">[12]</a>
+Heidari, E., Moorman A., et al. (2025)<br>
+Segger: Fast and accurate cell segmentation of imaging-based spatial transcriptomics data.<br>
+[DOI:10.1101/2025.03.14.643160v1](doi.org/10.1101/2025.03.14.643160v1)
+
+## Evaluation-Methods
+<a id="13">[13]</a>
 Caicedo, Juan C., et al. (2019)<br>
 Evaluation of Deep Learning Strategies for Nucleus Segmentation in Fluorescence Images.<br>
 [DOI:10.1002/cyto.a.23863](doi.org/10.1002/cyto.a.23863)
 
-<a id="13">[13]</a>
+<a id="14">[14]</a>
 Can Shi, Jinghong Fan, Zhonghan Deng, Huanlin Liu, Qiang Kang, Yumei Li, Jing Guo, Jingwen Wang, Jinjiang Gong, Sha Liao, Ao Chen, Ying Zhang, Mei Li (2025)<br>
 CellBinDB: a large-scale multimodal annotated dataset for cell segmentation with benchmarking of universal models.<br>
 [DOI:10.1101/2024.11.20.619750](doi.org/10.1101/2024.11.20.619750)

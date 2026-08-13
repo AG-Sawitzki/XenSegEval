@@ -1,15 +1,13 @@
 import os
 import gzip
 import json
+import shlex
+import psutil
 from time import sleep
 from pathlib import Path
-from multiprocessing import cpu_count, Pool
 
 import tomlkit
 import numpy as np
-import cv2
-from shapely import Polygon
-import geopandas as gpd
 
 # types
 from numpy.typing import ArrayLike
@@ -17,71 +15,168 @@ from typing import Any, Union
 from pathlib import PosixPath
 
 
-def get_section_dims(
-    dictionary: Union[dict, str, os.PathLike, PosixPath],
+def depth(
+    d: dict
+) -> int:
+    if isinstance(d, dict):
+        return 1 + (max(map(depth, d.values())) if d else 0)
+    return 0
+
+
+
+def get_memory_usage_percentage() -> float:
+    """Get the memory usage as percentage.
+
+    Returns
+    ----------
+        out : float
+            Float of currently used memory in percentage.
+    """
+    process = psutil.Process()
+    # Total system memory in bytes
+    total_memory = psutil.virtual_memory().total
+    # Resident Set Size in bytes
+    mem_info = process.memory_info()
+    used_memory = mem_info.rss
+    # Calculate percentage
+    memory_percentage = (used_memory / total_memory) * 100
+    return memory_percentage
+
+
+def get_section_coords(
+    dictionary: Union[dict, str, os.PathLike[Any], PosixPath],
     key: str,
 ) -> tuple[int, int]:
     '''Get w,h from a dictionary organized as described in README.md
-    Args:
-        dictionary: dictionary or path to dictionary.
-        key: key/section name of coordinats.
-    Returns:
+
+    Parameters
+    ----------
+        dictionary : dict or Path
+            Dictionary or Path to a json-file containing the dictionary.
+        key : str
+            key/section name of coordinats.
+
+    Returns
+    ----------
+        height and width of given rectangle.
+    '''
+    if type(dictionary) in [str, os.PathLike, PosixPath]:
+            with open(dictionary) as file:
+                dictionary = json.load(file)
+    
+    assert type(dictionary) is dict, \
+        f'Input is wrong type: {type(dictionary)}'
+    assert type(key) is str, f'key is not str: {type(key)}'
+
+    coords = dictionary[key]
+    x_coords = coords['x']
+    y_coords = coords['y']
+
+    return x_coords, y_coords
+
+
+def get_section_dims(
+    dictionary: Union[dict, str, os.PathLike[Any], PosixPath],
+    key: str,
+) -> tuple[int, int]:
+    '''Get w,h from a dictionary organized as described in README.md
+
+    Parameters
+    ----------
+        dictionary : dict or Path
+            Dictionary or Path to a json-file containing the dictionary.
+        key : str
+            key/section name of coordinats.
+
+    Returns
+    ----------
         height and width of given rectangle.
     '''
     if type(dictionary) in [str, os.PathLike, PosixPath]:
         with open(dictionary) as file:
             dictionary = json.load(file)
 
-    assert type(dictionary) is dict, (
-        'dictionary is wrong type:'
-        f'{type(dictionary)}'
-    )
-
+    assert type(dictionary) is dict, \
+        f'dictionary is wrong type: {type(dictionary)}'
     assert type(key) is str, f'key is not str: {type(key)}'
-    coords = np.array(dictionary[key])
-    height = coords[1][0] - coords[0][0]
-    width = coords[1][1] - coords[0][1]
+
+    x_coords, y_coords = get_section_coords(dictionary, key)
+
+    width = x_coords[1] - x_coords[0]
+    height = y_coords[1] - y_coords[0]
 
     return height, width
 
 
 def submit_sbatch(
-    job_dir: Union[str, os.PathLike[Any]],
+    job_dir: Union[str, os.PathLike[Any], PosixPath],
     time: int,
     mem: int,
     cpu: int,
-    log_path: Union[str, os.PathLike[Any]],
+    log_path: Union[str, os.PathLike[Any], PosixPath],
     cmd: str,
     gpu: Union[str, None] = None,
     mail: Union[str, None] = None,
 ) -> str:
     '''Writes a job-file for sbatch and returns the command to submit it.
-    Args:
-        tempfile_dir: path to a directory
-                      where the sbatch files will be saved.
-        time: days to reserve the node for.
-        mem: how much RAM to request.
-        cpu: how many cpu-cores to request.
-        log_path: path to directory
-                  where the logs will be saved.
-        cmd: the command to run on the node.
-        gpu(optional): wether to run on a gpu node or not.
-        mail(optional): the mail-address to send sbatch updates to.
-    Returns:
-        string with which the job can be submitted
+
+    Parameters
+    ----------
+        tempfile_dir : Path
+            Path to a directory
+            Where the sbatch files will be saved.
+        time : int
+            Days to reserve the node for.
+        mem : int
+            How much RAM in GB to request.
+        cpu :  int
+            How many cpu-cores to request.
+        log_path : Path
+            Path to directory
+            Where the logs will be saved.
+        cmd : str
+            The command to run on the node.
+        gpu : str, optional
+            Wether to run on a gpu node or not.
+            Default is `None`.
+        mail : str, optional
+            The mail-address to send sbatch updates to.
+            Default is `None`.
+
+    Returns
+    ----------
+        out : str
+            String with which the job can be submitted
     '''
-    if cmd.partition(' ')[0] == 'bash':
-        file = cmd[cmd.find('Xen'):cmd.rfind('.sh')]
-        name = Path(file).stem
+    args = shlex.split(cmd)
+    if '-m' not in args:
+    # if args[0] == 'bash':
+        name = Path(args[1]).stem
     else:
-        file = cmd[cmd.find('Xen'):cmd.find(' -c')]
-        name = file.rpartition('.')
-        name = name[-1]
-        name = name.replace('-', '')
-        if name == 'eval':
-            name += '_'+cmd[cmd.rfind('-m')+3:]
-        if name == 'free':
-            name += '_'+cmd[cmd.rfind('-m')+3:cmd.rfind('-s')-1]
+        ms = [idx for idx, a in enumerate(args) if a == '-m']
+        module = Path(args[ms[0]+1])
+        script = str(module.suffix[1:])
+        if '-s' in args:
+            section = args[args.index('-s')+1]
+
+        if len(ms) > 1:
+            method = args[ms[1]+1]
+        else:
+            method = ''
+
+        if 'processing' in str(module):
+            name = script
+            if method:
+                name = '_'.join([method, script])
+        elif 'eval' in script:
+            name = '_'.join(['eval', method])
+        elif 'free' in script:
+            name = '_'.join(['eval', 'free', method, section])
+        elif 'cross' in script:
+            name = '_'.join(['cross', 'eval'])
+        elif 'visualize' in name:
+            metric = method
+            name = '_'.join([script, metric, section])
     with open(f'{job_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
@@ -103,23 +198,31 @@ def submit_sbatch(
         fh.writelines('. ~/.bashrc\n')
         fh.writelines('export PIXI_CACHE_DIR=~/scratch/.cache/pixi')
         fh.writelines('\n#\n')
-        fh.writelines(f'pixi run {cmd}\n')
+        fh.writelines(f'{cmd}\n')
 
-    sleep(2)
+    sleep(3)
 
     return f'sbatch {fh.name}'
 
 
 def get_config_args(
-    config: Union[str, os.PathLike[Any], dict],
+    config: Union[str, os.PathLike[Any], PosixPath, dict],
     method: Union[str] = ''
 ) -> dict:
     '''Return config
-    Args:
-        config: string or path to config.toml or dict of parsed config.
-        method: string of pipeline step.
-    Returns:
-        dictionary of parsed config.
+
+    Parameters
+    ----------
+        config : Path or dict
+            Path to config.toml or dict of parsed config.
+        method : str, optional
+            String of pipeline step.
+            Default is `''` (empty).
+
+    Returns
+    ----------
+        out : dict
+            Dictionary of parsed config.
     '''
     variables = dict()
 
@@ -136,6 +239,7 @@ def get_config_args(
     preprocessing = config['preprocessing']
     methods = config['methods']
     evaluation = config['evaluation']
+    plotting = config['plotting']
 
     if 'mail' in owner:
         mail = owner['mail']
@@ -146,6 +250,7 @@ def get_config_args(
     data_path = Path(paths['data_path'])
     sample_name = paths['sample_name']
     gt_path = Path(paths['gt_path'])
+    gt_name = paths['gt_name']
     # define sections_dictionary path
     if 'sections_path' in paths:
         sections_path = Path(paths['sections_path'])
@@ -185,6 +290,11 @@ def get_config_args(
         section_dictionary=section_dictionary
     ))
 
+    if gt_path:
+        variables.update(dict(
+            gt_path=gt_path,
+        ))
+
     if method in methods:
         results = Path(results / f'{method}/output/')
         results.mkdir(parents=True, exist_ok=True)
@@ -197,7 +307,6 @@ def get_config_args(
     else:
         if method == 'eval':
             variables.update(dict(
-                gt_path=gt_path,
                 methods=methods,
                 PD=evaluation['pd'],
                 PCA=evaluation['pca'],
@@ -221,164 +330,27 @@ def get_config_args(
             ))
         elif method == 'main':
             variables.update(dict(
-                tasks=config['Tasks'],
+                tasks=config['tasks'],
+                gt_name=gt_name,
+                include_xenium=evaluation['include_xenium'],
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],
                 CS_BENCH=evaluation['cs_bench']['use'],
-                CROSS=evaluation['cross']['use']
+                CROSS=evaluation['cross']['use'],
+                CROSS_METRIC=evaluation['cross']['metric'],
+                PLOT=plotting,
+            ))
+        elif method == 'plot':
+            # colors = [
+            #     methods[method]['color'] for method in methods
+            # ]
+            variables.update(dict(
+                pixelsizeXY=imagestats['pixelsize_xy'],
+                colors=plotting['colors'],
+                cmap=plotting['cmap'],
+                CROSS=evaluation['cross'],
+                methods=methods,
             ))
 
     return variables
-
-
-# function form cellpose.utils
-def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
-    '''Get outlines of masks as a list to loop over for plotting.
-    Args:
-        masks (ndarray): Array of masks.
-        multiprocessing_threshold (int, optional):
-            Threshold for enabling
-            multiprocessing. Defaults to 1000.
-        multiprocessing (bool, optional):
-            Flag to enable multiprocessing. Defaults to None.
-    Returns:
-        list: List of outlines.
-    Raises:
-        None
-    Notes:
-        - This function is a wrapper for outlines_list_single and
-          outlines_list_multi.
-        - Multiprocessing is disabled for Windows.
-    '''
-    # default to use multiprocessing if not few_masks,
-    # but allow user to override
-    if multiprocessing is None:
-        few_masks = np.max(masks) < multiprocessing_threshold
-        multiprocessing = not few_masks
-    # disable multiprocessing for Windows
-    if os.name == "nt":
-        if multiprocessing:
-            logging.getLogger(__name__).warning(
-                "Multiprocessing is disabled for Windows")
-        multiprocessing = False
-    if multiprocessing:
-        print('  - Using Multiprocessing')
-        return outlines_list_multi(masks)
-    else:
-        return outlines_list_single(masks)
-
-
-# function form cellpose.utils
-def outlines_list_single(masks):
-    '''Get outlines of masks as a list to loop over for plotting.
-    Args:
-        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
-    Returns:
-        list: List of outlines as pixel coordinates.
-
-    '''
-    outpix = []
-    for n in np.unique(masks)[1:]:
-        mn = masks == n
-        if mn.sum() > 0:
-            contours = cv2.findContours(
-                mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
-                method=cv2.CHAIN_APPROX_NONE
-            )
-            contours = contours[-2]
-            cmax = np.argmax([c.shape[0] for c in contours])
-            pix = contours[cmax].astype(int).squeeze()
-            if len(pix) > 4:
-                outpix.append(pix)
-            else:
-                outpix.append(np.zeros((0, 2)))
-    return outpix
-
-
-# function form cellpose.utils
-def outlines_list_multi(masks, num_processes=None):
-    '''Get outlines of masks as a list to loop over for plotting.
-    Args:
-        masks (ndarray): masks (0=no cells, 1=first cell, 2=second cell,...)
-    Returns:
-        list: List of outlines as pixel coordinates.
-    '''
-    if num_processes is None:
-        num_processes = cpu_count()
-    unique_masks = np.unique(masks)[1:]
-    with Pool(processes=num_processes) as pool:
-        outpix = pool.map(
-            get_outline_multi,
-            [(masks, n) for n in unique_masks]
-        )
-    return outpix
-
-
-# function form cellpose.utils
-def get_outline_multi(args):
-    '''Get the outline of a specific mask in a multi-mask image.
-    Args:
-        args (tuple): A tuple containing the masks and the mask number.
-    Returns:
-        numpy.ndarray: The outline of the specified mask as an array
-                       of coordinates.
-
-    '''
-    masks, n = args
-    mn = masks == n
-    if mn.sum() > 0:
-        contours = cv2.findContours(
-            mn.astype(np.uint8), mode=cv2.RETR_EXTERNAL,
-            method=cv2.CHAIN_APPROX_NONE
-        )
-        contours = contours[-2]
-        cmax = np.argmax([c.shape[0] for c in contours])
-        pix = contours[cmax].astype(int).squeeze()
-        return pix if len(pix) > 4 else np.zeros((0, 2))
-    return np.zeros((0, 2))
-
-
-# function form stackoverflow
-# adapted to return shapely Polygons
-def mask_to_polygons(npy_data, output_path):
-    '''Mask to Polygons in GeoDataFrame (geojson) using Cellpose.utils.
-    Args:
-        npy_data: The numpy.ndarray of the masks.
-        npy_base_output_path: Path to save the geojson.
-    Returns:
-        Nothing. Automatically saves the GDF.
-    '''
-    print(' - Extracting ROI')
-    try:
-        masks = npy_data.item().get("masks")
-    except (AttributeError, ValueError) as e:
-        masks = npy_data
-    masks = masks.squeeze()
-    # change the index order:
-    # first the cell then the layer it is on.
-    # thus one would now how the same cell looks on different layers
-    data = {'layer': [], 'name': [], 'geometry': []}
-    if masks.ndim == 3:
-        for z in range(masks.shape[0]):
-            print(f' - Layer {z}')
-            coords_list = outlines_list(masks[z, :, :])
-            i = 1
-            for coords in coords_list:
-                data['layer'].append(z)
-                data['name'].append(f'cell_{i}')
-                data['geometry'].append(Polygon(coords))
-                i += 1
-    else:
-        coords_list = outlines_list(masks)
-        i = 1
-        for coords in coords_list:
-            data['layer'].append(np.nan)
-            data['name'].append(f'cell_{i}')
-            data['geometry'].append(Polygon(coords))
-            i += 1
-    gdf = gpd.GeoDataFrame(data=data)
-    gdf.set_index(['layer', 'name'])
-    print(' - Saving GeoDataFrame')
-    gdf.to_file(output_path, driver='GeoJSON', index=True)
-    return gdf

@@ -1,5 +1,6 @@
 import os
 import gzip
+import json
 from pathlib import Path
 
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
@@ -13,10 +14,68 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from typing import Union
+from typing import Any, Union
 from pathlib import PosixPath
+from matplotlib.figure import Figure
+from matplotlib.axes._axes import Axes
 from geopandas.geodataframe import GeoDataFrame
 from numpy.typing import ArrayLike
+
+GDF = gpd.geodataframe.GeoDataFrame
+
+
+def hex_to_rgb(
+    color: str
+) -> tuple:
+    '''Turn a Hex RGB code into a tuple RGB with values between [0,1].
+    
+    Parameters
+    ----------
+        color
+            Hex string of RGB(A).
+            Alpha is possible put will be ignored.
+    Retruns
+    ----------
+        out
+            Tuple of (r, g, b) with values between [0,1].
+    '''
+    h = color.lstrip('#')
+    H = h.upper()
+    rgb = tuple(
+        int(H[i:i+2], 16) for i in (0, 2, 4)
+    )
+    rgb = tuple(c/255 for c in rgb)
+
+    return rgb
+
+
+def new_color(
+    color: Union[str, tuple],
+    reduce: float
+) -> tuple:
+    '''Reduces the brightnes of the given color by `reduce`.
+
+    Parameters
+    ----------
+        color
+            Hex string or tuple of a RGB color.
+        reduce
+            Float between [0,1]
+
+    Returns
+    ----------
+        out
+            Tuple of (r, g, b)
+    '''
+    if isinstance(color, str):
+        rgb = hex_to_rgb(color)
+    elif isinstance(color, tuple):
+        rgb = color[:3]
+    else:
+        print(f'Not a valid format. {type(color)}')
+    rgb = tuple(c*(1-reduce) for c in rgb)
+    # rgb = (c/255 for c in rgb)
+    return rgb
 
 
 def heatmap(data, row_labels, col_labels, ax=None,
@@ -57,8 +116,8 @@ def heatmap(data, row_labels, col_labels, ax=None,
     cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # Show all ticks and label them with the respective list entries.
-    ax.set_xticks(range(data.shape[1]), labels=col_labels,
-                  rotation=-30, rotation_mode="xtick")
+    ax.set_xticks(range(data.shape[1]), labels=col_labels)
+    ax.tick_params('x', labelrotation=-30, labelrotation_mode="xtick")
     ax.set_yticks(range(data.shape[0]), labels=row_labels)
 
     # Let the horizontal axes labeling appear on top.
@@ -135,112 +194,194 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-def bar_method_eval(
-    fig,
-    ax,
-    results,
-    method,
-    section
-):
-    eval_path = f'{results}/{method}/evaluation/{section}/'
-    u4n_path = f'{eval_path}/results.csv'
-    cs_path = f'{eval_path}/CS-BENCH.csv'
-    df = pd.read_csv(u4n_path)
-    if 'Method' in df.columns:
-        data = np.array(df[['F1', 'Jaccard']])
-        tick_labels = list(np.round(df['Threshold'], 2))
-    df = pd.read_csv(cs_path)
-    if len(df) == 1:
-        data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
-        tick_labels.append('cs')
-    ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
-    ax.legend()
-    ax.set_title(method)
+def get_data(
+    arr: ArrayLike,
+    path: Union[str, os.PathLike, PosixPath],
+    vals: list,
+) -> ArrayLike:
+    '''Get the metrics from a DataFrame. Append to `arr`.
 
-    return None
+    Parameters
+    ----------
+        arr
+            The array to contain the metrics for plotting.
+        path
+            Path to the DataFrame of the metrics.
+        vals
+            Values, i.e. Metrics, of interest.
 
+    Returns
+    ----------
+        out
+            `arr` with values appended.
+    '''
+    df = pd.read_csv(path)
 
-def get_data(u4n, cs, u4n_path, cs_path, u4n_val, cs_vals):
-    df_u4n = pd.read_csv(u4n_path)
-    df_cs = pd.read_csv(cs_path)
-
-    if u4n.shape == (0,):
-        u4n = np.array(df_u4n[[u4n_val]]).T
-        cs = np.array(df_cs[cs_vals])
+    if arr.shape == (0,):
+        if len(vals) > 1:
+            arr = np.array(df[vals])
+        else:
+            arr = np.array(df[vals]).T
     else:
-        data_u4n = np.array(df_u4n[[u4n_val]]).T
-        data_cs = np.array(df_cs[cs_vals])
-        u4n = np.vstack((u4n, data_u4n))
-        cs = np.vstack((cs, data_cs))
+        if len(vals) > 1:
+            data = np.array(df[vals])
+        else:
+            data = np.array(df[vals]).T
+        arr = np.vstack((arr, data))
 
-    return u4n, cs
+    return arr
+
+
+# def bar_method_eval(
+#     fig: Figure,
+#     ax: Axes,
+#     results: Union[str, os.PathLike, PosixPath],
+#     method: str,
+#     section: Union[str, int],
+# ) -> None:
+#     '''Plots the evaluation results from cs and/or u4n in a bar plot for a
+#         sepicified method.
+
+#     Parameters
+#     ----------
+#         fig : figure
+#             A figure to plot onto.
+#         ax : ax
+#             The Axes of the figure.
+#         results : Path
+#             Path to the results folder.
+#         method : str
+#             Name of the method. Same as the name in config.toml
+#         section : str or int
+#             ROI segmentation was performed on.
+
+#     Returns
+#     ----------
+#         out : None
+#             Plots the bars.
+#     '''
+#     eval_path = f'{results}/{method}/evaluation/{section}/'
+#     u4n_path = f'{eval_path}/results.csv'
+#     cs_path = f'{eval_path}/CS-BENCH.csv'
+#     tick_labels = []
+#     if Path(u4n_path).is_file():
+#         df = pd.read_csv(u4n_path)
+#         if 'Method' in df.columns:
+#             data = np.array(df[['F1', 'Jaccard']])
+#             tick_labels.append(list(np.round(df['Threshold'], 2)))
+#     else:
+#         data = np.array([np.nan, np.nan])
+
+#     if Path(cs_path).is_file():
+#         df = pd.read_csv(cs_path)
+#         if len(df) == 1:
+#             data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
+#             tick_labels.append('cs')
+#     else:
+#         data = np.vstack((data, np.array([np.nan, np.nan])))
+
+#     ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
+#     ax.legend()
+#     ax.set_title(method)
+#     fig.savefig(f'{results}/test.pdf')
 
 
 def bar_compare_eval(
-    methods,
-    results,
-    section,
-    fig_u4n,
-    fig_cs,
-    ax_u4n,
-    ax_cs,
-):
-    u4n_val = 'F1'
-    cs_vals = ['f1', 'seg', 'jaccard', 'dice', 'PQ']
+    methods: list,
+    results: Union[str, os.PathLike, PosixPath],
+    section: Union[str, int],
+    fig: Figure,
+    ax: Axes,
+    colors: dict,
+    benchmark: str = 'cs',
+) -> None:
+    '''Plot the metrics as grouped bar plots.
 
-    u4n = np.array([])
-    cs = np.array([])
+    Parameters
+    ----------
+        methods
+            List of Algorithms to compare. Must have been evaluated.
+        results
+            Results path. /.../<sample_name>/results/
+        section
+            Section name. Equivalent to the gt section.
+        fig
+            A matplotlib figure.
+        ax
+            A matplotlib axis.
+        colors
+            Dictionary of method : color. See config file.
+        benchmark
+            Evaluation method to plot. `u4n` or `cs`.
 
-    tick_labels = []
+    Returns
+    ----------
+        out
+            None. Saves the plot as a pdf in `results`.
+    '''
+    if benchmark == 'u4n':
+        vals = ['F1']
+        tick_labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
+        file = 'results.csv'
+    else:
+        vals = ['f1', 'seg', 'jaccard', 'dice', 'PQ']
+        tick_labels = vals
+        file = 'CS-BENCH.csv'
+
+    arr = np.array([])
+    color_list = []
+    labels = []
     for method in methods:
-        eval_path = f'{results}/{method}/evaluation/{section}/'
-        subdirs = list(Path(eval_path).glob('_*'))
-        if len(subdirs) != 0:
+        eval_path = Path(f'{results}/{method}/evaluation/{section}/')
+        subdirs = sorted(list(eval_path.glob('_*/')))
+        if subdirs:
+            reduce = 0.15
             for subdir in subdirs:
-                u4n_path = Path(f'{subdir}/results.csv')
-                cs_path = Path(f'{subdir}/CS-BENCH.csv')
-                if u4n_path.is_file() and cs_path.is_file():
-                    tick_labels.append(method+subdir.stem)
-                    u4n, cs = get_data(
-                        u4n, cs, u4n_path, cs_path, u4n_val, cs_vals
+                path = Path(f'{subdir}/{file}')
+                if path.is_file():
+                    label = method+subdir.stem
+                    labels.append(label)
+                    color = new_color(
+                        color=colors[method],
+                        reduce=reduce,
                     )
-        else:
-            tick_labels.append(method)
-            u4n_path = f'{eval_path}/results.csv'
-            cs_path = f'{eval_path}/CS-BENCH.csv'
-            u4n, cs = get_data(
-                u4n, cs, u4n_path, cs_path, u4n_val, cs_vals
+                    color_list.append(color)
+                    arr = get_data(
+                        arr, path, vals
+                    )
+                    reduce += 0.15
+        if Path(eval_path / file).is_file():
+            color = hex_to_rgb(colors[method])
+            color_list.append(color)
+            path = eval_path / file
+            labels.append(method)
+            arr = get_data(
+                arr, path, vals
             )
-    labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
-    ax_u4n.grouped_bar(u4n, tick_labels=tick_labels, labels=labels)
-    ax_cs.grouped_bar(cs, tick_labels=tick_labels, labels=cs_vals)
-
-    ax_u4n.tick_params(axis='x', rotation=35)
-    ax_cs.tick_params(axis='x', rotation=35)
-
-    ax_u4n.legend()
-    ax_cs.legend()
-
-    fig_u4n.savefig('/data/cephfs-1/home/users/juno12_c/test_u4n.png')
-    fig_cs.savefig('/data/cephfs-1/home/users/juno12_c/test_cs.png')
+    ax.grouped_bar(
+        arr.T,
+        tick_labels=tick_labels, labels=labels,
+        colors=color_list
+    )
+    ax.tick_params(axis='x', rotation=35)
+    ax.legend(ncol=2)
+    fig.tight_layout()
+    fig.savefig(f'{results}/{benchmark}_bars.pdf')
 
 
 def polygon_overlay(
     polygons: Union[str, os.PathLike, PosixPath, GeoDataFrame],
     img: Union[str, os.PathLike, PosixPath, ArrayLike],
     output_path: Union[str, os.PathLike, PosixPath],
-    fig,
-    ax,
-    pixelsize_xy=0.2125,
+    fig: Figure,
+    ax: Axes,
+    pixelsize_xy: float,
     **kwargs
 ) -> None:
-    if ax is None:
-        ax = plt.gca()
-
-    if type(polygons) is not GeoDataFrame:
-        if Path(polygons).suffix == '.gz':
-            with gzip.open(polygons) as file:
-                gdf = gpd.read_file(file)
+    if not isinstance(polygons, GDF):
+        if '.gz' in polygons.suffixes:
+            with gzip.open(polygons) as f:
+                gdf = gpd.read_file(f)
         else:
             gdf = gpd.read_file(polygons)
     else:
@@ -259,7 +400,7 @@ def polygon_overlay(
 
     # plt.style.use('./segment_style.mplstyle ')
 
-    fz = 48
+    fz = 24
     dimy, dimx, c = img.shape
 
     fig.set_frameon(False)
@@ -293,8 +434,8 @@ def polygon_overlay(
     gdf.boundary.plot(
         ax=ax, aspect='equal', color='white'
     )
-
+    fig.tight_layout()
     fig.savefig(
         Path(output_path),
-        dpi=250, bbox_inches='tight', pad_inches=0.0
+        dpi=100, bbox_inches='tight', pad_inches=0.0
     )

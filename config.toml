@@ -1,12 +1,15 @@
 # TOML for XenSegEval
 [owner]
 name = 'Normann-BPh'
-mail = 'julius.normann@bih-charite.de'
+mail = 'philomina-lillie.normann@bih-charite.de'
 
-[Tasks]
+[tasks]
 preprocess = false
 segment = false
-evaluate = true
+skip_prepare = true
+evaluate = false
+plot = true
+
 
 [paths]
 # directory the processed data will be saved to
@@ -18,10 +21,11 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 sample_name = 'TMA2'
 # path to ground_truth
 gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
-# path to the user-defined section
-# one must have the same coordinates
+# path to the user-defined section;
+# at least one must have the same coordinates
 # as the gt-masks
-sections_path = "mem_section.json"
+sections_path = 'gt_section.json'
+gt_name = 'newmem'
 
 
 [ImageStats]
@@ -33,10 +37,9 @@ pixelsize_z = 3.0000
 y = 64612
 x = 51096
 
-
 [sbatch]
 # sbatch job specifications
-gpu = "gpu:l40:1"
+gpu = 'gpu:1'
 # time in days
 time = 2
 # RAM in gigabyte
@@ -100,9 +103,15 @@ norm3D = true
 
 
 [methods.dinocell]
+# If installed via PyPi the algorthim 
+# has no parameters to easily define.
+# one can rewrite the main.py file in 
+# .pixi/envs/dinocell/lib/python3.14/site-packages/dinocell/
+# in line 17.
 
 
 [methods.dissect]
+# consult dissect/segmentation.py#L28 for context
 platform = 'xenium'
 # config_file = 
 # weights_file = 
@@ -127,18 +136,176 @@ stride = 128
 ratio_stride = 3
 neighbor = 8
 
+
 [methods.mesmer]
+# consult deepcell/applications/mesmer.py#L210
+batch_size = 4
+# preprocess_kwargs = {}
+compartment = 'whole-cell'
+pad_mode = 'constant'
+# preprocess_kwargs_whole_cell = {}
+# preprocess_kwargs_nuclear = {}
+# --------------------------------------
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
-[methods.proseg]
+
+[methods.proseg.general]
+# --------------------------------------
+# general options
+# --------------------------------------
+# consult https://github.com/dcjones/proseg#general-arguments
+# or run `proseg --help` in the terminal after installing
+# set to 0 to use all cores available
+nthreads = 0
+# set by the pipeline. best left empty.
+output-spatialdata = ''
+overwrite = true
+# 'planes' -> equivalent to length of preprocessing.planes
+# or if expected set to an integer(!).
+voxel-layers = 'planes'
+samples = 200
+burnin-samples = 200
+# set by the pipeline. best left empty.
+voxel-size = ''
+# set by the pipeline. best left empty.
+burnin-voxel-size = ''
+
+[methods.proseg.output]
+# --------------------------------------
+# advanced options
+# --------------------------------------
+# consult /proseg#output-arguments
+# leave `path` empty for automatic path-construction.
+path = ''
+counts = true
+expected-counts = false
+rates = false
+cell-metadata = false
+transcript-metadata = false
+gene-metadata = false
+metagene-rates = false
+metagene-loadings = false
+voxel-counts = false
+# -------------------
+cell-polygons = true
+union-cell-polygons = false
+cell-polygon-layers = true
+# --------------------------------------
+[methods.proseg.model]
+# consult /proseg#model-arguments
+min-qv = 0
+cells-per-chunk = 100
+ncomponents = 10
+nhidden = 200
+hillclimb = 50
+recorded-samples = 100
+cell-compactness = 0.04
+morphology-steps-per-iter = 4000
+nuclear-reassignment-prob = 0.2
+prior-seg-reassignment-prob = 0.5
+prior-weight = 1
+coordinate-scale = 1
+quad-size = 150
+max-transcript-nucleus-distance = 60
+burnin-dispersion = 1
+ab-nihlo-bubble-prob = 0.05
+monitor-cell-polygons-freq = 10
+nunfactored = 200
+hyperparam-e-phi = 1
+hyperparam-f-phi = 1
+hyperparam-neg-mu-phi = 1
+hyperparam-tau-phi = 0.1
+density-bandwidth = 0.5
+density-bins = 5
+# -------------------
+ignore-z-coord = false
+variable-burnin-dispersion = false
+check-consistency = false
+exclude-spatialdata-transcripts = false
+monitor-cell-polygons = false
+enforce-connectivity = false
+no-factorization = false
+include-neg-ctrls = false
+use-scaled-cells = false
+# --------------------------------------
+[methods.proseg.diffusion]
+no-diffusion = false
+diffusion-probability = 0.2
+diffusion-sigma-near = 1
+diffusion-sigma-far = 4
+diffusion-sigma-z = 0.1
+diffusion-proposal-sigma = 4
+diffusion-proposal-sigma-z = 0.2
+
+
+[methods.segger]
+# I/O set by pipeline
+save-anndata = true
+[methods.segger.node]
+node-representation-dim = 128
+cells-representation = 'pca'
+cells-min-counts = 10
+cells-clusters-n-neighbors = 10
+cells-clusters-resolution = 2.0
+genes-clusters-n-neighbors = 5
+genes-clusters-resolution = 2.0
+gene-corr-reference-path = ''
+gene-missing-strategy = ''
+
+[methods.segger.transcripts]
+transcripts-max-k = 5
+transcripts-max-dist = 5.0
+
+[methods.segger.prediction]
+prediction-mode = ['cell', 'nucleus']
+prediction-max-k = 3
+prediction-graph-buffer-ratio = 0.05
+
+[methods.segger.tiling]
+tiling-margin-training = 20.0
+tiling-margin-prediction = 20.0
+max-nodes-per-tile = 50000
+max-edges-per-batch = 1000000
+
+[methods.segger.model]
+n-epochs = 20
+n-mid-layers = 2
+n-heads = 2
+hidden-channels = 64
+out-channels = 64
+learning-rate = 0.001
+use-positional-embeddings = true
+normalize-embeddings = true
+
+[methods.segger.loss]
+segmentation-loss = 'triplet'
+transcripts-margin = 0.3
+segmentation-margin = 0.4
+transcripts-loss-weight-start = 1.0
+transcripts-loss-weight-end = 1.0
+cells-loss-weight-start = 1.0
+cells-loss-weight-end = 1.0
+segmentation-loss-weight-start = 0.0
+segmentation-loss-weight-end = 0.5
+
+[methods.segger.export]
+output = ['anndata', 'boundaries', 'transcripts']
+method = 'delaunay'
+chaikin-iterations= 0
+include-all-transcripts = true
+# min-similarity = 
+min-transcripts = 10
+
 
 [methods.stardist]
+# no configuration available.
 
-#[methods.ucs]
-# check_gene_map = false
 
+[methods.xenium]
+# 
 
 [evaluation]
+include_xenium = true
 # if a evaluation should be performed based on
 # Jaccard and related scores
 [evaluation.jaccard]
@@ -148,21 +315,46 @@ use = false
 [evaluation.cs_bench]
 use = false
 
+# principal components
+[evaluation.pca]
+use = false
+
 # not implemented yet
-	# principal components
-	[evaluation.pca]
-	use = true
-	
 	# probability density
 	[evaluation.pd]
 	use = false
 	overlay_image = false
 
 [evaluation.cross]
-use = false
-# 'cs' or 'af1'
-benchmark = 'af1'
-# choose metric according to benchmark
-metric = 'Jaccard'
-# relevant for 'af1'
+use = true
+# choose metric
+## cs: f1, seg, jaccard, dice, PQ
+## u4n: F1, Jaccard
+metric = 'dice'
+# relevant for 'u4n' metrics
+## [0.5,0.9]
 threshold = 0.5
+
+
+[plotting]
+cross = false
+bars = true
+overlay = false
+
+[plotting.colors]
+cpsam = '#ffb000'
+dinocell = '#fe6100'
+dissect = '#dc267f'
+mesmer = '#785ef0'
+proseg = '#648fff'
+segger = '#ba5e3e'
+stardist = '#79ab59'
+xenium = '#6e006e'
+
+[plotting.cmap]
+charite-dunkelblau = '#002552'
+charite-blau = '#004d9b'
+weiss = '#ffffff'
+charite-rapsgeld = '#ffdf43'
+charite-mango = '#fab600'
+charite-rot = '#e31f2c'

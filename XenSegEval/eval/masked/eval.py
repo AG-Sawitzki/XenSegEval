@@ -9,8 +9,6 @@
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
-    prepare_ProSeg,
-    polygon_to_mask,
     wrapper_cs,
     wrapper_af1
 )
@@ -38,24 +36,20 @@ from skimage.morphology import label
 # )
 # from aicsimageio.writers import ome_tiff_writer
 
-PCA_CAPABLE = [
-    'cpsam',
-    'dinocell',
-    'dissect',
-    'mesmer',
-    'proseg',
-    'stardist'
-]
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Eval.')
     parser.add_argument('-c', '--Config', help='Path to the config file.')
     parser.add_argument('-m', '--Method', help='Method to evaluate.')
+    parser.add_argument(
+        '-gts', '--GTSection',
+        help='The section name corresponding to the Ground Truth.'
+    )
     args = parser.parse_args()
 
     method = args.Method
     config_path = args.Config
+    section = args.GTSection
 
     with open(config_path, 'rb') as f:
         config = tomlkit.load(f)
@@ -63,27 +57,9 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'eval')
     globals().update(variables)
 
-    section = 'newmem'
-
     focus_path = Path(f'{processed}/{section}/morphology/focus/')
 
     gt = tf.imread(gt_path)
-
-    # prepare Proseg output
-    if method == 'proseg':
-        files = [
-            'cell-polygons.geojson.gz',
-            'cell-polygons_layers.geojson.gz'
-        ]
-        for file in files:
-            polygons = Path(
-                f'{results}/{method}/output/{section}/{file}'
-            )
-            output_path = Path(
-                f'{results}/{method}/outupt/{section}'
-            )
-            shape = gt.shape
-            prepare_ProSeg(polygons, output_path, shape)
 
     mask_path = f'{results}/{method}/output/{section}/'
 
@@ -91,16 +67,16 @@ if __name__ == '__main__':
         print(file)
         mask = tf.imread(file)
 
-        dir_name = file.stem.replace('prediction', '')
-
-        if dir_name != '':
+        stem = file.stem
+        if '_' in stem:
+            dir_name = stem[stem.rfind('_'):]
             outdir = Path(
-                f'{home}/{sample_name}/results/{method}/'
+                f'{results}/{method}/'
                 f'evaluation/{section}/{dir_name}'
             )
         else:
             outdir = Path(
-                f'{home}/{sample_name}/results/{method}/evaluation/{section}'
+                f'{results}/{method}/evaluation/{section}'
             )
 
         outdir.mkdir(parents=True, exist_ok=True)
@@ -112,48 +88,6 @@ if __name__ == '__main__':
 
         if JACCARD['use']:
             print('jaccard')
-            # if method == 'mesmer':
-            #     mask = mask.squeeze()[0, ...]
-
-            # mask_l = label(mask)
-            # gt_l = label(gt)
-
-            # mask_rl = relabel_sequential(mask_l)[0]
-            # gt_rl = relabel_sequential(gt_l)[0]
-
-            # results = pd.DataFrame(
-            #     columns=[
-            #         'Method', 'Threshold', 'F1',
-            #         'Jaccard', 'TP', 'FP', 'FN'
-            #     ]
-            # )
-            # false_negatives = pd.DataFrame(
-            #     columns=['False_Negative', 'Area']
-            # )
-            # split_merges = pd.DataFrame(
-            #     columns=['Method', 'Merges', 'Splits']
-            # )
-
-            # results = compute_af1_results(
-            #     gt_rl,
-            #     mask_rl,
-            #     results,
-            #     method
-            # )
-
-            # false_negatives = get_false_negatives(
-            #     gt_rl,
-            #     mask_rl,
-            #     false_negatives,
-            #     method
-            # )
-
-            # split_merges = get_splits_and_merges(
-            #     gt_rl,
-            #     mask_rl,
-            #     split_merges,
-            #     method
-            # )
             results, false_negatives, split_merges = wrapper_af1(
                 mask,
                 gt,
@@ -165,15 +99,6 @@ if __name__ == '__main__':
 
         if CS_BENCH['use']:
             print('cs_bench')
-            # # expand dims. requires 3D (batch, y, x)
-            # # or 4D (batch, y, x, chan)
-            # gt_x = np.expand_dims(gt, axis=0)
-            # mask_x = np.expand_dims(mask, axis=0)
-
-            # pm = Metrics(method, outdir=outdir)
-
-            # object_metrics = pm.calc_object_stats(gt_x, mask_x)
-
-            # results = pd.DataFrame(data=object_metrics)
-            results = wrapper_cs(mask, gt, method=method, outdir=outdir)
+            results = wrapper_cs(mask, gt, method=method)
             results.to_csv(outdir / 'CS-BENCH.csv', index=False)
+            print('saved')

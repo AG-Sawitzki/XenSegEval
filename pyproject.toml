@@ -3,17 +3,19 @@ build-backend = "setuptools.build_meta"
 requires = ["setuptools>=79"]
 
 [project]
-authors = [{name = "Normann-BPh", email = "normann.julius@bih-charite.de"}]
-description = "Segment XeniumV2/V3 output using CPSAM, DeepCell, DINOCell, DISSECT, Proseg, Stardist, UCS."
 name = "XenSegEval"
-requires-python = ">= 3.7"
-readme = {file = "README.md", content-type = "text/markdown"}
+version = "0.1.0"
+description = "Segment XeniumV2/V3 output using CPSAM, DeepCell, DINOCell, DISSECT, Proseg, Stardist, UCS."
+authors = [
+    {name = "Normann-BPh", email = "normann.julius@bih-charite.de"},
+]
+keywords = ["cell segmentation", "transcriptomics"]
 license = "MIT"
 license-file = ["LICEN[CS]E*"]
-keywords = ["cell segmentation", "transcriptomics"]
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">= 3.7"
 classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only"
 ]
-version = "0.1.0"

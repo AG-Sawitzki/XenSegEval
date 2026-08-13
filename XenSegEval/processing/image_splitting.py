@@ -1,4 +1,9 @@
-from XenSegEval.utils import get_config_args
+from XenSegEval.utils import (
+    get_config_args,
+    get_memory_usage_percentage,
+    get_section_coords,
+    get_section_dims
+)
 
 from itertools import product
 from pathlib import Path
@@ -23,32 +28,23 @@ from numpy.typing import ArrayLike
 from typing import Any, Union
 
 
-def get_memory_usage_percentage() -> float:
-    """Get the memory usage as percantage.
-    Returns:
-        Float of currently used memory.
-    """
-    process = psutil.Process()
-    # Total system memory in bytes
-    total_memory = psutil.virtual_memory().total
-    # Resident Set Size in bytes
-    mem_info = process.memory_info()
-    used_memory = mem_info.rss
-    # Calculate percentage
-    memory_percentage = (used_memory / total_memory) * 100
-    return memory_percentage
-
-
 def chunk_size(
     var: int,
     chunks: int
 ) -> int:
     """Calculate the size of a chunk of a region.
-    Args:
-        var: Total region width or height.
-        chunks: Total numbr of chunks.
-    Returns:
-        Width or Height of chunk.
+
+    Parameters
+    ----------
+        var : int 
+            Total region width or height.
+        chunks : int
+            Total numbr of chunks.
+
+    Returns
+    ----------
+        out : int
+            Width or Height of chunk.
     """
     return int(var*np.sqrt(chunks)/chunks)
 
@@ -61,15 +57,28 @@ def tif_path(
     layer: int = None
 ) -> Path:
     """Create the path to the tif file.
-    Args:
-        Section: Which sample on the slide is examined.
-        p_processed: The path so the 'processed' directory.
-        ome: Boolean. If file will be ome or not.
-        focus: Boolean. If file contains channels or layers.
-        chunk: the chunk of the section.
-        layer: ome-layer of the source image.
+
+    Parameters
+    ----------
+        section : str
+            Which sample on the slide is examined.
+        ome : bool, optional
+            If file will be ome or not.
+            Default is `True`.
+        focus : bool
+            If file contains channels or layers.
+            Default is `False`.
+        chunk : int, optional
+            The chunk of the section.
+            Default is `None`.
+        layer : int, optional
+            OME-layer of the source image.
+            Default is `None`.
+
     Returns:
-        pathlib.Path
+    ----------
+        out : PosixPath
+            Path to the image.
     """
 
     f_str = '/'.join([str(section), 'morphology'])
@@ -109,20 +118,32 @@ def write_tif(
     chunk: int = None
 ) -> None:
     """Write an array into a tif file.
-    Args:
-        image: numpy.ndarray of the image.
-        section: ROI name.
-        imagestats: Dictionary containing stats of the image.
-        layer: The layer of the morphology image being written.
-               Passed on to tif_path.
-        chunk: Chunk corresponding to image being written.
-               Passed on to tif_path.
-    Retruns:
-        None. Saves file under
-        'processed/{section}/morphology/
-        {focus or multi_layer or single_layer/layer0{layer}}/
-        {quatered/q0{chunk}.extension if chunk
-         else focus. or morphology.extension}'
+
+    Parameters:
+    ----------
+        image : ArrayLike
+            numpy.ndarray of the image.
+        imagestats : dict
+            Dictionary containing stats of the image.
+        section : str or int
+            ROI name. The section the image represents.
+        layer : int, optional
+            The layer of the morphology image being written.
+            Passed on to tif_path.
+            Default is `None`.
+        chunk : int
+            Chunk corresponding to image being written.
+            Passed on to tif_path.
+            Default is `None`.
+
+    Retruns
+    ----------
+        out : None
+            Saves file under
+            'processed/{section}/morphology/
+            {focus or multi_layer or single_layer/layer0{layer}}/
+            {quatered/q0{chunk}.extension if chunk
+                else focus. or morphology.extension}'
     """
     if 'pixelsizeXY' not in globals():
         print('Imagestats are missing "pixelsize_xy" | "pixelsize_z".')
@@ -180,11 +201,18 @@ def write_aics(
     section: Union[str, int],
 ) -> None:
     '''Save focus-image for PCA analysis.
-    Args:
-        image: CYX array of the image.
-        section: the section the image represents.
-    Retruns:
-        None. Saves the image using AICSImageIO.
+
+    Parameters
+    ----------
+        image : ArrayLike
+            CYX array of the image.
+        section : str or int
+            ROI name. The section the image represents.
+
+    Retruns
+    ----------
+        out : None
+            Saves the image using AICSImageIO.
     '''
     image = np.moveaxis(image, -1, 0)
 
@@ -269,10 +297,12 @@ if __name__ == '__main__':
         chunks = preprocessing['chunks']
         overlap = preprocessing['overlap']
 
-        for section, bbox in section_dictionary.items():
-            y_min, x_min = bbox[0]
-            y_max, x_max = bbox[1]
-            resolution = (y_max-y_min, x_max-x_min)
+        for section in section_dictionary.keys():
+            coords = get_section_coords(section_dictionary, section)
+            x_min, x_max = coords[0]
+            y_min, y_max = coords[1]
+            height, width = get_section_dims(section_dictionary, section)
+            resolution = (height, width)
 
             # assigning the arrays take ~4min
             morphology_section = morphology_org[

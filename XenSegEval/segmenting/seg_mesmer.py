@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     # for an empty membrane channel, using the membrane stain,
     # or the ribosome stain
-    identifiers = ['mt', 'mem', 'ribo']
+    identifiers = ['mt', 'mem', 'ribo', 'cyto']
 
     for section in sections:
         with TiffFile(
@@ -47,27 +47,28 @@ if __name__ == '__main__':
             f'{section}/morphology/focus/focus.ome.tif'
         ) as tif:
             focus = tif.pages[0].asarray()
-            # print(focus.shape)
-
-            # add an empty membrane channel
-            focus_mt = np.expand_dims(focus[..., 0], axis=(0, -1))
-            focus_mt = np.concatenate(
-                (focus_mt, np.zeros(focus_mt.shape)),
-                axis=-1
+            dapi = focus[...,0]
+            dapi_exp = np.expand_dims(dapi, axis=0)
+            zeros = np.zeros((1,)+dapi.shape)
+            focus_mt = np.concatenate((dapi_exp, zeros))
+            focus_mt_exp = np.expand_dims(
+                np.moveaxis(focus_mt, 0, -1),
+                axis=0
             )
-            # print(focus_mt.shape)
-
-            # add ATP1A1/E-Cadherin/CD45 channel
-            focus_mem = np.expand_dims(focus[..., 0:2], axis=0)
-            print(focus_mem.shape)
-            print(sum(sum(focus_mem)))
-
-            # add 18s channel
-            focus_ribo = np.expand_dims(focus[..., 0:3:2], axis=0)
-            # print(focus_ribo.shape)
-
+            imgs = [focus_mt_exp]
+            for channel in range(1,min(focus.shape)):
+                focus_c = focus[...,channel]
+                focus_c_exp = np.expand_dims(focus_c, axis=0)
+                dapi_mem = np.concatenate(
+                    (dapi_exp, focus_c_exp)
+                )
+                dapi_mem_exp = np.expand_dims(
+                    np.moveaxis(dapi_mem, 0, -1),
+                    axis=0
+                )
+                imgs.append(dapi_mem_exp)
         # predict
-        for i, img in enumerate([focus_mt, focus_mem, focus_ribo]):
+        for i, img in enumerate(imgs):
             identifier = identifiers[i]
             predictions_nuc = app.predict(
                 img,

@@ -1,4 +1,4 @@
-from XenSegEval.utils import get_config_args
+from XenSegEval.utils import get_config_args, get_memory_usage_percentage
 
 from itertools import product
 from pathlib import Path
@@ -29,13 +29,22 @@ def get_weighted_distance(
     weighty: float = 1
 ) -> float:
     """Get weighted distance of an area's centre from [0,0].
-    Args:
-        centre: Centre of the area. (y,x).
-        weightx, weighty: How large the impact of x,y is on the distance.
+
+    Parameters:
+    ----------
+        centre : tuple or list
+            Centre of the area. Given in (y,x).
+        weightx : float
+            How large the impact of x is on the distance.
             lower x = similar y values have lower distance.
+        weighty : float
+            How large the impact of x,y is on the distance.
             lower y = similar x values have lower distance.
-    Retruns:
-        Distance as float.
+
+    Retruns
+    ----------
+        out : float
+            Distance as float.
     """
     x, y = centre
     return np.sqrt((x*weightx)**2 + (y*weighty)**2)
@@ -47,14 +56,21 @@ def find_rois(
     n_roi: int
 ) -> Union[list, ArrayLike]:
     """Sort the contours by area.
-    Args:
-        shape_org: Max resolution of img.
-        image_subres: Lowest subresolution of image.
-        n_roi: Expected # of regions of interest.
-               Should be equivalent to
-               the number of tissue-samples on the slide.
-    Returns:
-        Contours of significant size.
+
+    Parameters:
+    ----------
+        shape_org : tuple
+            Max resolution of img.
+        image_subres : ArrayLike
+            Lowest subresolution of image.
+        n_roi : int
+            Expected # of regions of interest.
+            Should be equivalent to the number of tissue-samples on the slide.
+
+    Returns
+    ----------
+        out : ArrayLike or list
+            Contours of significant size.
     """
     z, y, x = shape_org
 
@@ -183,10 +199,10 @@ if __name__ == '__main__':
             x_min, y_min = int(x*(1-buffer)), int(y*(1-buffer))
             x_max, y_max = int((x+w)*(1+buffer)), int((y+h)*(1+buffer))
             # add to dictionary
-            sections_dict[str(section)] = [
-                [y_min, x_min],
-                [y_max, x_max]
-            ]
+            sections_dict[str(section)] = {
+                'x': [x_min, x_max],
+                'y': [y_max, y_min]
+            }
             memory_percentage = get_memory_usage_percentage()
             search_bar.set_description(
                 f'Saving Coordinates | %MEM: {memory_percentage:.2f}'
