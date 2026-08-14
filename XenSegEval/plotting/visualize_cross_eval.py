@@ -64,6 +64,8 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'plot')
     globals().update(variables)
 
+    print('starting')
+
     nodes = [0.0, 0.3, 0.4, 0.5, 0.75, 1.0]
     cmap = LinearSegmentedColormap.from_list(
         'charite',
@@ -74,14 +76,16 @@ if __name__ == '__main__':
     else:
         metrics = [metric]
 
+
+    print(metrics)
     for metric in metrics:
         if metric.istitle():
             benchmark = 'u4n'
         else:
             benchmark = 'cs'
+        print(benchmark)
         path = Path(
-            f'{results}/{metric}_{benchmark}'
-            f'_cross_evaluation_{section}'
+            f'{results}/{metric}_cross_evaluation_{section}'
         )
         arr_path = Path(str(path) + '_avg.npy')
         # arr_path = Path(
@@ -90,7 +94,7 @@ if __name__ == '__main__':
         if arr_path.is_file():
             cross_res = np.load(arr_path, allow_pickle=True)
             with open(path, 'r') as f:
-                labels = f.load()
+                labels = f.read()
                 labels = labels.split(' ')
             # labels = [
             #     'cpsam5', 'cpsam6', 'cpsam7', 

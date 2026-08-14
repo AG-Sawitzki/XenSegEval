@@ -142,7 +142,7 @@ def wrapper_cs(
     return results
 
 
-def wrapper_af1(
+def wrapper_u4n(
     dt: ArrayLike,
     gt: ArrayLike,
     method: str = 'cross'
@@ -237,15 +237,15 @@ def eval_mask(
         metric : str, optional
             if benchmark = "cs":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
-            if benchmark = "af1":
+            if benchmark = "u4n":
                 "F1" | "Jaccard"
             Default is `f1`
         benchmark : str, optional
             either "cs" for cs-benchmark (see [13])
-            or "af1" for Caicedos method (see [12])
+            or "u4n" for Caicedos method (see [12])
             Default is `cs`
         threshold : float, optional
-            Threshold for af1. elem(0.5, 0.95)
+            Threshold for u4n. elem(0.5, 0.95)
             Default is `0.5`
     Retruns
     ----------
@@ -257,11 +257,12 @@ def eval_mask(
         metric_val = results[metric]
         arr = np.append(arr, metric_val)
 
-    if benchmark == 'af1':
+    if benchmark == 'u4n':
         for dt in dts:
-            results, _, __ = wrapper_af1(dt, gt)
-            metric_val = results[results['Threshold'] == threshold][metric]
-
+            results, _, __ = wrapper_u4n(dt, gt)
+            print(results)
+            metric_val = results[np.round(results['Threshold'], 2) == threshold][metric]
+            print(metric_val)
             arr = np.append(arr, metric_val)
 
     return arr
@@ -293,14 +294,14 @@ def cross_eval(
         metric : str, optional
             if benchmark = "cs":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
-            if benchmark = "af1":
+            if benchmark = "u4n":
                 "F1" | "Jaccard"
             Default is `f1`
         benchmark : str, optional
             either "cs" for cs-benchmark (see [13])
-            or "af1" for Caicedos method (see [12])
+            or "u4n" for Caicedos method (see [12])
             Default is `cs`
-        threshold (default: 0.5): Threshold for af1. elem(0.5, 0.95)
+        threshold (default: 0.5): Threshold for u4n. elem(0.5, 0.95)
 
     Returns
     ----------
@@ -328,7 +329,6 @@ def cross_eval(
     #     labels.append('xenium')
 
     methods = list(methods)
-    methods.append('xenium')
 
     for method in methods:
         # if method == 'proseg':
@@ -369,7 +369,7 @@ def cross_eval(
             gts.append(np.squeeze(gt))
 
             if method != 'dinocell':
-                labels.append(method + path.stem[str(path).rfind('_'):])
+                labels.append(method + path.stem[path.stem.rfind('_'):])
             else:
                 labels.append(method)
 

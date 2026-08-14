@@ -10,7 +10,7 @@
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
     wrapper_cs,
-    wrapper_af1
+    wrapper_u4n
 )
 
 import sys
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
         if JACCARD['use']:
             print('jaccard')
-            results, false_negatives, split_merges = wrapper_af1(
+            results, false_negatives, split_merges = wrapper_u4n(
                 mask,
                 gt,
                 method=method

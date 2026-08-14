@@ -6,28 +6,11 @@ Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[13]](#13)[[1
 > The automatic pipeline requires to be run on the BIH-HPC cluster!
 
 ## ToDo
-- [X] license
 - [X] make chunks optional
-- [X] make single-layer optional
-- [ ] make boundaries optional (only used by UCS)
+    - [ ] combine chunks
 - [ ] cellpose version in file name
-- [ ] all available predictions in cross-eval
-- [X] doc-strings
-- [X] proseg in pixi.toml
-- [ ] add PCA
-    - [X] mesmer
-- [ ] add PD
-    - [ ] and source
-- [X] add sources
-    - [X] CPSAM
-    - [X] DeepCell
-    - [X] DINOCell
-    - [X] DISSECT
-    - [X] Proseg
-    - [X] StarDist
-    - [X] UCS
-    - [X] Xenium by 10xGenomics
-
+- [ ] doc-strings
+    - [ ] utils
 ## Overview - Segmentation Algorithms
 
 | Training | SRT based | Image based | Mixed |
@@ -58,6 +41,7 @@ cd XenSegEval
 pixi lock
 ```
 
+## Algorithm dependent steps
 ### CellposeSAM/DINO
 Cellpose can be run using different pretrained models. Simply change the abbreviation in the `config.toml`
 ```
@@ -76,11 +60,11 @@ pip install "dissect-st>=0.5.4,<0.6"
 ```
 This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
 
-Afterwards download the pre-trained model using gdown (v5.2.2).
+Afterwards, download the pre-trained model using gdown (v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
-The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). After downloading the file add it to the same directory as the weights.
+The `config.yaml` file can be found on the [ZengLab GitHub](https://github.com/zenglab-pku/DISSECT/blob/main/config.yaml). After downloading the file, add it to the same directory as the weights.
 
 ### Proseg
 Install Proseg by running the command below in the XenSegEval directory.
@@ -89,8 +73,9 @@ pixi run -e proseg cargo install --version 3.2.0 proseg
 ```
 
 # Pipeline
-This repository can prepare and segment on Xenium v2, and soon v3, output. If a ground-truth is provided, it evaluates the results using basic Jaccard values. [PCA](https://github.com/murphygroup/CellSegmentationEvaluator) or [probability density](https://github.com/lstrgar/seg) based evaluation are in work.
+This repository can prepare and segment on Xenium v2/v3, output. If a ground-truth is provided, it evaluates the results using basic Jaccard-metrics. [PCA](https://github.com/murphygroup/CellSegmentationEvaluator) is only available for outputs containing nucleus and cell segmentation (Mesmer, segger, and xenium).
 
+##
 The preprocessing steps can be performed without pre-defined ROIs, but **for the evaluation a json file with coordinates** must be provided. Structured as below.
 ```
 {"name": {
@@ -99,19 +84,19 @@ The preprocessing steps can be performed without pre-defined ROIs, but **for the
     }
 }
 ```
-Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]` or include the `--Section` flag when starting `XenSegEval.main`.
+Where `y0 & x0` define the top left corner and `y1 & x1` the bottom right corner in pixel! Add the path to this json file to the `config.toml` under `[paths]`.
 
-Under `[paths]` the scripts find the path to the raw data, the name of the sample, and the path to the directory the output should be saved under.
+Also, under `[paths]` the scripts find the path to the raw data, the name of the sample, and the path to the directory the output should be saved under. Configure accordingly.
 
-After configuring the paths in `config.toml` you can start the pipeline using
+After configuring the paths in `config.toml` you can start the pipeline by executing the command below.
 ```
 pixi run python -m XenSegEval.main
 ```
 
 ## Preprocessing
-Finds coordinates of ROIs if not provided. Splits morphology.ome.tif and morphology_focus.ome.tif, transcripts.parquet, and boundaries.parquet accordingly.<br>
-Run `main.py` with `[Tasks.preprocess]` set to `true` in the config.toml.<br>
-Or run the scripts seperately.
+Run `main.py` with `[tasks.preprocess]` set to `true` in `config.toml`.<br>
+Or run the scripts seperately.<br>
+Finds coordinates of ROIs if not provided. Splits morphology.ome.tif and morphology_focus.ome.tif, transcripts.parquet, and boundaries.parquet according to ROI coordinates.<br>
 
 ## Segmenting
 The Algorithms marked in [green](#overview---segmentation-algorithms) are started if they appear in the config.toml as
@@ -122,7 +107,7 @@ The Algorithms marked in [green](#overview---segmentation-algorithms) are starte
 and `[Tasks.segment]` is set to `true`.<br>
 Alternatively start them with their bash or python script.
 ## Evaluating
-If `[Tasks.evaluate] = true` all those benchmarks set to `true` under `[evaluation.<benchmark>.use]` will be used to evaluate the segmentation of all available segmentation methods.
+If `[tasks.evaluate] = true` all those benchmarks set to `true` under `[evaluation.<benchmark>.use]` will be used to evaluate the segmentation of all available segmentation methods.
 
 # References
 ## Xenium

@@ -59,8 +59,8 @@ if __name__ == '__main__':
 
     if CROSS['use']:
         for section in sections:
-            metric = str(CROSS['metric'])
-            if metric.istitle():
+            metric = CROSS['metric']
+            if str(metric).istitle():
                 benchmark = 'u4n'
             else:
                 benchmark = 'cs'
