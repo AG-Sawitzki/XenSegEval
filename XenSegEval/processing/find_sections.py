@@ -1,4 +1,11 @@
-from XenSegEval.utils import get_config_args, get_memory_usage_percentage
+from XenSegEval.utils import (
+    get_config_args,
+    get_memory_usage_percentage
+)
+from XenSegEval.processing.utils import (
+    get_weighted_distance,
+    find_rois
+)
 
 from itertools import product
 from pathlib import Path
@@ -21,102 +28,6 @@ import cv2
 # types
 from numpy.typing import ArrayLike
 from typing import Any, Union
-
-
-def get_weighted_distance(
-    centre: Union[tuple, list],
-    weightx: float = 0.25,
-    weighty: float = 1
-) -> float:
-    """Get weighted distance of an area's centre from [0,0].
-
-    Parameters:
-    ----------
-        centre : tuple or list
-            Centre of the area. Given in (y,x).
-        weightx : float
-            How large the impact of x is on the distance.
-            lower x = similar y values have lower distance.
-        weighty : float
-            How large the impact of x,y is on the distance.
-            lower y = similar x values have lower distance.
-
-    Retruns
-    ----------
-        out : float
-            Distance as float.
-    """
-    x, y = centre
-    return np.sqrt((x*weightx)**2 + (y*weighty)**2)
-
-
-def find_rois(
-    shape_org: tuple,
-    image_subres: ArrayLike,
-    n_roi: int
-) -> Union[list, ArrayLike]:
-    """Sort the contours by area.
-
-    Parameters:
-    ----------
-        shape_org : tuple
-            Max resolution of img.
-        image_subres : ArrayLike
-            Lowest subresolution of image.
-        n_roi : int
-            Expected # of regions of interest.
-            Should be equivalent to the number of tissue-samples on the slide.
-
-    Returns
-    ----------
-        out : ArrayLike or list
-            Contours of significant size.
-    """
-    z, y, x = shape_org
-
-    subres_centre = np.uint8(image_subres[z//2])
-
-    subres_dilated = cv2.dilate(
-        subres_centre,
-        np.ones((3, 3)),
-        iterations=5
-    )
-    _, subres_binary = cv2.threshold(
-        subres_dilated,
-        127, 255, 0
-    )
-
-    contours, _ = cv2.findContours(
-        subres_binary,
-        cv2.RETR_LIST,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    # keep contours with significant size
-    values = []
-    dtype = [('area', float), ('wd', float), ('y', float), ('x', float)]
-
-    for c in contours:
-        (x, y), (w, h), a = cv2.minAreaRect(c)
-        wd = get_weighted_distance([x, y])
-        values.append((w*h, wd, y, x))
-
-    values_arr = np.array(values, dtype=dtype)
-    # sort by area and find smallest allowed roi
-    values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
-    smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
-    # sort by weighted_distance
-    values_arr_wd_args = np.argsort(values_arr, kind='stable', order='wd')
-    values_arr_wd_sorted = np.sort(values_arr, kind='stabe', order='wd')
-    contours_wd_sorted = [contours[index] for index in values_arr_wd_args]
-
-    mask = values_arr_wd_sorted['area'] >= smallest_allowed_roi
-    nroi_contours = [
-        contours_wd_sorted[index] for index, boolean in enumerate(mask)
-        if boolean
-    ]
-
-    return nroi_contours, subres_centre
 
 
 if __name__ == '__main__':
@@ -147,7 +58,7 @@ if __name__ == '__main__':
     subres_min = min(subres_lvls)
 
     morphology_org = morphology_zarr[subres_min]
-    shape_org = morphology_org.shape()
+    shape_org = morphology_org.shape
 
     print('Searching for ROIs...')
     sections_dict = {}
@@ -201,7 +112,7 @@ if __name__ == '__main__':
             # add to dictionary
             sections_dict[str(section)] = {
                 'x': [x_min, x_max],
-                'y': [y_max, y_min]
+                'y': [y_min, y_max]
             }
             memory_percentage = get_memory_usage_percentage()
             search_bar.set_description(
@@ -209,7 +120,7 @@ if __name__ == '__main__':
             )
             search_bar.update(1)
 
-        with open(processed / 'sections_px.json', 'w') as f:
+        with open(sections_path, 'w') as f:
             json.dump(sections_dict, f)
 
         imwrite(

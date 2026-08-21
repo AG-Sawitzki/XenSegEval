@@ -249,17 +249,12 @@ def get_config_args(
     home = Path(paths['home'])
     data_path = Path(paths['data_path'])
     sample_name = paths['sample_name']
-    gt_path = Path(paths['gt_path'])
-    gt_name = paths['gt_name']
-    # define sections_dictionary path
-    if 'sections_path' in paths:
-        sections_path = Path(paths['sections_path'])
-    else:
-        sections_path = processed / 'sections_px.json'
-
-    with open(sections_path) as f:
-        section_dictionary = json.load(f)
-        sections = section_dictionary.keys()
+    try:
+        gt_path = Path(paths['gt_path'])
+        gt_name = paths['gt_name']
+    except:
+        gt_path=None
+        gt_name=None
 
     # define processed and results directory
     processed = Path(f'{home}/{sample_name}/processed/')
@@ -277,6 +272,20 @@ def get_config_args(
         mail=mail,
     )
 
+    # define sections_dictionary path
+    if 'sections_path' in paths:
+        sections_path = Path(paths['sections_path'])
+    else:
+        sections_path = processed / 'sections_px.json'
+
+    try:
+        with open(sections_path, 'r') as f:
+            section_dictionary = json.load(f)
+            sections = section_dictionary.keys()
+    except FileNotFoundError:
+        section_dictionary=None
+        sections = None
+
     variables.update(dict(
         home=home,
         data_path=data_path,
@@ -287,12 +296,13 @@ def get_config_args(
         results=results,
         sbatch_kwargs=sbatch_kwargs,
         imagestats=imagestats,
-        section_dictionary=section_dictionary
+        section_dictionary=section_dictionary,
+        gt_path=gt_path,
+        gt_name=gt_name
     ))
 
     if gt_path:
         variables.update(dict(
-            gt_path=gt_path,
         ))
 
     if method in methods:
@@ -321,18 +331,17 @@ def get_config_args(
         elif method in [
             'transcripts',
             'images',
-            'boundaries'
+            'boundaries',
+            'ROIs'
         ]:
             variables.update(dict(
                 preprocessing=preprocessing,
                 pixelsizeXY=imagestats['pixelsize_xy'],
-                pixelsizeZ=imagestats['pixelsize_z'],
+                pixelsizeZ=imagestats['pixelsize_z']
             ))
         elif method == 'main':
             variables.update(dict(
                 tasks=config['tasks'],
-                gt_name=gt_name,
-                include_xenium=evaluation['include_xenium'],
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],

@@ -4,7 +4,7 @@ name = 'Normann-BPh'
 mail = 'philomina-lillie.normann@bih-charite.de'
 
 [tasks]
-preprocess = false
+preprocess = true
 segment = false
 skip_prepare = true
 evaluate = false
@@ -20,12 +20,12 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 # give a name to the sample
 sample_name = 'TMA2'
 # path to ground_truth
-gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
+# gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
 # path to the user-defined section;
 # at least one must have the same coordinates
 # as the gt-masks
-sections_path = 'gt_section.json'
-gt_name = 'newmem'
+# sections_path = 'gt_section.json'
+# gt_name = 'newmem'
 
 
 [ImageStats]
@@ -111,6 +111,11 @@ norm3D = true
 
 
 [methods.dissect]
+# additionally to the parameters below
+# dissect has a config file
+## see the "getting started" instructions in 
+## README for it's origins and location
+#
 # consult dissect/segmentation.py#L28 for context
 platform = 'xenium'
 # config_file = 
@@ -119,7 +124,7 @@ alpha = 0.5
 expand_by = 5
 gene = true
 #random_seed = No predefined seed
-n_jobs = 16
+n_jobs = 20
 #num_proprosal = # none
 #sample_step = #none
 #renewal_thres = #none
@@ -129,8 +134,8 @@ isslice = false
 # length = length (x-axis) of slice if isslice is true
 # width = width (y-axis) of slice if isslice is true
 threshold = -0.20
-minarea = 600
-maxarea = 1200
+minarea = 1200
+maxarea = 4000
 #fov = none
 stride = 128
 ratio_stride = 3
@@ -146,6 +151,7 @@ pad_mode = 'constant'
 # preprocess_kwargs_whole_cell = {}
 # preprocess_kwargs_nuclear = {}
 # --------------------------------------
+# please use your own.
 token = 'TXYsz750.lLuDd8hLaILIBvFVlOolc5KXs4I36pJv'
 
 
@@ -305,7 +311,6 @@ min-transcripts = 10
 # 
 
 [evaluation]
-include_xenium = true
 # if a evaluation should be performed based on
 # Jaccard and related scores
 [evaluation.jaccard]
@@ -334,6 +339,8 @@ metric = 'F1'
 # relevant for 'u4n' metrics
 ## [0.5,...,0.9]
 threshold = 0.65
+# if to include the provided ground truth
+include_gt = false
 
 
 [plotting]

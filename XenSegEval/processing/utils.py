@@ -6,7 +6,9 @@ from XenSegEval.utils import (
 import os
 import gzip
 import json
+from math import sqrt
 from pathlib import Path
+from itertools import product
 from multiprocessing import cpu_count
 from multiprocessing.pool import Pool
 
@@ -39,6 +41,144 @@ PDF = pl.dataframe.frame.DataFrame
 DF = pd.DataFrame
 
 MPG = geometry.multipolygon.MultiPolygon
+
+
+def make_area_centres(
+    n_roi: int,
+    shape: tuple,
+)-> list:
+    x,y = sorted(shape)
+    print(x,y)
+    partitions_x = int(sqrt(x/y*n_roi))
+    partitions_y = int(n_roi/partitions_x)
+    print(partitions_x, partitions_y)
+    x_size = int(x/partitions_x)
+    y_size = int(y/partitions_y)
+    print(x_size, y_size)
+    areas = list(product(
+        range(0, y-y % y_size, y_size),
+        range(0, x-x % x_size, x_size)
+    ))
+    centres = []
+    for idx in range(len(areas)):
+        coords_org = np.array(areas[idx])
+        coords_ext = coords_org + np.array([x_size, y_size])
+        print(coords_ext)
+        centres.append(
+            [coords_ext[1]-(coords_ext[1]-coords_org[1])//2,
+             coords_ext[0]-(coords_ext[0]-coords_org[0])//2]
+        )
+    return centres
+
+
+def get_area_index(
+    centre: Union[list, tuple, ArrayLike],
+    centres: Union[list, ArrayLike]
+)-> int:
+    relative_centres = np.abs(np.array(centres) - np.array(centre))
+    tuple_relative_centres = [(coords[0], coords[1]) for coords in relative_centres]
+    closest = min(tuple_relative_centres)
+    idx = tuple_relative_centres.index(closest)
+    return idx
+
+
+def get_weighted_distance(
+    centre: Union[tuple, list],
+    weightx: float = 0.35,
+    weighty: float = 1
+) -> float:
+    """Get weighted distance of an area's centre from [0,0].
+
+    Parameters:
+    ----------
+        centre : tuple or list
+            Centre of the area. Given in (y,x).
+        weightx : float
+            How large the impact of x is on the distance.
+            lower x = similar y values have lower distance.
+        weighty : float
+            How large the impact of x,y is on the distance.
+            lower y = similar x values have lower distance.
+
+    Retruns
+    ----------
+        out : float
+            Distance as float.
+    """
+    x, y = centre
+    return np.sqrt((x*weightx)**2 + (y*weighty)**2)
+
+
+def find_rois(
+    shape_org: tuple,
+    image_subres: ArrayLike,
+    n_roi: int
+) -> Union[list, ArrayLike]:
+    """Sort the contours by area.
+
+    Parameters:
+    ----------
+        shape_org : tuple
+            Max resolution of img.
+        image_subres : ArrayLike
+            Lowest subresolution of image.
+        n_roi : int
+            Expected # of regions of interest.
+            Should be equivalent to the number of tissue-samples on the slide.
+
+    Returns
+    ----------
+        out : ArrayLike or list
+            Contours of significant size.
+    """
+    z, y, x = shape_org
+
+    subres_centre = np.uint8(image_subres[z//2])
+
+    subres_dilated = cv2.dilate(
+        subres_centre,
+        np.ones((3, 3)),
+        iterations=5
+    )
+    _, subres_binary = cv2.threshold(
+        subres_dilated,
+        127, 255, 0
+    )
+
+    contours, _ = cv2.findContours(
+        subres_binary,
+        cv2.RETR_LIST,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    # keep contours with significant size
+    values = []
+    dtype = [('area', float), ('ai', float), ('y', float), ('x', float)]
+
+    centres = make_area_centres(n_roi, subres_centre.shape)
+    print(centres)
+    for c in contours:
+        (x, y), (w, h), a = cv2.minAreaRect(c)
+        ai = get_area_index([x,y],centres)
+        print(x,y, ai)
+        values.append((w*h, ai, y, x))
+
+    values_arr = np.array(values, dtype=dtype)
+    # sort by area and find smallest allowed roi
+    values_arr_sorted = np.sort(values_arr, kind='stable', order='area')
+    smallest_allowed_roi = values_arr_sorted['area'][-n_roi]
+    # sort by weighted_distance
+    values_arr_ai_args = np.argsort(values_arr, kind='stable', order=['ai','y'])
+    values_arr_ai_sorted = np.sort(values_arr, kind='stabe', order=['ai','y'])
+    contours_ai_sorted = [contours[index] for index in values_arr_ai_args]
+
+    mask = values_arr_ai_sorted['area'] >= smallest_allowed_roi
+    nroi_contours = [
+        contours_ai_sorted[index] for index, boolean in enumerate(mask)
+        if boolean
+    ]
+
+    return nroi_contours, subres_centre
 
 
 def check_colour(
@@ -345,9 +485,13 @@ def prepare_xenium_parquets(
 
     output_path = Path(output_path / f'{section}')
     if bound:
-        output_path = Path(output_path / f'boundaries/{bound}_relative.parquet')
+        output_path = Path(output_path / 'boundaries')
+        output_path.mkdir(parents=True, exist_ok=True)
+        output_path = Path(output_path / f'{bound}_relative.parquet')
     else:
-        output_path = Path(output_path / 'transcripts/relative.parquet')
+        output_path = Path(output_path / 'transcripts')
+        output_path.mkdir(parents=True, exist_ok=True)
+        output_path = Path(output_path / 'relative.parquet')
 
     table.write_parquet(
         file=output_path,

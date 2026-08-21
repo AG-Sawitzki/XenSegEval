@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
         pB.wait()
 
-        if include_xenium:
+        if 'xenium' in methods:
             cmd = (
                 'pixi run python -m XenSegEval.processing.prepare_xenium'
                 f' -c {config_path}'
@@ -129,6 +129,9 @@ if __name__ == '__main__':
             pX.wait()
         pI.wait()
         pT.wait()
+
+    variables = get_config_args(config, 'main')
+    globals().update(variables)
 
     if tasks['segment']:
         sbatch_kwargs['gpu'] = gpu

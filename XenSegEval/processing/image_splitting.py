@@ -93,8 +93,8 @@ def tif_path(
         f_str = '/'.join([f_str, f'single_layer/layer0{layer}'])
         ext = 'tif'
     if chunk is not None:
-        f_str = '/'.join([f_str, 'quatered'])
-        ext = '.'.join([f'q0{chunk}', ext])
+        f_str = '/'.join([f_str, 'chunks'])
+        ext = '.'.join([f'c0{chunk}', ext])
     else:
         if focus:
             ext = '.'.join(['focus', ext])
@@ -142,7 +142,7 @@ def write_tif(
             Saves file under
             'processed/{section}/morphology/
             {focus or multi_layer or single_layer/layer0{layer}}/
-            {quatered/q0{chunk}.extension if chunk
+            {chunks/c0{chunk}.extension if chunk
                 else focus. or morphology.extension}'
     """
     if 'pixelsizeXY' not in globals():
