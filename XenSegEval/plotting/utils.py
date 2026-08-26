@@ -27,7 +27,8 @@ GDF = gpd.geodataframe.GeoDataFrame
 def hex_to_rgb(
     color: str
 ) -> tuple:
-    '''Turn a Hex RGB code into a tuple RGB with values between [0,1].
+    """
+    Turn a Hex RGB code into a tuple RGB with values between [0,1].
     
     Parameters
     ----------
@@ -38,7 +39,7 @@ def hex_to_rgb(
     ----------
         out
             Tuple of (r, g, b) with values between [0,1].
-    '''
+    """
     h = color.lstrip('#')
     H = h.upper()
     rgb = tuple(
@@ -53,7 +54,8 @@ def new_color(
     color: Union[str, tuple],
     reduce: float
 ) -> tuple:
-    '''Reduces the brightnes of the given color by `reduce`.
+    """
+    Reduces the brightnes of the given color by `reduce`.
 
     Parameters
     ----------
@@ -66,7 +68,7 @@ def new_color(
     ----------
         out
             Tuple of (r, g, b)
-    '''
+    """
     if isinstance(color, str):
         rgb = hex_to_rgb(color)
     elif isinstance(color, tuple):
@@ -199,7 +201,8 @@ def get_data(
     path: Union[str, os.PathLike, PosixPath],
     vals: list,
 ) -> ArrayLike:
-    '''Get the metrics from a DataFrame. Append to `arr`.
+    """
+    Get the metrics from a DataFrame. Append to `arr`.
 
     Parameters
     ----------
@@ -214,7 +217,7 @@ def get_data(
     ----------
         out
             `arr` with values appended.
-    '''
+    """
     df = pd.read_csv(path)
 
     if arr.shape == (0,):
@@ -232,60 +235,6 @@ def get_data(
     return arr
 
 
-# def bar_method_eval(
-#     fig: Figure,
-#     ax: Axes,
-#     results: Union[str, os.PathLike, PosixPath],
-#     method: str,
-#     section: Union[str, int],
-# ) -> None:
-#     '''Plots the evaluation results from cs and/or u4n in a bar plot for a
-#         sepicified method.
-
-#     Parameters
-#     ----------
-#         fig : figure
-#             A figure to plot onto.
-#         ax : ax
-#             The Axes of the figure.
-#         results : Path
-#             Path to the results folder.
-#         method : str
-#             Name of the method. Same as the name in config.toml
-#         section : str or int
-#             ROI segmentation was performed on.
-
-#     Returns
-#     ----------
-#         out : None
-#             Plots the bars.
-#     '''
-#     eval_path = f'{results}/{method}/evaluation/{section}/'
-#     u4n_path = f'{eval_path}/results.csv'
-#     cs_path = f'{eval_path}/CS-BENCH.csv'
-#     tick_labels = []
-#     if Path(u4n_path).is_file():
-#         df = pd.read_csv(u4n_path)
-#         if 'Method' in df.columns:
-#             data = np.array(df[['F1', 'Jaccard']])
-#             tick_labels.append(list(np.round(df['Threshold'], 2)))
-#     else:
-#         data = np.array([np.nan, np.nan])
-
-#     if Path(cs_path).is_file():
-#         df = pd.read_csv(cs_path)
-#         if len(df) == 1:
-#             data = np.vstack((data, np.array(df[['f1', 'jaccard']])))
-#             tick_labels.append('cs')
-#     else:
-#         data = np.vstack((data, np.array([np.nan, np.nan])))
-
-#     ax.grouped_bar(data, tick_labels=tick_labels, labels=['F1', 'Jaccard'])
-#     ax.legend()
-#     ax.set_title(method)
-#     fig.savefig(f'{results}/test.pdf')
-
-
 def bar_compare_eval(
     methods: list,
     results: Union[str, os.PathLike, PosixPath],
@@ -293,9 +242,10 @@ def bar_compare_eval(
     fig: Figure,
     ax: Axes,
     colors: dict,
-    benchmark: str = 'cs',
+    benchmark: str = 'dc',
 ) -> None:
-    '''Plot the metrics as grouped bar plots.
+    """
+    Plot the metrics as grouped bar plots.
 
     Parameters
     ----------
@@ -312,13 +262,13 @@ def bar_compare_eval(
         colors
             Dictionary of method : color. See config file.
         benchmark
-            Evaluation method to plot. `u4n` or `cs`.
+            Evaluation method to plot. `u4n` or `dc`.
 
     Returns
     ----------
         out
             None. Saves the plot as a pdf in `results`.
-    '''
+    """
     if benchmark == 'u4n':
         vals = ['F1']
         tick_labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
@@ -326,7 +276,7 @@ def bar_compare_eval(
     else:
         vals = ['f1', 'seg', 'jaccard', 'dice', 'PQ']
         tick_labels = vals
-        file = 'CS-BENCH.csv'
+        file = 'DC-Tools.csv'
 
     arr = np.array([])
     color_list = []

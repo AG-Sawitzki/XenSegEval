@@ -35,6 +35,8 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'stardist')
     globals().update(variables)
 
+    style = method['style']
+
     # load sections
     sections = section_dictionary.keys()
 
@@ -44,24 +46,45 @@ if __name__ == '__main__':
 
     # loop through sections/quaters and segment each
     for section in sections:
-        for L, p in enumerate(planes):
+        if style == '3D':
+            for L, p in enumerate(planes):
+                img_path = Path(
+                    processed /
+                    f'{section}/morphology/'
+                    f'single_layer/layer0{p}/morphology.tif'
+                )
+                img = imread(img_path)
+                labels, _ = model.predict_instances(normalize(img))
+
+                output_dir = Path(results / f'{section}')
+                output_dir.mkdir(parents=True, exist_ok=True)
+
+                np.save(
+                    output_dir / f'prediction_p{p}.npy',
+                    labels,
+                    allow_pickle=True
+                )
+                imwrite(
+                    output_dir / f'prediction_p{p}.tif',
+                    labels
+                )
+        elif style == 'focus':
             img_path = Path(
                 processed /
-                f'{section}/morphology/'
-                f'single_layer/layer0{p}/morphology.tif'
+                f'{section}/morphology/focus/focus.ome.tif'
             )
-            img = imread(img_path)
+            img_store = imread(img_path, aszarr=True)
+            img_zarr = zarr.open(img_store, mode='r')
+            img = np.array(img_zarr)
             labels, _ = model.predict_instances(normalize(img))
-
             output_dir = Path(results / f'{section}')
             output_dir.mkdir(parents=True, exist_ok=True)
-
             np.save(
-                output_dir / f'prediction_p{p}.npy',
+                output_dir / f'prediction_focus.npy',
                 labels,
                 allow_pickle=True
             )
             imwrite(
-                output_dir / f'prediction_p{p}.tif',
+                output_dir / f'prediction_focus.tif',
                 labels
             )

@@ -56,7 +56,8 @@ def tif_path(
     chunk: int = None,
     layer: int = None
 ) -> Path:
-    """Create the path to the tif file.
+    """
+    Create the path to the tif file.
 
     Parameters
     ----------
@@ -75,8 +76,8 @@ def tif_path(
             OME-layer of the source image.
             Default is `None`.
 
-    Returns:
-    ----------
+    Returns
+    -------
         out : PosixPath
             Path to the image.
     """
@@ -117,7 +118,8 @@ def write_tif(
     layer: int = None,
     chunk: int = None
 ) -> None:
-    """Write an array into a tif file.
+    """
+    Write an array into a tif file.
 
     Parameters:
     ----------
@@ -137,7 +139,7 @@ def write_tif(
             Default is `None`.
 
     Retruns
-    ----------
+    -------
         out : None
             Saves file under
             'processed/{section}/morphology/
@@ -196,50 +198,50 @@ def write_tif(
         )
 
 
-def write_aics(
-    image: ArrayLike,
-    section: Union[str, int],
-) -> None:
-    '''Save focus-image for PCA analysis.
+# def write_aics(
+#     image: ArrayLike,
+#     section: Union[str, int],
+# ) -> None:
+#     '''Save focus-image for PCA analysis.
 
-    Parameters
-    ----------
-        image : ArrayLike
-            CYX array of the image.
-        section : str or int
-            ROI name. The section the image represents.
+#     Parameters
+#     ----------
+#         image : ArrayLike
+#             CYX array of the image.
+#         section : str or int
+#             ROI name. The section the image represents.
 
-    Retruns
-    ----------
-        out : None
-            Saves the image using AICSImageIO.
-    '''
-    image = np.moveaxis(image, -1, 0)
+#     Retruns
+#     ----------
+#         out : None
+#             Saves the image using AICSImageIO.
+#     '''
+#     image = np.moveaxis(image, -1, 0)
 
-    writer = ome_tiff_writer.OmeTiffWriter()
+#     writer = ome_tiff_writer.OmeTiffWriter()
 
-    channel_names = [
-        'DAPI',
-        'ATP1A1_E-Cadherin_CD45',
-        '18S_rRNA',
-        'alphaSMA_Vimentin'
-    ]
+#     channel_names = [
+#         'DAPI',
+#         'ATP1A1_E-Cadherin_CD45',
+#         '18S_rRNA',
+#         'alphaSMA_Vimentin'
+#     ]
 
-    stats = {
-        'dim_order': 'CYX',
-        'channel_names': channel_names,
-        'image_name': 'focus',
-        'pixel_physical_size': 0.2125,
-        'channel_colours': ['red', 'green', 'blue', 'yellow']
-    }
+#     stats = {
+#         'dim_order': 'CYX',
+#         'channel_names': channel_names,
+#         'image_name': 'focus',
+#         'pixel_physical_size': 0.2125,
+#         'channel_colours': ['red', 'green', 'blue', 'yellow']
+#     }
 
-    file = tif_path(section, ome=True, focus=True)
-    file = str(file).replace(file.stem, 'aics')
-    writer.save(
-        image,
-        uri=file,
-        **stats
-    )
+#     file = tif_path(section, ome=True, focus=True)
+#     file = str(file).replace(file.stem, 'aics')
+#     writer.save(
+#         image,
+#         uri=file,
+#         **stats
+#     )
 
 
 if __name__ == '__main__':

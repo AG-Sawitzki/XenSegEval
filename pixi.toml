@@ -57,6 +57,7 @@ polars-lts-cpu = "==1.33.1"
 opencv-python = "*"
 aicsimageio = ">=4.14.0, <5"
 cellsegmentationevaluator = ">=1.5.19, <2"
+deepcell-toolbox = { git = "https://github.com/vanvalenlab/deepcell-toolbox.git", rev = "e8c1277ee4243bc6a34916d554d0c2eab0cf7505" }
 
 
 [feature.free]
@@ -334,7 +335,7 @@ cudf-cu12 = "==24.10.*"
 cuml-cu12 = "==24.10.*"
 cugraph-cu12 = "==24.10.*"
 cupy-cuda12x = ">=12.2,<13.0"
-segger = { git = "https://github.com/dpeerlab/segger.git", rev = 'f7b39b1612aec1940fa0a45106e8bc1944a82129' }
+segger = { git = "https://github.com/dpeerlab/segger.git", rev = "f7b39b1612aec1940fa0a45106e8bc1944a82129" }
 
 
 [feature.stardist]

@@ -47,6 +47,25 @@ def make_area_centres(
     n_roi: int,
     shape: tuple,
 )-> list:
+    """
+    Fit `n_roi` squares equally distributed into `shape`.
+
+    Relation between x & y decides squares per axis.
+    Claculates the location of the centres of these squares.
+
+    Parmeters
+    ---------
+        n_roi : int
+            Number of expected punches/ROIs in an image.
+        shape : tuple
+            Shape of an Image with corresponding `n_roi`.
+
+    Results
+    -------
+        out : list
+            List of x,y coordinates. Centres of `n_roi` squares.
+
+    """
     x,y = sorted(shape)
     print(x,y)
     partitions_x = int(sqrt(x/y*n_roi))
@@ -75,6 +94,22 @@ def get_area_index(
     centre: Union[list, tuple, ArrayLike],
     centres: Union[list, ArrayLike]
 )-> int:
+    """
+    Retruns the Index of the nearest coordinates in a list.
+
+    Parameters
+    ----------
+        centre : list, tuple or ArrayLike
+            x,y coordinates.
+        centres : list, ArrayLike
+            List of x,y coordinates of centres of `n_roi` squares.
+
+    Returns
+    -------
+        out : int
+            Index of coordinates closest to `centre`.
+            I.e. `n_roi` number.
+    """
     relative_centres = np.abs(np.array(centres) - np.array(centre))
     tuple_relative_centres = [(coords[0], coords[1]) for coords in relative_centres]
     closest = min(tuple_relative_centres)
@@ -87,7 +122,8 @@ def get_weighted_distance(
     weightx: float = 0.35,
     weighty: float = 1
 ) -> float:
-    """Get weighted distance of an area's centre from [0,0].
+    """
+    Get weighted distance of an area's centre from [0,0].
 
     Parameters:
     ----------
@@ -114,7 +150,8 @@ def find_rois(
     image_subres: ArrayLike,
     n_roi: int
 ) -> Union[list, ArrayLike]:
-    """Sort the contours by area.
+    """
+    Sort the contours by area.
 
     Parameters:
     ----------
@@ -186,7 +223,8 @@ def check_colour(
     g: int,
     b: int
 ) -> tuple:
-    '''Gives a new rgb colour-tuple, incremented by 1.
+    """
+    Gives a new rgb colour-tuple, incremented by 1.
 
     Parameters
     ----------
@@ -201,7 +239,7 @@ def check_colour(
     ----------
         out : tuple
         Tuple of (r,g,b)
-    '''
+    """
     if r < 255:
         r += 1
     else:
@@ -223,7 +261,8 @@ def polygon_to_mask(
     shape: tuple,
     layer: int,
 ) -> ArrayLike:
-    '''GeoJson Polygons to masks in a TIF.
+    """
+    GeoJson Polygons to masks in a TIF.
 
     Parameters
     ----------
@@ -238,7 +277,7 @@ def polygon_to_mask(
     ----------
         out : ArrayLike
             Masks in numpy-array.
-    '''
+    """
     r, g, b = (0,)*3
     img = np.zeros(shape, np.uint8)
     if type(layer) is int:
@@ -264,7 +303,8 @@ def wrap_ptm(
     shape: tuple,
     mode: str = None,
 ) -> None:
-    '''A wrapper for polygon_to_mask.
+    """
+    A wrapper for polygon_to_mask.
 
     Parameters
     ----------
@@ -279,7 +319,7 @@ def wrap_ptm(
     ----------
         out : None
             Saves masks as `.tif` in output_dir.
-    '''
+    """
     if Path(polygons).suffix == '.gz':
         with gzip.open(polygons) as file:
             gdf = gpd.read_file(file)
@@ -314,6 +354,25 @@ def pixelate(
     table: Union[PDF, GDF],
     pixelsize_xy: float,
 )-> Union[PDF, GDF]:
+    """
+    Transform coordinates in (geo)dataframe from length unit to pixelsize.
+
+    Assumes pixel have same length in x & y. 
+
+    Parameters
+    ----------
+        table : polars or geopandas dataframe
+            Contains the coordinates to transform.
+            Column with `vertex_` or `_location` for polars.
+            `geometry` column in GeoDataFrame.
+        pixelsize_xy : float
+            Pixelsize of a pixel in xy plane.
+
+    Returns
+    -------
+        out : polars or geopandas dataframe
+            Same table as input, but with adjusted coordinates.
+    """
     if isinstance(table, PDF):
         columns = [
             c for c in table.columns if (
@@ -336,8 +395,26 @@ def pixelate(
 
 def filter_by_location(
     table: Union[PDF, GDF],
-    coords,
+    coords: dict,
 ) -> Union[PDF, GDF]:
+    """
+    Keep entries in `table` that have coordinates in `coords`.
+
+    Parameters
+    ----------
+        table : polars or geopandas dataframe
+            Contains the coordinates to filter.
+            Column with `vertex_` or `_location` for polars.
+            `geometry` column in GeoDataFrame.
+        coords : dict
+            Dictionary containing min. x,y and max. x,y.
+            For an example, see `gt_section.json`
+
+    Returns
+    -------
+        out : polars or geopandas dataframe
+            Same table as input, excluding all entries with coordinates not in `coords`.
+    """
     assert depth(coords) == 1, \
         f'`coords` incorrect: {coords}\n Consult example .json!'
     if isinstance(table, PDF):
@@ -366,9 +443,27 @@ def filter_by_location(
 
 
 def relative(
-    table,
-    coords,
-):
+    table: Union[PDF, GDF],
+    coords: dict,
+)-> Union[PDF, GDF]:
+    """
+    Turn absolute coordinates into ones relative to the section origin.
+
+    Parameters
+    ----------
+        table : polars or geopandas dataframe
+            Contains the coordinates to adjust.
+            Column with `vertex_` or `_location` for polars.
+            `geometry` column in GeoDataFrame.
+        coords : dict
+            Dictionary containing min. x,y and max. x,y.
+            For an example, see `gt_section.json`
+
+    Returns
+    -------
+        out : polars or geopandas dataframe
+            Same table as input, but with coordinates relative to section origin.
+    """
     assert depth(coords) == 1, \
         f'`coords` incorrect: {coords}\n Consult example .json!'
     if isinstance(table, PDF):
@@ -395,7 +490,21 @@ def relative(
 
 
 
-def prepare_type(table):
+def prepare_type(
+    table: Union[TABLE, GDF, PDF, DF]
+)-> Union[PDF, GDF]:
+    """
+    Changes the type of an input table dependent on the make-up.
+
+    Parmeters
+    ---------
+        table : dataframe/table from pyarrow, geopandas, pandas or polars
+            Input table to parse.
+    Returns
+    -------
+        out : dataframe from geopandas or polars
+            Output type depends on table-content.
+    """
     table_type = type(table)
     if table_type in [str, os.PathLike, PosixPath]:
         path = Path(table)
@@ -437,10 +546,34 @@ def prepare_type(table):
 
 def wrap_table_actions(
     table: Union[str, os.PathLike, PosixPath, TABLE, GDF, PDF, DF],
-    action: str,
+    action: str = None,
     pixelsize_xy: float = None,
     coords: dict = None,
-):
+)-> Union[GDF, PDF]:
+    """
+    Wrapper for functions above.
+
+    Parameters
+    ----------
+        table : path to table or dataframe/table from pyarrow, geopandas, pandas or polars
+            ...
+        action : str
+            Either: 
+                'location' to filter by `coords`,
+                'relative' to make coordinates in `table` relative to section origin,
+                or none
+        pixelsize_xy : float, optional
+            Size of a pixel in x,y. If provided performes `pixelate`.
+        coords : dict, optional
+            Dictionary of section coordinates.
+            See `gt_section.json` for an example.
+            Required for `actions`: 'location' and 'relative'
+
+    Returns
+    -------
+        out : polars or geopandas dataframe
+            Input `table` converted and `action` performed. 
+    """
     table = prepare_type(table)
     print('Table Type: ', {type(table)})
     if pixelsize_xy:
@@ -468,8 +601,32 @@ def prepare_xenium_parquets(
     pixelsize_xy: float,
     output_path: Union[str, os.PathLike, PosixPath],
     bound: str = None
-):
-    schema = table.schema
+)-> None:
+    """
+    Prepare Xenium parquets `{cell/nucleus}_boundaries.parquet` & `transcripts.parquet`.
+
+    Parameters:
+        table : pyarrow table or polars dataframe
+            Parsed table to prepare.
+        section : str
+            Name of the section to prepare the table for
+        coords : dict
+            Dictionary of x,y coordinates of the section.
+            See `gt_section.json` for an example.
+        pixelsize_xy : float
+            Size of a pixel in x,y direction.
+        output_path : str, path
+            Path to save the prepared table under.
+        bound : str, optional
+            Boundary type. Either 'cell' or 'nucleus'.
+            Required if table is '_boundaries.parquet'.
+
+    Retruns
+    -------
+        out : None
+            Saves the table under `output_path`
+    """
+    # schema = table.schema
     table = wrap_table_actions(
         table=table,
         coords=coords,
@@ -616,7 +773,9 @@ def outlines_list(masks, multiprocessing_threshold=1000, multiprocessing=None):
 # function form stackoverflow
 # adapted to return shapely Polygons
 def process_roi(npy_data, npy_base_output_path):
-    '''Get the polgyons from the prediction-masks using cellpose.utils functions
+    """
+    Get the polgyons from the prediction-masks using cellpose.utils functions.
+    
     Saves them as a GeoDataFrame (geojson)
 
     Parameters
@@ -630,7 +789,7 @@ def process_roi(npy_data, npy_base_output_path):
     ----------
         out : None
             Automatically saves the GDF under npy_base_output_path.
-    '''
+    """
     print(' - Extracting ROI')
     try:
         masks = npy_data.item().get("masks")

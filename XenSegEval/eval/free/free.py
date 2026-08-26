@@ -45,7 +45,8 @@ def read_and_eval_seg(
     pixelsizes: tuple,
     PCA_model: str = '2Dv1.5',
 ) -> dict:
-    '''Wrapper for CSE. Prepares input.
+    """
+    Wrapper for CSE. Prepares input.
 
     Parameters
     ----------
@@ -61,11 +62,11 @@ def read_and_eval_seg(
         name of the model to use. Default 2Dv1.5
 
     Returns
-    ----------
+    -------
         out : dict
             Dictionary of Segmentation Evaluation Metrics and QualityScore.
         Addionally saves the dictionary as json under `output_direcory`.
-    '''
+    """
     outdir = Path(outdir)
     aimg = AICSImage(img_path)
     physical_size_x, physical_size_y, physical_size_z = pixelsizes

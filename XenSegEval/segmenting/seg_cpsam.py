@@ -6,12 +6,11 @@ import argparse
 from pathlib import Path
 
 from cellpose import models, io
-from tifffile import TiffFile, imwrite, imread
 
-import numpy as np
-
+import zarr
 import tomlkit
-import json
+import numpy as np
+from tifffile import TiffFile, imwrite, imread
 
 print(os.getcwd())
 
@@ -38,31 +37,33 @@ if __name__ == '__main__':
 
     cpsam_model = method['model']
     cpsam_eval = method['eval']
+    style = method['style']
 
     io.logger_setup()
 
     model = models.CellposeModel(**cpsam_model)
 
     for section in sections:
-        img_path = Path(
-            processed /
-            f'{section}/morphology/multi_layer/morphology.ome.tif'
-        )
-        # multi_layer_quater = Path(processed / f'{section}/morphology/multi_layer/quatered')
-        # for q, quater in enumerate(multi_layer_quater.glob('q0*.ome.tif')):
-        #    with TiffFile(quater) as tif:
-        #        img = tif.pages[0].asarray()
+        if style == '3D':
+            img_path = Path(
+                processed /
+                f'{section}/morphology/multi_layer/morphology.ome.tif'
+            )
+        elif style == 'focus':
+            img_path = Path(
+                processed /
+                f'{section}/morphology/focus/focus.ome.tif'
+            )
+        else:
+            print('No style given. Defaulting to "focus"')
+            img_path = Path(
+                processed /
+                f'{section}/morphology/focus/focus.ome.tif'
+            )
 
-        #        masks, flows, styles = model.eval(img, **cpsam_eval)
-
-        #        res = np.array({'masks': masks, 'flows': flows})
-
-        #        np.save(
-        #            f'{sample_name}/results/cpsam/{section}/q0{q}.npy',
-        #            res
-        #        )
-        # with TiffFile(img_path) as tif:
-        img = imread(img_path)
+        img_store = imread(img_path, aszarr=True)
+        img_zarr = zarr.open(img_store, mode='r')
+        img = np.array(img_zarr)
         masks, flows, styles = model.eval(img, **cpsam_eval)
         prediction = np.array({'masks': masks, 'flows': flows})
         output_dir = results / f'{section}'

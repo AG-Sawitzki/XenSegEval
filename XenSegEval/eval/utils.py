@@ -1,16 +1,14 @@
 from XenSegEval.processing.utils import (
     wrap_ptm
 )
-# for jaccard
+# for jaccard by Caicedo
 from XenSegEval.eval.unet4nuclei.evaluation import (
     compute_af1_results,
     get_false_negatives,
     get_splits_and_merges
 )
-# for cs-bench
-from XenSegEval.eval.cs_benchmark.metrics import Metrics
-# for plotting
-# from XenSegEval.plotting.utils import heatmap, annotate_heatmap
+# for dc-tools
+from deepcell_toolbox.metrics import Metrics
 
 from skimage.segmentation import relabel_sequential
 from skimage.morphology import label
@@ -37,7 +35,7 @@ import matplotlib.pyplot as plt
 
 # types
 from numpy.typing import ArrayLike
-from typing import Any, Union
+from typing import Any, Union, Tuple
 from pathlib import PosixPath
 
 TABLE = pa.lib.Table
@@ -47,10 +45,28 @@ DF = pd.DataFrame
 
 
 def mean_cross_eval(
-    arr,
-    methods,
-    labels,
-):
+    arr: ArrayLike,
+    methods: Union[list, dict],
+    labels: list,
+) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+    """
+    Calculate the mean for each method as prediction and ground_truth while excluding itself.
+
+    Parameters
+    ----------
+        arr : array
+            Square matrix of cross evaluation results.
+        methods : list, dict
+            Methods appearing in the matrix
+        labels : list
+            List of exact name of result.
+    
+    Retruns
+    -------
+        out : tuple(array, array, array)
+            Matrix with additional row and column for the averages.
+            Row and column as separate arrays. 
+    """
     avg = []
     avgT = []
     for method in methods:
@@ -72,13 +88,13 @@ def mean_cross_eval(
     return arr, avg, avgT
 
 
-def wrapper_cs(
+def wrapper_dc(
     dt: ArrayLike,
     gt: ArrayLike,
-    # outdir: Union[str, os.PathLike, PosixPath],
     method: str = 'cross',
 ) -> pd.core.frame.DataFrame:
-    '''Wrapper for cs-benchmark. See [13] in README.md.
+    """
+    Wrapper for deepcell-toolbox benchmark. See [13] in README.md.
 
     Parameters
     ----------
@@ -86,18 +102,16 @@ def wrapper_cs(
             Prediction to test against Ground Truth.
         gt : ArrayLike
             Ground Truth to test Prediction on.
-        outdir : Path, optional
-            Output directory to save json under. See above.
         method : str, optional
             Method name that is evaluated.
-            Determines filename of json. See cs-benchmark docs.
+            Determines filename of json.
             Default is `cross`.
-    Retruns:
-    ----------
+    Retruns
+    -------
         out : DataFrame
             object_metrics in DataFrame.
         If `outdir` given then saved as json.
-    '''
+    """
     print('starting')
     if type(dt) is list:
         # print('is list')
@@ -119,25 +133,12 @@ def wrapper_cs(
     gt_x = np.int64(gt_x)
     dt_x = np.int64(dt_x)
     # print('could convert')
-    # outdir = Path(outdir)
 
     pm = Metrics(method)
 
     object_metrics = pm.calc_object_stats(gt_x, dt_x)
     # print('could calc')
     results = pd.DataFrame(data=object_metrics, dtype=float)
-
-    # if outdir is not None:
-    #     if Path(outdir / f'{method}_cs_all.csv').is_file():
-    #         results.to_csv(
-    #             outdir / f'{method}_cs_all.csv',
-    #             mode='a', header=False, index=False
-    #         )
-    #     else:
-    #         results.to_csv(
-    #             outdir / f'{method}_cs_all.csv',
-    #             index=False
-    #         )
 
     return results
 
@@ -147,7 +148,9 @@ def wrapper_u4n(
     gt: ArrayLike,
     method: str = 'cross'
 ) -> tuple[GDF, GDF, GDF]:
-    '''Wrapper for carpenterlab's evalutaion. See [12] in README.md.
+    """
+    Wrapper for carpenterlab's evalutaion. See [12] in README.md.
+    
     Parameters
     ----------
         dt : ArrayLike
@@ -158,13 +161,13 @@ def wrapper_u4n(
             Method name that is evaluated.
             Appears in rows of results.
             Default is `cross`
-    Returns:
-    ----------
+    Returns
+    -------
         out : tuple
             df of metrics,
             df of false negatives,
             df of split merges
-    '''
+    """
     dt = np.squeeze(dt)
     gt = np.squeeze(gt)
 
@@ -220,10 +223,12 @@ def eval_mask(
     dts: list,
     arr: ArrayLike,
     metric: str = 'f1',
-    benchmark: str = 'cs',
+    benchmark: str = 'dv',
     threshold: float = 0.5,
 ) -> ArrayLike:
-    '''Evaluate a single mask agains all other masks.
+    """
+    Evaluate a single mask agains all other masks.
+    
     Parameters
     ----------
         gt : Path
@@ -235,125 +240,83 @@ def eval_mask(
         arr : ArrayLike
              Array the metric is appended to.
         metric : str, optional
-            if benchmark = "cs":
+            if benchmark = "dc":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
             if benchmark = "u4n":
                 "F1" | "Jaccard"
             Default is `f1`
-        benchmark : str, optional
-            either "cs" for cs-benchmark (see [13])
-            or "u4n" for Caicedos method (see [12])
-            Default is `cs`
         threshold : float, optional
             Threshold for u4n. elem(0.5, 0.95)
             Default is `0.5`
     Retruns
-    ----------
+    -------
         out : ArrayLike
             Array of metric of len dts.
-    '''
-    if benchmark == 'cs':
-        results = wrapper_cs(dts, gt)
-        metric_val = results[metric]
-        arr = np.append(arr, metric_val)
-
-    if benchmark == 'u4n':
+    """
+    if str(metric).istitle():
         for dt in dts:
             results, _, __ = wrapper_u4n(dt, gt)
             print(results)
             metric_val = results[np.round(results['Threshold'], 2) == threshold][metric]
             print(metric_val)
             arr = np.append(arr, metric_val)
+    else:
+        results = wrapper_dc(dts, gt)
+        metric_val = results[metric]
+        arr = np.append(arr, metric_val)
 
     return arr
 
 
 def cross_eval(
     results: Union[str, os.PathLike, PosixPath],
-    # run: Union[str, os.PathLike, PosixPath],
     methods: list,
     section: str,
     metric: str = 'f1',
-    benchmark: str = 'cs',
     threshold: int = 0.5,
     gt_path: Union[str, os.PathLike, PosixPath] = None,
-    xenium: bool = False,
 ) -> tuple[ArrayLike, list]:
-    '''Evaluate each mask against every other.
+    """
+    Evaluate each mask against every other.
 
     Parameters
     ----------
         results : Path
             Path to directory containing all results.
-        # run : Path
-            # path to directory for run metrics and logs.
         methods : list
             List of all methods used for segmentation.
         section : str
             String of section evaluation is running on.
         metric : str, optional
-            if benchmark = "cs":
+            if benchmark = "dc":
                 "f1" | "seg" | "jaccard" | "dice" | "PQ"
             if benchmark = "u4n":
                 "F1" | "Jaccard"
             Default is `f1`
-        benchmark : str, optional
-            either "cs" for cs-benchmark (see [13])
-            or "u4n" for Caicedos method (see [12])
-            Default is `cs`
         threshold (default: 0.5): Threshold for u4n. elem(0.5, 0.95)
 
     Returns
-    ----------
+    -------
         out : tuple
             2D array of metric, labels ordered by evaluation
-    '''
+    """
     arr = np.array([], dtype=float)
 
     gts = []
     labels = []
 
-    processed = Path(f'{results}').parent / 'processed'
-    file = Path(f'{processed}/{section}/morphology/focus/focus.ome.tif')
-    img = tifffile.imread(file)
-    shape = img.shape[:2]
+    # processed = Path(f'{results}').parent / 'processed'
+    # file = Path(f'{processed}/{section}/morphology/focus/focus.ome.tif')
+    # img = tifffile.imread(file)
+    # shape = img.shape[:2]
 
-    # if gt_path:
-    #     gt = tifffile.imread(gt_path)
-    #     labels.append('GT')
-
-    # if xenium:
-    #     output_path = Path(f'{results}/xenium/output/{section}')
-    #     file = 'cell_polygons.geojson'
-    #     wrap_ptm(output_path / file, output_path, shape)
-    #     labels.append('xenium')
+    if gt_path:
+        gt = tifffile.imread(gt_path)
+        labels.append('GT')
 
     methods = list(methods)
 
     for method in methods:
-        # if method == 'proseg':
-        #     files = [
-        #         'cell-polygons.geojson.gz',
-        #         'cell-polygons_layers.geojson.gz'
-        #     ]
-        #     for file in files:
-        #         polygons_path = Path(
-        #             f'{results}/{method}/output/{section}/{file}'
-        #         )
-        #         output_path = Path(
-        #             f'{results}/{method}/output/{section}'
-        #         )
-        #         wrap_ptm(polygons_path, output_path, shape)
-        # if method == 'segger':
-        #     for mode in ['cell', 'nucleus']:
-        #         file = f'boundaries_{mode}.geojson'
-        #         output_path = Path(
-        #             f'{results}/{method}/output/{section}/'
-        #         )
-        #         polygons_path = Path(
-        #             output_path / f'{file}'
-        #         )
-        #         wrap_ptm(polygons_path, output_path, shape, mode=mode)
         files = list(
             Path(
                 f'{results}/{method}/output/{section}/'
@@ -379,15 +342,11 @@ def cross_eval(
             dts=gts,
             arr=arr,
             metric=metric,
-            benchmark=benchmark,
             threshold=threshold
         ), gts)
         pool.close()
         pool.join()
     res = np.vstack(res, dtype=float)
-    # res_dict = dict(zip(labels, res))
-    # with open(f'{results}/cross_evaluation.json') as file:
-    #     json.dump(res_dict, file)
     return res, labels
 
 

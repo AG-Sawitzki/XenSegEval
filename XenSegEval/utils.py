@@ -23,12 +23,12 @@ def depth(
     return 0
 
 
-
 def get_memory_usage_percentage() -> float:
-    """Get the memory usage as percentage.
+    """
+    Get the memory usage as percentage.
 
     Returns
-    ----------
+    -------
         out : float
             Float of currently used memory in percentage.
     """
@@ -47,7 +47,8 @@ def get_section_coords(
     dictionary: Union[dict, str, os.PathLike[Any], PosixPath],
     key: str,
 ) -> tuple[int, int]:
-    '''Get w,h from a dictionary organized as described in README.md
+    """
+    Get w,h from a dictionary organized as described in README.md
 
     Parameters
     ----------
@@ -57,9 +58,9 @@ def get_section_coords(
             key/section name of coordinats.
 
     Returns
-    ----------
+    -------
         height and width of given rectangle.
-    '''
+    """
     if type(dictionary) in [str, os.PathLike, PosixPath]:
             with open(dictionary) as file:
                 dictionary = json.load(file)
@@ -79,7 +80,8 @@ def get_section_dims(
     dictionary: Union[dict, str, os.PathLike[Any], PosixPath],
     key: str,
 ) -> tuple[int, int]:
-    '''Get w,h from a dictionary organized as described in README.md
+    """
+    Get w,h from a dictionary organized as described in README.md
 
     Parameters
     ----------
@@ -89,9 +91,9 @@ def get_section_dims(
             key/section name of coordinats.
 
     Returns
-    ----------
+    -------
         height and width of given rectangle.
-    '''
+    """
     if type(dictionary) in [str, os.PathLike, PosixPath]:
         with open(dictionary) as file:
             dictionary = json.load(file)
@@ -118,7 +120,8 @@ def submit_sbatch(
     gpu: Union[str, None] = None,
     mail: Union[str, None] = None,
 ) -> str:
-    '''Writes a job-file for sbatch and returns the command to submit it.
+    """
+    Writes a job-file for sbatch and return the command to submit it.
 
     Parameters
     ----------
@@ -144,10 +147,10 @@ def submit_sbatch(
             Default is `None`.
 
     Returns
-    ----------
+    -------
         out : str
             String with which the job can be submitted
-    '''
+    """
     args = shlex.split(cmd)
     if '-m' not in args:
     # if args[0] == 'bash':
@@ -209,7 +212,8 @@ def get_config_args(
     config: Union[str, os.PathLike[Any], PosixPath, dict],
     method: Union[str] = ''
 ) -> dict:
-    '''Return config
+    """
+    Return config parsed as a dictionary that can be used to update the globals() dictionary.
 
     Parameters
     ----------
@@ -220,10 +224,10 @@ def get_config_args(
             Default is `''` (empty).
 
     Returns
-    ----------
+    -------
         out : dict
             Dictionary of parsed config.
-    '''
+    """
     variables = dict()
 
     if type(config) is str or type(config) is os.PathLike:
@@ -321,7 +325,7 @@ def get_config_args(
                 PD=evaluation['pd'],
                 PCA=evaluation['pca'],
                 JACCARD=evaluation['jaccard'],
-                CS_BENCH=evaluation['cs_bench'],
+                DC_TOOLS=evaluation['dc_tools'],
             ))
         elif method == 'cross':
             variables.update(dict(
@@ -345,7 +349,7 @@ def get_config_args(
                 PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],
-                CS_BENCH=evaluation['cs_bench']['use'],
+                DC_TOOLS=evaluation['dc_tools']['use'],
                 CROSS=evaluation['cross']['use'],
                 CROSS_METRIC=evaluation['cross']['metric'],
                 PLOT=plotting,

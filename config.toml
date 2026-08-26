@@ -66,6 +66,12 @@ chunks = 4
 overlap = 0.05
 
 
+[methods.cpsam]
+# style of segmentation.
+# Either: '3D' for multi_layer input
+# or 'focus' for morphology_focus input.
+style = 'focus'
+
 [methods.cpsam.model]
 # consult cellpose/models.py#L104 for description of parameters
 gpu = true
@@ -75,6 +81,7 @@ pretrained_model = 'cpsam_v2'
 # diam_mean = unknown, not used in v4.0.1+
 device = 'cuda:0'
 use_bfloat16 = true
+
 [methods.cpsam.eval]
 # consult cellpose/models.py#L163 for description of parameters
 batch_size = 64
@@ -103,9 +110,14 @@ norm3D = true
 
 
 [methods.dinocell]
+# style of segmentation.
+# Either: '3D' for multi_layer input
+# or 'focus' for morphology_focus input.
+style = 'focus'
+#
 # If installed via PyPi the algorthim 
 # has no parameters to easily define.
-# one can rewrite the main.py file in 
+# one could rewrite the main.py file in 
 # .pixi/envs/dinocell/lib/python3.14/site-packages/dinocell/
 # in line 17.
 
@@ -304,11 +316,16 @@ min-transcripts = 10
 
 
 [methods.stardist]
-# no configuration available.
+# style of segmentation.
+# Either: '3D' for multi_layer input
+# or 'focus' for morphology_focus input.
+style = 'focus'
+#
+# no specific configuration available.
 
 
 [methods.xenium]
-# 
+# no configuration available.
 
 [evaluation]
 # if a evaluation should be performed based on
@@ -316,24 +333,18 @@ min-transcripts = 10
 [evaluation.jaccard]
 use = false
 
-# Jaccard but by cs-benchmark
-[evaluation.cs_bench]
+# Jaccard but by deepcell-tools
+[evaluation.dc_tools]
 use = false
 
 # principal components
 [evaluation.pca]
 use = false
 
-# not implemented yet
-	# probability density
-	[evaluation.pd]
-	use = false
-	overlay_image = false
-
 [evaluation.cross]
 use = true
 # choose metric
-## cs: f1, seg, jaccard, dice, PQ
+## dc: f1, seg, jaccard, dice, PQ
 ## u4n: F1, Jaccard
 metric = 'F1'
 # relevant for 'u4n' metrics

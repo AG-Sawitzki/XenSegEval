@@ -187,9 +187,9 @@ if __name__ == '__main__':
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
-        if JACCARD or CS_BENCH or PCA or PD:
+        if JACCARD or DC_TOOLS or PCA or PD:
             for method in methods:
-                if JACCARD or CS_BENCH:
+                if JACCARD or DC_TOOLS:
                     cmd = (
                         f'pixi run -e eval'
                         f' python -m XenSegEval.eval.masked.eval'

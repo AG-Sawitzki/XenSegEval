@@ -1,11 +1,3 @@
-# for jaccard
-# from XenSegEval.eval.unet4nuclei.evaluation import (
-#     compute_af1_results,
-#     get_false_negatives,
-#     get_splits_and_merges
-# )
-# for cs-bench
-# from XenSegEval.eval.cs_benchmark.metrics import Metrics
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
@@ -30,11 +22,6 @@ import geopandas as gpd
 # from CellSegmentationEvaluator.single_method_eval import single_method_eval
 from skimage.segmentation import find_boundaries, relabel_sequential
 from skimage.morphology import label
-# from aicsimageio.aics_image import imread, AICSImage
-# from aicsimageio.readers import (
-#     ome_tiff_reader, tiff_reader, array_like_reader
-# )
-# from aicsimageio.writers import ome_tiff_writer
 
 
 if __name__ == '__main__':

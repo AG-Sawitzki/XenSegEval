@@ -32,16 +32,29 @@ if __name__ == '__main__':
     variables = get_config_args(config, 'dinocell')
     globals().update(variables)
 
+    style = method['style']
+
     # load sections
     sections = section_dictionary.keys()
 
     for section in sections:
-        img_path = Path(
-            processed / f'{section}/morphology/multi_layer/'
-            'morphology.ome.tif'
-        )
+        if style == '3D':
+            img_path = Path(
+                processed /
+                f'{section}/morphology/multi_layer/morphology.ome.tif'
+            )
+        elif style == 'focus':
+            img_path = Path(
+                processed /
+                f'{section}/morphology/focus/focus.ome.tif'
+            )
+        else:
+            print('No style correct given. Defaulting to "focus"')
+            img_path = Path(
+                processed /
+                f'{section}/morphology/focus/focus.ome.tif'
+            )
         output = segment(img_path)
-
         output_dir = Path(results / f'{section}')
         output_dir.mkdir(parents=True, exist_ok=True)
 
