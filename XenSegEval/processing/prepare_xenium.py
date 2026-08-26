@@ -1,9 +1,6 @@
 from XenSegEval.utils import (
     get_config_args
 )
-from XenSegEval.processing.utils import (
-    wrap_table_actions
-)
 
 import argparse
 import tomlkit
@@ -54,10 +51,6 @@ if __name__ == '__main__':
                     geometry = Polygon(zip(x,y))
                     cell_ids.append(cell_id)
                     geometries.append(geometry)
-                # else:
-                #     print(cell_id)
-                #     print('x: ', x)
-                #     print('y: ', y)
 
             data = dict(
                 cell_id=cell_ids,
@@ -65,15 +58,6 @@ if __name__ == '__main__':
             )
 
             gdf = gpd.GeoDataFrame(data)
-
-            # sub_gdf = wrap_table_actions(
-            #     gdf,
-            #     'location',
-            #     pixelsize_xy = pixelsizeXY,
-            #     section_dict = section_dictionary[section]
-            # )
-
-            # print(sub_gdf)
 
             gj = gdf.to_json(na='keep', drop_id=True)
 

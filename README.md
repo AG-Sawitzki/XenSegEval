@@ -9,17 +9,16 @@ Segments on XeniumV2-output<sup>[[0]](#0)</sup> and evaluates<sup>[[13]](#13)[[1
 - [X] make chunks optional
     - [ ] combine chunks
 - [ ] cellpose version in file name
-- [ ] doc-strings
-    - [ ] utils
+
 ## Overview - Segmentation Algorithms
 
 | Training | SRT based | Image based | Mixed |
 | --- | --- | --- | --- |  
 | pre-trained |  | $$\color{green}\text{CellposeSAM}$$ <sup>[[3]](#3)</sup> <br> $$\color{green}\text{StarDist}$$ <sup>[[1]](#1)[[2]](#2)</sup> <br> $$\color{green}\text{Mesmer}$$ <sup>[[6]](#6)[[7]](#7)[[8]](#8)[[9]](#9)</sup> <br> $$\color{green}\text{DINOCell}$$ <sup>[[4]](#4)</sup> | $$\color{red}\text{SCS}$$ <br> $$\color{green}\text{DISSECT}$$ <sup>[[5]](#5)</sup> |
-| un-trained |  |  | $$\color{green}\text{segger}$$ <sup>[[12]](#12)</sup> <br> $$\color{orange}\text{UCS}$$ <sup>[[10]](#10)</sup> |
+| un-trained |  |  | $$\color{green}\text{segger}$$ <sup>[[12]](#12)</sup> <br> $$\color{red}\text{UCS}$$ <sup>[[10]](#10)</sup> |
 | no-training | $$\color{green}\text{Proseg}$$ <sup>[[11]](#11)</sup> |  | $$\color{red}\text{ComSeg}$$ <br> $$\color{red}\text{RNA2Seg}$$ |
 
-All those in green are currently working. Those in red have been tried and were either uninstallable (SCS) or could not work with the data (ComSeg & RNA2Seg).  
+All those in green are currently working. Those in red have been tried and were either uninstallable (SCS & UCS) or could not work with the data (ComSeg & RNA2Seg).  
 "SRT based" includes those that require only the transcriptomics data.  
 "Image based" means the input contains multi-layer or single-layer (tiff) images.  
 "Mixed" are those which require both, image and transcript location.
@@ -60,7 +59,7 @@ pip install "dissect-st>=0.5.4,<0.6"
 ```
 This installes the prebuild wheel from [Miroslav Psota](https://github.com/facebookresearch/detectron2/discussions/5200) for `py-torch==2.4.0` and `pytorch-cuda==12.4`. <br>
 
-Afterwards, download the pre-trained model using gdown (v5.2.2).
+Afterwards, download the pre-trained model (using gdown v5.2.2).
 ```
 gdown --fuzzy 'https://drive.google.com/file/d/1Y9_YCJzhUPEQBDAdKVyrKplI1vpD4qiO/view?usp=sharing' -O XenSegEval/segmenting/dissect/dissect_weights.pth
 ```
@@ -183,6 +182,9 @@ Evaluation of Deep Learning Strategies for Nucleus Segmentation in Fluorescence 
 [DOI:10.1002/cyto.a.23863](doi.org/10.1002/cyto.a.23863)
 
 <a id="14">[14]</a>
+DeepCell-Toolbox. PyPI https://pypi.org/project/DeepCell-Toolbox/ (2023).
+
+<a id="15">[15]</a>
 Can Shi, Jinghong Fan, Zhonghan Deng, Huanlin Liu, Qiang Kang, Yumei Li, Jing Guo, Jingwen Wang, Jinjiang Gong, Sha Liao, Ao Chen, Ying Zhang, Mei Li (2025)<br>
 CellBinDB: a large-scale multimodal annotated dataset for cell segmentation with benchmarking of universal models.<br>
 [DOI:10.1101/2024.11.20.619750](doi.org/10.1101/2024.11.20.619750)

@@ -94,7 +94,7 @@ def wrapper_dc(
     method: str = 'cross',
 ) -> pd.core.frame.DataFrame:
     """
-    Wrapper for deepcell-toolbox benchmark. See [13] in README.md.
+    Wrapper for deepcell-toolbox benchmark. See [14] in README.md.
 
     Parameters
     ----------
