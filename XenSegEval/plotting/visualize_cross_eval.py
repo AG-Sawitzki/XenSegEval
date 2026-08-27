@@ -40,8 +40,8 @@ if __name__ == '__main__':
         default='all',
         choices=choices,
         help=(
-            'Which metric(1) to load and plot for.'
-            ' lower case and PQ are from `cs`'
+            'Which metric to load and plot for.'
+            ' lower case and PQ are from `dc`'
             ' upper case are from `u4n`'
             ' enter `all` to plot for all metrics available'
         )
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         if metric.istitle():
             benchmark = 'u4n'
         else:
-            benchmark = 'cs'
+            benchmark = 'dc'
         print(benchmark)
         path = Path(
             f'{results}/{metric}_cross_evaluation_{section}'

@@ -3,11 +3,14 @@ import gzip
 import json
 from pathlib import Path
 
+from microfilm.microplot import microshow
+
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib
+from matplotlib.colors import ListedColormap
 
 import tifffile
 import numpy as np
@@ -343,23 +346,23 @@ def polygon_overlay(
     assert type(img) is np.ndarray, f'Img has type {type(img)}.'
     assert type(gdf) is GeoDataFrame, f'Polygons has {type(gdf)}.'
 
-    if img.shape[-1] == 4:
-        img = img[..., :3]
+    # if img.shape[-1] == 4:
+    #     img = img[..., :3]
 
     img_norm = (img-img.min())/(img.max()-img.min())
 
-    # plt.style.use('./segment_style.mplstyle ')
+    plt.style.use('./segmentstyle.mplstyle')
 
     fz = 24
     dimy, dimx, c = img.shape
 
-    fig.set_frameon(False)
+    # fig.set_frameon(False)
     fig.set_size_inches(dimy/100, dimx/100)
     ax.tick_params(axis='both', which='major', labelsize=fz)
     ax.set_xlabel('x_location in px', fontsize=fz)
     ax.set_ylabel('y_location in px', fontsize=fz)
 
-    ax.set_aspect('equal', 'box')
+    # ax.set_aspect('equal', 'box')
 
     size = dimx/10
     length = np.round(size*pixelsize_xy, 0)
@@ -368,7 +371,7 @@ def polygon_overlay(
         ax.transData,
         size=size,
         label=f'{length} µm',
-        loc='lower left',
+        loc='lower right',
         frameon=False,
         size_vertical=10/pixelsize_xy,
         color='white',
@@ -379,13 +382,24 @@ def polygon_overlay(
     ax.set_xlim(0, dimx)
     ax.set_ylim(dimy, 0)
 
-    ax.imshow(img_norm)
+    img_norm_m = np.moveaxis(img_norm, -1, 0)
+
+    images=[
+        img_norm_m[0,...],
+        img_norm_m[1,...],
+        img_norm_m[2,...],
+        img_norm_m[3,...]
+    ]
+
+    microim = microshow(
+        images=images, cmaps=['blue', 'cyan', 'magenta', 'yellow'],
+        ax=ax, limits=[img_norm_m.min(), img_norm_m.max()], show_axis=True
+    )
 
     gdf.boundary.plot(
         ax=ax, aspect='equal', color='white'
     )
     fig.tight_layout()
     fig.savefig(
-        Path(output_path),
-        dpi=100, bbox_inches='tight', pad_inches=0.0
+        Path(output_path), bbox_inches='tight', pad_inches=0.0
     )

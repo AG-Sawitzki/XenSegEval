@@ -187,7 +187,7 @@ if __name__ == '__main__':
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
-        if JACCARD or DC_TOOLS or PCA or PD:
+        if JACCARD or DC_TOOLS or PCA:
             for method in methods:
                 if JACCARD or DC_TOOLS:
                     cmd = (

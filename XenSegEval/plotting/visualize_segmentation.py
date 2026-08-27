@@ -21,7 +21,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-m', '--Method',
-        help='Method to evaluate.'
+        help='Method to plot.'
     )
     parser.add_argument(
         '-s', '--Section',
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
         polygon_overlay(
             gdf, img,
-            Path(output_path) / f'outline_{method}_{labels[i]}.png',
+            Path(output_path) / f'outline_{method}_{labels[i]}.pdf',
             fig, ax,
             pixelsize_xy=pixelsizeXY
         )

@@ -4,7 +4,7 @@ name = 'Normann-BPh'
 mail = 'philomina-lillie.normann@bih-charite.de'
 
 [tasks]
-preprocess = true
+preprocess = false
 segment = false
 skip_prepare = true
 evaluate = false
@@ -20,12 +20,12 @@ data_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/data/output-XETG0004
 # give a name to the sample
 sample_name = 'TMA2'
 # path to ground_truth
-# gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
+gt_path = '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/labels/TMA2_13-3_whole-cell_labels.tif'
 # path to the user-defined section;
 # at least one must have the same coordinates
 # as the gt-masks
-# sections_path = 'gt_section.json'
-# gt_name = 'newmem'
+sections_path = 'gt_section.json'
+gt_name = 'newmem'
 
 
 [ImageStats]
@@ -355,9 +355,9 @@ include_gt = false
 
 
 [plotting]
-cross = true
+cross = false
 bars = false
-overlay = false
+overlay = true
 
 [plotting.colors]
 cpsam = '#ffb000'

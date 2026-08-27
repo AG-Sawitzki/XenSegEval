@@ -1,0 +1,235 @@
+## style sheet for plotting morphology images with or without polygon/outline overlay
+## axes.titlesize: 24
+axes.labelsize: 24
+##
+lines.linewidth: 1
+lines.linestyle: "-"
+lines.color: "C0"
+lines.marker: "None"
+lines.markerfacecolor: "auto"
+lines.markeredgecolor: "auto"
+lines.markeredgewidth: 1.0
+lines.markersize: 10
+lines.dash_capstyle: "butt"
+lines.solid_joinstyle: "round"
+lines.solid_capstyle: "projecting"
+lines.antialiased: True
+##lines.dashed_pattern: [3.7, 1.6]
+##lines.dashdot_pattern: [6.4, 1.6, 1.0, 1.6]
+##lines.dotted_pattern: [1.0, 1.65]
+lines.scale_dashes: True
+pcolor.shading: "auto"
+pcolormesh.snap: True
+##
+patch.linewidth: 1.0
+patch.facecolor: "C0"
+patch.edgecolor: "black"
+patch.force_edgecolor: False
+patch.antialiased: True
+##
+hatch.color: "edge"
+hatch.linewidth: 1.0
+##
+# font.family: ["sans-serif"]
+font.style: "normal"
+font.variant: "normal"
+font.weight: "normal"
+font.stretch: "normal"
+font.size: 24.0
+# font.serif: ["DejaVu Serif", "Bitstream Vera Serif", "Computer Modern Roman", "New Century Schoolbook", "Century Schoolbook L", "Utopia", "ITC Bookman", "Bookman", "Nimbus Roman No9 L", "Times New Roman", "Times", "Palatino", "Charter", "serif"]
+# font.sans-serif: ["DejaVu Sans", "Bitstream Vera Sans", "Computer Modern Sans Serif", "Lucida Grande", "Verdana", "Geneva", "Lucid", "Arial", "Helvetica", "Avant Garde", "sans-serif", "Trebuchet MS"]
+# font.sans-serif: ["Trebuchet MS"]
+# font.cursive: ["Apple Chancery", "Textile", "Zapf Chancery", "Sand", "Script MT", "Felipa", "Comic Neue", "Comic Sans MS", "cursive"]
+# font.fantasy: ["Chicago", "Charcoal", "Impact", "Western", "xkcd script", "fantasy"]
+# font.monospace: ["DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Computer Modern Typewriter", "Andale Mono", "Nimbus Mono L", "Courier New", "Courier", "Fixed", "Terminal", "monospace"]
+font.enable_last_resort: True
+##
+text.color: "black"
+text.language: None
+text.hinting: "default"
+text.hinting_factor: None
+text.kerning_factor: None
+text.antialiased: True
+text.parse_math: True
+##
+text.usetex: False
+text.latex.engine: "latex"
+text.latex.preamble: ""
+mathtext.fontset: "dejavusans"
+mathtext.bf: "sans:bold"
+mathtext.bfit: "sans:italic:bold"
+mathtext.cal: "cursive"
+mathtext.it: "sans:italic"
+mathtext.rm: "sans"
+mathtext.sf: "sans"
+mathtext.tt: "monospace"
+mathtext.fallback: "cm"
+mathtext.default: "normal"
+##
+axes.facecolor: "white"
+axes.edgecolor: "black"
+axes.linewidth: 0.6
+axes.grid: False
+axes.grid.axis: "both"
+axes.grid.which: "major"
+axes.titlelocation: "center"
+axes.titlesize: "large"
+axes.titleweight: "normal"
+axes.titlecolor: "auto"
+axes.titley: None
+axes.titlepad: 6.0
+## axes.labelsize: "medium"
+axes.labelpad: 4.0
+axes.labelweight: "normal"
+axes.labelcolor: "black"
+axes.axisbelow: "line"
+## axes.formatter.limits: [-5, 6]
+axes.formatter.use_locale: False
+axes.formatter.use_mathtext: False
+axes.formatter.min_exponent: 0
+axes.formatter.useoffset: True
+axes.formatter.offset_threshold: 4
+axes.spines.left: True
+axes.spines.bottom: True
+axes.spines.top: True
+axes.spines.right: True
+axes.unicode_minus: True
+axes.prop_cycle: cycler("color", [(0.12156862745098039, 0.4666666666666667, 0.7058823529411765), (1.0, 0.4980392156862745, 0.054901960784313725), (0.17254901960784313, 0.6274509803921569, 0.17254901960784313), (0.8392156862745098, 0.15294117647058825, 0.1568627450980392), (0.5803921568627451, 0.403921568627451, 0.7411764705882353), (0.5490196078431373, 0.33725490196078434, 0.29411764705882354), (0.8901960784313725, 0.4666666666666667, 0.7607843137254902), (0.4980392156862745, 0.4980392156862745, 0.4980392156862745), (0.7372549019607844, 0.7411764705882353, 0.13333333333333333), (0.09019607843137255, 0.7450980392156863, 0.8117647058823529)])
+axes.xmargin: 0.05
+axes.ymargin: 0.05
+axes.zmargin: 0.05
+axes.autolimit_mode: "data"
+##
+polaraxes.grid: True
+##
+date.autoformatter.year: "%Y"
+date.autoformatter.month: "%Y-%m"
+date.autoformatter.day: "%Y-%m-%d"
+date.autoformatter.hour: "%m-%d %H"
+date.autoformatter.minute: "%d %H:%M"
+date.autoformatter.second: "%H:%M:%S"
+date.autoformatter.microsecond: "%M:%S.%f"
+date.converter: "auto"
+date.interval_multiples: True
+##
+xtick.top: False
+xtick.bottom: True
+xtick.labeltop: False
+xtick.labelbottom: True
+xtick.major.size: 3.5
+xtick.minor.size: 2.0
+xtick.major.width: 0.8
+xtick.minor.width: 0.6
+xtick.major.pad: 3.5
+xtick.minor.pad: 3.4
+xtick.color: "black"
+xtick.labelcolor: "inherit"
+xtick.labelsize: "medium"
+xtick.direction: "out"
+xtick.minor.visible: False
+xtick.major.top: True
+xtick.major.bottom: True
+xtick.minor.top: True
+xtick.minor.bottom: True
+xtick.minor.ndivs: "auto"
+xtick.alignment: "center"
+##
+ytick.left: True
+ytick.right: False
+ytick.labelleft: True
+ytick.labelright: False
+ytick.major.size: 3.5
+ytick.minor.size: 2.0
+ytick.major.width: 0.8
+ytick.minor.width: 0.6
+ytick.major.pad: 3.5
+ytick.minor.pad: 3.4
+ytick.color: "black"
+ytick.labelcolor: "inherit"
+ytick.labelsize: "medium"
+ytick.direction: "out"
+ytick.minor.visible: False
+ytick.major.left: True
+ytick.major.right: True
+ytick.minor.left: True
+ytick.minor.right: True
+ytick.minor.ndivs: "auto"
+ytick.alignment: "center_baseline"
+##
+grid.color: "#cbcfd2"
+grid.linestyle: "-"
+grid.linewidth: 0.8
+grid.alpha: 1.0
+grid.major.color: None
+grid.major.linestyle: None
+grid.major.linewidth: None
+grid.major.alpha: None
+grid.minor.color: None
+grid.minor.linestyle: None
+grid.minor.linewidth: None
+grid.minor.alpha: None
+##
+legend.loc: "best"
+##
+legend.frameon: True
+legend.framealpha: 0.8
+legend.facecolor: "inherit"
+legend.edgecolor: "0.8"
+legend.linewidth: None
+legend.fancybox: True
+legend.shadow: False
+legend.numpoints: 1
+legend.scatterpoints: 1
+legend.markerscale: 1.0
+legend.fontsize: "medium"
+legend.labelcolor: "None"
+legend.title_fontsize: None
+legend.borderpad: 0.4
+legend.labelspacing: 0.5
+legend.handlelength: 2.0
+legend.handleheight: 0.7
+legend.handletextpad: 0.8
+legend.borderaxespad: 0.5
+legend.columnspacing: 2.0
+##
+figure.titlesize: "large"
+figure.titleweight: "normal"
+figure.labelsize: "large"
+figure.labelweight: "normal"
+## figure.figsize: ["6.4", "4.8"]
+figure.dpi: 400.0
+figure.facecolor: "white"
+figure.edgecolor: "white"
+figure.frameon: False
+figure.subplot.left: 0.125
+figure.subplot.right: 0.9
+figure.subplot.bottom: 0.11
+figure.subplot.top: 0.88
+figure.subplot.wspace: 0.2
+figure.subplot.hspace: 0.2
+figure.autolayout: False
+figure.constrained_layout.use: False
+figure.constrained_layout.h_pad: 0.04167
+figure.constrained_layout.w_pad: 0.04167
+figure.constrained_layout.hspace: 0.02
+figure.constrained_layout.wspace: 0.02
+##
+image.aspect: "equal"
+image.interpolation: "nearest"
+image.interpolation_stage: "auto"
+## image.cmap: "gray"
+image.lut: 256
+image.origin: "upper"
+image.resample: True
+image.composite_image: True
+##
+savefig.dpi: "figure"
+savefig.facecolor: "auto"
+savefig.edgecolor: "auto"
+savefig.format: "png"
+savefig.bbox: "tight"
+savefig.pad_inches: 0.0
+## savefig.directory: "~"
+savefig.transparent: True
+savefig.orientation: "portrait"
+##

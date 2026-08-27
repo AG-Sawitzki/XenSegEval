@@ -322,7 +322,6 @@ def get_config_args(
         if method == 'eval':
             variables.update(dict(
                 methods=methods,
-                PD=evaluation['pd'],
                 PCA=evaluation['pca'],
                 JACCARD=evaluation['jaccard'],
                 DC_TOOLS=evaluation['dc_tools'],
@@ -346,7 +345,6 @@ def get_config_args(
         elif method == 'main':
             variables.update(dict(
                 tasks=config['tasks'],
-                PD=evaluation['pd']['use'],
                 PCA=evaluation['pca']['use'],
                 JACCARD=evaluation['jaccard']['use'],
                 DC_TOOLS=evaluation['dc_tools']['use'],
