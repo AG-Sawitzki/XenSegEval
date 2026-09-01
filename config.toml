@@ -6,8 +6,7 @@ mail = 'philomina-lillie.normann@bih-charite.de'
 [tasks]
 preprocess = false
 segment = false
-skip_prepare = true
-evaluate = false
+evaluate = true
 plot = true
 
 
@@ -34,14 +33,14 @@ gt_name = 'newmem'
 pixelsize_xy = 0.2125
 pixelsize_z = 3.0000
 # resolution
-y = 64612
-x = 51096
+# y = 64612
+# x = 51096
 
 [sbatch]
 # sbatch job specifications
 gpu = 'gpu:1'
 # time in days
-time = 2
+time = 1
 # RAM in gigabyte
 mem = 64
 # nr. cores
@@ -331,15 +330,15 @@ style = 'focus'
 # if a evaluation should be performed based on
 # Jaccard and related scores
 [evaluation.jaccard]
-use = false
+use = true
 
 # Jaccard but by deepcell-tools
 [evaluation.dc_tools]
-use = false
+use = true
 
 # principal components
 [evaluation.pca]
-use = false
+use = true
 
 [evaluation.cross]
 use = true
@@ -349,14 +348,14 @@ use = true
 metric = 'F1'
 # relevant for 'u4n' metrics
 ## [0.5,...,0.9]
-threshold = 0.65
+threshold = 0.50
 # if to include the provided ground truth
-include_gt = false
+include_gt = true
 
 
 [plotting]
-cross = false
-bars = false
+cross = true
+bars = true
 overlay = true
 
 [plotting.colors]

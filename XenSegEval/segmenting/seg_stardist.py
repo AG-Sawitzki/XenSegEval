@@ -6,6 +6,7 @@ import argparse
 import sys
 import os
 
+import zarr
 from stardist.models import StarDist2D
 from stardist.models import StarDist3D
 from csbdeep.utils import normalize
@@ -75,7 +76,7 @@ if __name__ == '__main__':
             )
             img_store = imread(img_path, aszarr=True)
             img_zarr = zarr.open(img_store, mode='r')
-            img = np.array(img_zarr)
+            img = img_zarr[...,0]
             labels, _ = model.predict_instances(normalize(img))
             output_dir = Path(results / f'{section}')
             output_dir.mkdir(parents=True, exist_ok=True)

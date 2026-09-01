@@ -122,7 +122,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
 
     # Show all ticks and label them with the respective list entries.
     ax.set_xticks(range(data.shape[1]), labels=col_labels)
-    ax.tick_params('x', labelrotation=-30, labelrotation_mode="xtick")
+    ax.tick_params('x', labelrotation=-45, labelrotation_mode="xtick")
     ax.set_yticks(range(data.shape[0]), labels=row_labels)
 
     # Let the horizontal axes labeling appear on top.
@@ -316,7 +316,7 @@ def bar_compare_eval(
         tick_labels=tick_labels, labels=labels,
         colors=color_list
     )
-    ax.tick_params(axis='x', rotation=35)
+    ax.tick_params(axis='x', rotation=45)
     ax.legend(ncol=2)
     fig.tight_layout()
     fig.savefig(f'{results}/{benchmark}_bars.pdf')

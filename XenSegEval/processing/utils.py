@@ -660,6 +660,9 @@ def prepare_xenium_parquets(
         ),
         # arrow_schema=schema
     )
+    table.write_csv(
+        file=output_path.with_suffix('.csv'),
+    )
 
 
 # function form cellpose.utils

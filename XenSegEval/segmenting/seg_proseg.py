@@ -66,6 +66,7 @@ def get_arguments(
                 path = value
             else:
                 path = f'{results}/{section}/'
+            Path(path).mkdir(parents=True, exist_ok=True)
             outputs = add_arg(outputs, arg, path)
         else:
             if value:

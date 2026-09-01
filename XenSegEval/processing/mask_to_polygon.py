@@ -8,6 +8,7 @@ import argparse
 
 import tifffile
 import tomlkit
+import numpy as np
 
 
 if __name__ == '__main__':

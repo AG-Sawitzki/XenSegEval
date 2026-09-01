@@ -5,9 +5,9 @@ requires = ["setuptools>=79"]
 [project]
 name = "XenSegEval"
 version = "0.1.0"
-description = "Segment XeniumV2/V3 output using CPSAM, DeepCell, DINOCell, DISSECT, Proseg, Stardist, UCS."
+description = "Segment Xenium output using CellposeSAM, DeepCell, DINOCell, DISSECT, ProSeg, segger, StarDist."
 authors = [
-    {name = "Normann-BPh", email = "normann.julius@bih-charite.de"},
+    {name = "Normann-BPh", email = "philomina-lillie.normann@bih-charite.de"},
 ]
 keywords = ["cell segmentation", "transcriptomics"]
 license = "MIT"

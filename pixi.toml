@@ -122,6 +122,9 @@ cuda = "12.6.*"
 python = ">=3.8"
 tomlkit = "*"
 
+[feature.cpsam.pypi-options]
+index-url = "https://download.pytorch.org/whl/cu126"
+
 [feature.cpsam.target.linux-64.pypi-dependencies]
 qtpy = "*"
 numpy = "*"
@@ -136,6 +139,7 @@ tqdm = "*"
 tifffile = "*"
 fastremap = "*"
 cellpose = "==4.2.1.1"
+# { git = "https://github.com/MouseLand/cellpose", rev = "a54cb48849b7e225a81e8e43dcb042d42427f543" }
 roifile = "*"
 pyqt5 = "*"
 dask = "*"
@@ -349,6 +353,7 @@ tomlkit = "*"
 cudnn = ">=9.3,<10"
 cuda = ">=12.5,<13"
 psutil = "*"
+zarr = "*"
 
 [feature.stardist.target.linux-64.pypi-dependencies]
 tensorflow = ">=2.21.0, <3"

@@ -25,7 +25,7 @@ TO_MASK = [
     'segger',
     'xenium'
 ]
-'''LIST OF ALGORITHMS THAT ONLY PROVIDE POLYGONS AS OUTPUT.'''
+'''LIST OF ALGORITHMS THAT ONLY PROVIDE POLYGONS OR DATAFRAMES AS OUTPUT.'''
 
 
 if __name__ == '__main__':
@@ -138,25 +138,24 @@ if __name__ == '__main__':
         print('started segmenting')
         seg = []
         for method in methods:
-            cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
-            if method == 'segger':
+            if method != 'xenium':
                 cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
-            sbatch_kwargs['cmd'] = cmd
-            if method in ['dissect', 'segger']:
-                sbatch_kwargs['mem'] = 128
-            seg.append(
-                subprocess.Popen(
-                    submit_sbatch(**sbatch_kwargs),
-                    shell=True
+                if method == 'segger':
+                    cmd = f'bash XenSegEval/start/{method}.sh {config_path}'
+                sbatch_kwargs['cmd'] = cmd
+                if method in ['dissect', 'segger']:
+                    sbatch_kwargs['mem'] = 128
+                seg.append(
+                    subprocess.Popen(
+                        submit_sbatch(**sbatch_kwargs),
+                        shell=True
+                    )
                 )
-            )
             sbatch_kwargs['mem'] = mem
         for p in seg:
             p.wait()
-        del sbatch_kwargs['gpu']
+        # del sbatch_kwargs['gpu']
 
-
-    if not tasks['skip_prepare']:
         print(f'Preparing masks and polygons.')
         preparing = []
         for method in methods:
@@ -182,8 +181,6 @@ if __name__ == '__main__':
         for p in preparing:
             p.wait()
 
-
-    # methods.append('xenium')
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
@@ -236,31 +233,45 @@ if __name__ == '__main__':
             p.wait()
 
     if tasks['plot']:
-        cmds = []
         plots = []
         for section in sections:
             if PLOT['cross']:
-                cmds.append(
+                cmd = (
                     f'pixi run python -m XenSegEval.plotting.visualize_cross_eval'
                     f' -c {config_path} -m {CROSS_METRIC} -s {section}'
                 )
+                sbatch_kwargs['cmd'] = cmd
+                plots.append(
+                    subprocess.Popen(
+                        submit_sbatch(**sbatch_kwargs),
+                        shell=True
+                    )
+                )
             if PLOT['bars']:
-                cmds.append(
+                cmd = (
                     f'pixi run python -m XenSegEval.plotting.visualize_metrics'
                     f' -s {section} -b both'
                 )
+                sbatch_kwargs['cmd'] = cmd
+                plots.append(
+                    subprocess.Popen(
+                        submit_sbatch(**sbatch_kwargs),
+                        shell=True
+                    )
+                )
             if PLOT['overlay']:
                 for method in methods:
-                    cmds.append(
+                    cmd = (
                         f'pixi run python -m XenSegEval.plotting.visualize_segmentation'
                         f' -c {config_path} -m {method} -s {section}'
                     )
-        for cmd in cmds:
-            plots.append(
-                subprocess.Popen(
-                    cmd, shell=True
-                )
-            )
+                    sbatch_kwargs['cmd'] = cmd
+                    plots.append(
+                        subprocess.Popen(
+                            submit_sbatch(**sbatch_kwargs),
+                            shell=True
+                        )
+                    )
         for p in plots:
             p.wait()
 

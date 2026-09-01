@@ -1,7 +1,7 @@
 # Utils
 from XenSegEval.utils import get_config_args
 from XenSegEval.eval.utils import (
-    wrapper_cs,
+    wrapper_dc,
     wrapper_u4n
 )
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         print(file)
         mask = tf.imread(file)
 
-        stem = file.stem
+        stem = str(file.stem)
         if '_' in stem:
             dir_name = stem[stem.rfind('_'):]
             outdir = Path(
@@ -75,17 +75,18 @@ if __name__ == '__main__':
 
         if JACCARD['use']:
             print('jaccard')
-            results, false_negatives, split_merges = wrapper_u4n(
+            res, false_negatives, split_merges = wrapper_u4n(
                 mask,
                 gt,
                 method=method
             )
-            results.to_csv(outdir / 'results.csv', index=False)
+            res.to_csv(outdir / 'results.csv', index=False)
             false_negatives.to_csv(outdir / 'false_negatives.csv', index=False)
             split_merges.to_csv(outdir / 'split_merges.csv', index=False)
 
-        if CS_BENCH['use']:
-            print('cs_bench')
-            results = wrapper_cs(mask, gt, method=method)
-            results.to_csv(outdir / 'CS-BENCH.csv', index=False)
-            print('saved')
+        if DC_TOOLS['use']:
+            print('dc_tools')
+            res = wrapper_dc(mask, gt, method=method)
+            res.to_csv(outdir / 'DC-TOOLS.csv', index=False)
+
+        print('saved')

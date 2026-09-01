@@ -35,9 +35,9 @@ if __name__ == '__main__':
         for section in sections:
             metric = CROSS['metric']
             CROSS_args = dict(
-                results,
-                methods,
-                section,
+                results=results,
+                methods=methods,
+                section=section,
                 metric=metric,
                 threshold=CROSS['threshold']
             )

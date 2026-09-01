@@ -72,17 +72,24 @@ if __name__ == '__main__':
             output_dir / 'output.npy',
             prediction
         )
-        imwrite(
-            output_dir / f'output.tif',
-            masks
-        )
-        for L, p in enumerate(planes):
-            imwrite(
-                output_dir / f'prediction_p{p}.tif',
-                masks[L, ...]
-            )
+        if style == '3D':
+            for L, p in enumerate(planes):
+                imwrite(
+                    output_dir / f'prediction_p{p}.tif',
+                    masks[L, ...]
+                )
+                np.save(
+                    output_dir / f'prediction_p{p}.tif',
+                    masks[L, ...],
+                    allow_pickle=True
+                )
+        else:
             np.save(
-                output_dir / f'prediction_p{p}.tif',
-                masks[L, ...],
+                output_dir / 'prediction_focus.npy',
+                masks[...,0],
                 allow_pickle=True
+            )
+            imwrite(
+                output_dir / 'prediction_focus.tif',
+                masks[...,0]
             )

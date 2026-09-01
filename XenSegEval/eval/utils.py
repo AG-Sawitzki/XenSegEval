@@ -60,12 +60,12 @@ def mean_cross_eval(
             Methods appearing in the matrix
         labels : list
             List of exact name of result.
-    
+
     Retruns
     -------
         out : tuple(array, array, array)
             Matrix with additional row and column for the averages.
-            Row and column as separate arrays. 
+            Row and column as separate arrays.
     """
     avg = []
     avgT = []
@@ -150,7 +150,7 @@ def wrapper_u4n(
 ) -> tuple[GDF, GDF, GDF]:
     """
     Wrapper for carpenterlab's evalutaion. See [12] in README.md.
-    
+
     Parameters
     ----------
         dt : ArrayLike
@@ -227,8 +227,8 @@ def eval_mask(
     threshold: float = 0.5,
 ) -> ArrayLike:
     """
-    Evaluate a single mask agains all other masks.
-    
+    Evaluate a single mask against all other masks.
+
     Parameters
     ----------
         gt : Path
