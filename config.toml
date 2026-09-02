@@ -6,7 +6,7 @@ mail = 'philomina-lillie.normann@bih-charite.de'
 [tasks]
 preprocess = false
 segment = false
-evaluate = true
+evaluate = false
 plot = true
 
 
@@ -39,7 +39,7 @@ pixelsize_z = 3.0000
 [sbatch]
 # sbatch job specifications
 gpu = 'gpu:1'
-# time in days
+# time in hours
 time = 1
 # RAM in gigabyte
 mem = 64
@@ -118,7 +118,7 @@ style = 'focus'
 # has no parameters to easily define.
 # one could rewrite the main.py file in 
 # .pixi/envs/dinocell/lib/python3.14/site-packages/dinocell/
-# in line 17.
+# specifically line 17.
 
 
 [methods.dissect]
@@ -326,23 +326,24 @@ style = 'focus'
 [methods.xenium]
 # no configuration available.
 
+
 [evaluation]
 # if a evaluation should be performed based on
 # Jaccard and related scores
 [evaluation.jaccard]
-use = true
+use = false
 
 # Jaccard but by deepcell-tools
 [evaluation.dc_tools]
-use = true
+use = false
 
 # principal components
 [evaluation.pca]
-use = true
+use = false
 
 [evaluation.cross]
-use = true
-# choose metric
+use = false
+# choose metric (capitalisation is important!!)
 ## dc: f1, seg, jaccard, dice, PQ
 ## u4n: F1, Jaccard
 metric = 'F1'
@@ -354,9 +355,9 @@ include_gt = true
 
 
 [plotting]
-cross = true
+cross = false
 bars = true
-overlay = true
+overlay = false
 
 [plotting.colors]
 cpsam = '#ffb000'

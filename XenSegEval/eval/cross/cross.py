@@ -46,21 +46,21 @@ if __name__ == '__main__':
             res, labels = cross_eval(
                 **CROSS_args
             )
-
+            print(labels)
             print(res)
 
-            cross_with_avg, avg_hori, avg_vert = mean_cross_eval(
-                res,
-                methods,
-                labels
-            )
+            # cross_with_avg, avg_hori, avg_vert = mean_cross_eval(
+            #     res,
+            #     methods,
+            #     labels
+            # )
 
-            print(cross_with_avg)
+            # print(cross_with_avg)
 
             path = (
                 f'{results}/{CROSS["metric"]}_cross_evaluation_{section}'
             )
             np.save(path + '.npy', res)
-            np.save(path + '_avg.npy', cross_with_avg)
+            # np.save(path + '_avg.npy', cross_with_avg)
             with open(path, 'w') as f: 
                 f.write(' '.join(labels))

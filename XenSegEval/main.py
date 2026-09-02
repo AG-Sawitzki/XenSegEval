@@ -154,13 +154,16 @@ if __name__ == '__main__':
             sbatch_kwargs['mem'] = mem
         for p in seg:
             p.wait()
-        # del sbatch_kwargs['gpu']
+        del sbatch_kwargs['gpu']
 
         print(f'Preparing masks and polygons.')
         preparing = []
         for method in methods:
             if method in TO_MASK:
-                cmd = f'pixi run python -m XenSegEval.processing.polygon_to_mask -m {method}'
+                cmd = (
+                    f'pixi run python -m XenSegEval.processing.polygon_to_mask'
+                    f' -m {method}'
+                )
                 sbatch_kwargs['cmd'] = cmd
                 preparing.append(
                     subprocess.Popen(
@@ -169,8 +172,10 @@ if __name__ == '__main__':
                     )
                 )
             else:
-                cmd = ('pixi run python -m XenSegEval.processing.mask_to_polygon'
-                    f' -m {method}')
+                cmd = (
+                    'pixi run python -m XenSegEval.processing.mask_to_polygon'
+                    f' -m {method}'
+                )
                 sbatch_kwargs['cmd'] = cmd
                 preparing.append(
                     subprocess.Popen(
@@ -184,6 +189,20 @@ if __name__ == '__main__':
     if tasks['evaluate']:
         print('started evaluating')
         evl = []
+        for section in sections:
+            for method in methods:
+                cmd = (
+                    f'pixi run -e eval'
+                    f' python -m XenSegEval.eval.base'
+                    f' -c {config_path} -m {method} -s {section}'
+                )
+                sbatch_kwargs['cmd'] = cmd
+                evl.append(
+                    subprocess.Popen(
+                        submit_sbatch(**sbatch_kwargs),
+                        shell=True
+                    )
+                )
         if JACCARD or DC_TOOLS or PCA:
             for method in methods:
                 if JACCARD or DC_TOOLS:
@@ -200,7 +219,7 @@ if __name__ == '__main__':
                         )
                     )
                 if (PCA and method in PCA_CAPABLE):
-                    sbatch_kwargs['gpu'] = gpu
+                    # sbatch_kwargs['gpu'] = gpu
                     for section in sections:
                         cmd = (
                             f'pixi run -e free'
@@ -214,8 +233,9 @@ if __name__ == '__main__':
                                 shell=True
                             )
                         )
-                    del sbatch_kwargs['gpu']
+                    # del sbatch_kwargs['gpu']
         if CROSS:
+            sbatch_kwargs['gpu'] = gpu
             cmd = (
                 f'pixi run -e eval'
                 f' python -m XenSegEval.eval.cross.cross'
@@ -250,7 +270,7 @@ if __name__ == '__main__':
             if PLOT['bars']:
                 cmd = (
                     f'pixi run python -m XenSegEval.plotting.visualize_metrics'
-                    f' -s {section} -b both'
+                    f' -s {section} -b all'
                 )
                 sbatch_kwargs['cmd'] = cmd
                 plots.append(

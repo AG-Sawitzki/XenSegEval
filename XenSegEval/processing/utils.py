@@ -29,6 +29,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.compute as pc
 import matplotlib.pyplot as plt
+import matplotlib.colors as clrs
 
 from typing import Any, Union
 from pathlib import PosixPath
@@ -278,22 +279,30 @@ def polygon_to_mask(
         out : ArrayLike
             Masks in numpy-array.
     """
-    r, g, b = (0,)*3
-    img = np.zeros(shape, np.uint8)
+    r, g, b = (1, 0, 0)
+    img = np.zeros(shape)
     if type(layer) is int:
         gds = gdf[gdf['layer'] == layer]['geometry']
     else:
         gds = gdf['geometry']
+    cells = 1
     for pg in gds:
+        gmi = np.zeros_like(img, np.uint8)
         if isinstance(pg, MPG):
             for lr in pg.geoms:
-                pl = np.array(list(lr.exterior.coords))
-                cv2.fillPoly(img, np.int32([pl]), (r, g, b))
+                gmi = np.zeros_like(img, np.uint8)
+                polyline = np.array(list(lr.exterior.coords))
+                cv2.fillPoly(gmi, np.int32([polyline]), (r, g, b))
                 r, g, b = check_colour(r, g, b)
+                print(gmi)
+                img[gmi > 0] = cells
+                cells += 1
         else:
-            pl = np.array(list(pg.exterior.coords))
-            cv2.fillPoly(img, np.int32([pl]), (r, g, b))
+            polyline = np.array(list(pg.exterior.coords))
+            cv2.fillPoly(gmi, np.int32([polyline]), (r, g, b))
             r, g, b = check_colour(r, g, b)
+            img[gmi > 0] = cells
+            cells += 1
     return img
 
 
@@ -334,8 +343,13 @@ def wrap_ptm(
         layers = max(gdf['layer'])
         for layer in range(layers+1):
             mask = polygon_to_mask(gdf, shape, layer)
+            file = output_path / f'prediction_l{layer}.tif'
             tifffile.imwrite(
-                output_path / f'prediction_l{layer}.tif',
+                file,
+                mask
+            )
+            np.save(
+                file.with_suffix('.npy'),
                 mask
             )
     except KeyError:
@@ -344,6 +358,10 @@ def wrap_ptm(
             file = output_path / f'prediction_{mode}.tif'
         else:
             file = output_path / 'prediction.tif'
+        np.save(
+            file.with_suffix('.npy'),
+            mask
+        )
         tifffile.imwrite(
             file,
             mask

@@ -9,7 +9,7 @@ import tomlkit
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    choices = ['both', 'u4n', 'cs']
+    choices = ['all', 'u4n', 'dc', 'area']
     parser = argparse.ArgumentParser(prog='Metrics')
     parser.add_argument(
         '-b', '--Benchmark',
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         choices=choices,
         help=(
             'Which evaluation methods metrics to plot.'
-            ' `u4n`, `cs` or none. If none do both.'
+            ' `u4n`, `dc` or none. If none do both.'
         )
     )
     parser.add_argument(
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     globals().update(variables)
 
     if benchmark in choices:
-        if benchmark == 'both':
+        if benchmark == 'all':
             benchmarks = choices[1:]
         else:
             benchmarks = [benchmark]
@@ -52,9 +52,7 @@ if __name__ == '__main__':
             bar_compare_eval(
                 methods, results, section,
                 fig, ax, colors,
-                benchmark
+                benchmark,
             )
     else:
         print(f'Given benchmark not available. Choose from {choices}')
-
-    

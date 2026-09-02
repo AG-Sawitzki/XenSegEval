@@ -64,7 +64,7 @@ def get_section_coords(
     if type(dictionary) in [str, os.PathLike, PosixPath]:
             with open(dictionary) as file:
                 dictionary = json.load(file)
-    
+
     assert type(dictionary) is dict, \
         f'Input is wrong type: {type(dictionary)}'
     assert type(key) is str, f'key is not str: {type(key)}'
@@ -177,9 +177,14 @@ def submit_sbatch(
             name = '_'.join(['eval', 'free', method, section])
         elif 'cross' in script:
             name = '_'.join(['cross', 'eval'])
-        elif 'visualize' in name:
+        elif 'visualize' in script:
             metric = method
             name = '_'.join([script, metric, section])
+        elif 'base' in script:
+            name = '_'.join([script, method, section])
+        else:
+            print('unknown method. Name defaults to module.')
+            name = script
     with open(f'{job_dir}/{name}.sh', 'w+') as fh:
         fh.writelines('#!/bin/bash\n')
         fh.writelines('#\n')
@@ -187,7 +192,7 @@ def submit_sbatch(
         fh.writelines('#SBATCH --wait\n')
         if gpu is not None:
             fh.writelines(f'#SBATCH --gres={gpu}\n')
-        fh.writelines(f'#SBATCH --time={time}-00\n')
+        fh.writelines(f'#SBATCH --time=0-{time}\n')
         fh.writelines(f'#SBATCH --mem={mem}G\n')
         fh.writelines(f'#SBATCH --cpus-per-task={cpu}\n')
         fh.writelines(f'#SBATCH --output={log_path}/{name}_%N_%j.out\n')
@@ -353,9 +358,6 @@ def get_config_args(
                 PLOT=plotting,
             ))
         elif method == 'plot':
-            # colors = [
-            #     methods[method]['color'] for method in methods
-            # ]
             variables.update(dict(
                 pixelsizeXY=imagestats['pixelsize_xy'],
                 colors=plotting['colors'],

@@ -87,24 +87,13 @@ if __name__ == '__main__':
         path = Path(
             f'{results}/{metric}_cross_evaluation_{section}'
         )
-        arr_path = Path(str(path) + '_avg.npy')
-        # arr_path = Path(
-        #     '/data/cephfs-2/unmirrored/groups/sawitzki/Juno/TMA2/results/cross_evaluation_newmem.npy'
-        # )
+        arr_path = Path(str(path) + '.npy')
         if arr_path.is_file():
             cross_res = np.load(arr_path, allow_pickle=True)
             with open(path, 'r') as f:
                 labels = f.read()
                 labels = labels.split(' ')
-            # labels = [
-            #     'cpsam5', 'cpsam6', 'cpsam7', 
-            #     'dinocell', 'dissect', 
-            #     'mesmerMEM', 'mesmerMT', 'mesmerRB', 
-            #     'proseg', 'proseg0', 'proseg1', 
-            #     'proseg2', 'proseg3', 
-            #     'stardist5', 'stardist6', 'stardist7'
-            # ]
-            labels.append('avg')
+            # labels.append('avg')
             fig, ax = plt.subplots()
 
             im, cbar = heatmap(

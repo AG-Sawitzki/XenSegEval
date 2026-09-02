@@ -52,7 +52,7 @@ if __name__ == '__main__':
         if method == 'mesmer':
             # for i, mode in enumerate(['cell', 'nucleus']):
             img = tifffile.imread(file)[0, ...]
-            img = np.squeeze(image)
+            img = np.squeeze(img)
                 # name = '_'.join([name, mode])
         else:
             img = tifffile.imread(file)

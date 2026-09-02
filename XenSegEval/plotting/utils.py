@@ -245,7 +245,7 @@ def bar_compare_eval(
     fig: Figure,
     ax: Axes,
     colors: dict,
-    benchmark: str = 'dc',
+    benchmark: str = 'area',
 ) -> None:
     """
     Plot the metrics as grouped bar plots.
@@ -263,23 +263,33 @@ def bar_compare_eval(
         ax
             A matplotlib axis.
         colors
-            Dictionary of method : color. See config file.
+            Dictionary of {method : color}. See config file.
         benchmark
-            Evaluation method to plot. `u4n` or `dc`.
+            Evaluation method to plot. `u4n`, `dc` or `area`.
 
     Returns
-    ----------
-        out
+    -------
+        out : None
             None. Saves the plot as a pdf in `results`.
     """
     if benchmark == 'u4n':
         vals = ['F1']
         tick_labels = np.round(np.arange(0.5, 0.95, 0.05), 2)
         file = 'results.csv'
-    else:
-        vals = ['f1', 'seg', 'jaccard', 'dice', 'PQ']
+    elif benchmark == 'dc':
+        vals = ['f1', 'seg', 'jaccard', 'dice']
         tick_labels = vals
-        file = 'DC-Tools.csv'
+        file = 'DC-TOOLS.csv'
+    elif benchmark == 'area':
+        vals = ['count', 'area_relative']
+        tick_labels = vals
+        file = 'count_area.csv'
+    else:
+        print(
+            f'`benchmark` unknown.'
+            f' {benchmark} not in options (: "u4n", "dc", "area").'
+        )
+        return None
 
     arr = np.array([])
     color_list = []
@@ -311,12 +321,49 @@ def bar_compare_eval(
             arr = get_data(
                 arr, path, vals
             )
-    ax.grouped_bar(
-        arr.T,
-        tick_labels=tick_labels, labels=labels,
-        colors=color_list
-    )
-    ax.tick_params(axis='x', rotation=45)
+    print(tick_labels, len(tick_labels), '\n', labels, len(labels))
+    if benchmark == 'area':
+        print(arr)
+        print(arr.T)
+
+        counts = arr.T[0]
+        relative_areas = arr.T[1]
+
+        ax_count = ax
+        ax_relative = ax.twinx()
+
+        width = 0.2
+        gap = width*5
+        ind_count = np.arange(0, len(counts)*width, width)
+        ax_count.bar(
+            ind_count,
+            counts,
+            width=width,
+            facecolor=color_list,
+            label=labels
+        )
+
+        ind_relative = ind_count+ind_count[-1]+gap
+        ax_relative.bar(
+            ind_relative,
+            relative_areas,
+            width=width,
+            facecolor=color_list,
+            label=labels
+        )
+
+        tick_loc_count = ind_count[-1]/2
+        tick_loc_relative = tick_loc_count+ind_count[-1]+gap
+        ax.set_xticks(
+            [tick_loc_count, tick_loc_relative],
+            labels=tick_labels
+        )
+    else:
+        ax.grouped_bar(
+            arr.T,
+            tick_labels=tick_labels, labels=labels,
+            colors=color_list
+        )
     ax.legend(ncol=2)
     fig.tight_layout()
     fig.savefig(f'{results}/{benchmark}_bars.pdf')

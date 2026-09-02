@@ -71,7 +71,7 @@ def mean_cross_eval(
     avgT = []
     for method in methods:
         indices = [
-            i for i,x in enumerate(labels) if method in x
+            i for i, x in enumerate(labels) if method in x
         ]
         for i in indices:
             a = arr[i]
@@ -256,9 +256,9 @@ def eval_mask(
     if str(metric).istitle():
         for dt in dts:
             results, _, __ = wrapper_u4n(dt, gt)
-            print(results)
+            # print(results)
             metric_val = results[np.round(results['Threshold'], 2) == threshold][metric]
-            print(metric_val)
+            # print(metric_val)
             arr = np.append(arr, metric_val)
     else:
         results = wrapper_dc(dts, gt)
@@ -305,13 +305,9 @@ def cross_eval(
     gts = []
     labels = []
 
-    # processed = Path(f'{results}').parent / 'processed'
-    # file = Path(f'{processed}/{section}/morphology/focus/focus.ome.tif')
-    # img = tifffile.imread(file)
-    # shape = img.shape[:2]
-
     if gt_path:
         gt = tifffile.imread(gt_path)
+        gts.append(np.squeeze(gt))
         labels.append('GT')
 
     methods = list(methods)
@@ -331,7 +327,7 @@ def cross_eval(
 
             gts.append(np.squeeze(gt))
 
-            if method != 'dinocell':
+            if method not in ['dinocell', 'dissect']:
                 labels.append(method + path.stem[path.stem.rfind('_'):])
             else:
                 labels.append(method)
@@ -350,27 +346,30 @@ def cross_eval(
     return res, labels
 
 
-# def plot_precision_recall(precision, recall, methods, sample_ids):
-#     points = {m: [] for m in methods}
+def get_cell_count(arr):
+    count = arr.max()
+    return count
 
-#     for sid in sample_ids:
-#         for i, rad in enumerate(radii):
-#             for m in methods:
-#                 p = precision[sid][rad][m]
-#                 r = recall[sid][rad][m]
-#                 points[m].append((r, p))
 
-#     fig, ax = plt.subplots(1, len(methods), figsize=(20, 2))
-#     fig.text(0.5, -0.1, 'precision', ha='center', va='center')
-#     fig.text(0.1, 0.5, 'recall', ha='center', va='center', rotation='vertical')
-#     for method, a in zip(methods, fig.axes):
-#         a.set_xlim(0.3, 1)
-#         a.set_ylim(0.5, 1)
-#         a.set_title(method)
+def get_area(arr):
+    x,y = arr.shape
+    total = x*y
+    check = arr > 0
+    check_list = check.tolist()
+    predicted = 0
+    for L in check_list:
+        predicted += L.count(True)
+    predicted_relative = predicted/total
 
-#         xs = [x for x, y in points[method]]
-#         ys = [y for x, y in points[method]]
+    return predicted, predicted_relative
 
-#         sns.kdeplot(x=xs, y=ys, clip=(0, 1), ax=a)
-#         a.scatter(xs, ys)
-#     plt.show()
+
+def base_stats(arr):
+    count = get_cell_count(arr)
+    areas = get_area(arr)
+    data = dict(zip(
+        ['count', 'area', 'area_relative'],
+        (count,)+(areas)
+    ))
+    df = pl.DataFrame(data)
+    return df

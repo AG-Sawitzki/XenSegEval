@@ -29,8 +29,6 @@ from CellSegmentationEvaluator.single_method_eval import (
 from CellSegmentationEvaluator.single_method_eval_3D import (
     single_method_eval_3D
 )
-# from skimage.segmentation import find_boundaries, relabel_sequential
-# from skimage.morphology import label
 from aicsimageio.aics_image import imread, AICSImage
 from aicsimageio.readers import (
     ome_tiff_reader, tiff_reader, array_like_reader
@@ -117,7 +115,7 @@ def read_and_eval_seg(
     struct = {"Segmentation Evaluation Metrics v1.5": seg_metrics}
     if outdir is not None:
         with open(
-                outdir / (img["name"] + "-seg_eval.json"), "w"
+                outdir / (mask["name"] + "-seg_eval.json"), "w"
         ) as json_file:
             json.dump(struct, json_file)
 
@@ -168,9 +166,9 @@ if __name__ == '__main__':
     #     pca = pickle.load(pkl)
 
     img = tifffile.imread(focus_path / 'focus.ome.tif')
-    print(img.shape)
+    # print(img.shape)
     img = np.moveaxis(img, -1, 0)
-    print(img.shape)
+    # print(img.shape)
     writer = OmeTiffWriter()
     channel_names = [
         'DAPI',
@@ -201,9 +199,9 @@ if __name__ == '__main__':
         focus_path / 'aics.ome.tif',
         reader=ome_tiff_reader.OmeTiffReader
     )
-    print(img)
+    # print(img)
     # print(img.data)
-    print(img.metadata)
+    # print(img.metadata)
 
     for i, mask in enumerate(masks):
         outdir = mask_path.parents[1] / f'evaluation/{section}'
@@ -211,35 +209,17 @@ if __name__ == '__main__':
 
         mask = np.squeeze(mask, )
         mask = mask.astype(np.int32)
-        # mask = AICSImage(
-        #     file,
-        #     reader=tiff_reader.TiffReader
-        # )
         new_file = Path(files[i].parent / f'aics_{files[i].name}')
         writer.save(
             mask,
             uri=new_file,
             dim_order='CYX',
             image_name=f'{method}_{files[i].stem}',
-            # channel_names=[
-            #     'cell',
-            #     'nucleus'
-            # ],
             pixel_physical_size=imagestats['pixelsize_xy']
         )
-        print(mask.shape)
-        # mask = find_boundaries(mask, connectivity=1, mode='inner')
-        # print(type(mask))
 
-        # output = single_method_eval(
-        #     AICSImage(focus_path / 'aics.ome.tif'),
-        #     AICSImage(file.parent / f'aics_{file.name}'),
-        #     PCA_model='2Dv1.5',  # pca,
-        #     output_dir=(
-        #         '/data/cephfs-2/unmirrored/groups/'
-        #         'sawitzki/Juno/eval-test/PCA'
-        #     )
-        # )
+        print(mask.shape)
+
         output = read_and_eval_seg(
             focus_path / 'aics.ome.tif',
             new_file,
