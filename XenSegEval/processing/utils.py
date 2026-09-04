@@ -281,29 +281,32 @@ def polygon_to_mask(
     """
     r, g, b = (1, 0, 0)
     img = np.zeros(shape)
+    img_aics = np.zeros_like(img, np.uint8)
     if type(layer) is int:
         gds = gdf[gdf['layer'] == layer]['geometry']
     else:
         gds = gdf['geometry']
     cells = 1
     for pg in gds:
-        gmi = np.zeros_like(img, np.uint8)
         if isinstance(pg, MPG):
             for lr in pg.geoms:
                 gmi = np.zeros_like(img, np.uint8)
                 polyline = np.array(list(lr.exterior.coords))
                 cv2.fillPoly(gmi, np.int32([polyline]), (r, g, b))
+                cv2.fillPoly(img_aics, np.int32([polyline]), (r, g, b))
                 r, g, b = check_colour(r, g, b)
                 print(gmi)
                 img[gmi > 0] = cells
                 cells += 1
         else:
+            gmi = np.zeros_like(img, np.uint8)
             polyline = np.array(list(pg.exterior.coords))
             cv2.fillPoly(gmi, np.int32([polyline]), (r, g, b))
+            cv2.fillPoly(img_aics, np.int32([polyline]), (r, g, b))
             r, g, b = check_colour(r, g, b)
             img[gmi > 0] = cells
             cells += 1
-    return img
+    return img, img_aics
 
 
 def wrap_ptm(
@@ -327,7 +330,7 @@ def wrap_ptm(
     Returns
     ----------
         out : None
-            Saves masks as `.tif` in output_dir.
+            Saves masks as `.tif` and `.npy` in output_dir.
     """
     if Path(polygons).suffix == '.gz':
         with gzip.open(polygons) as file:
@@ -342,30 +345,27 @@ def wrap_ptm(
     try:
         layers = max(gdf['layer'])
         for layer in range(layers+1):
-            mask = polygon_to_mask(gdf, shape, layer)
+            mask, mask_aics = polygon_to_mask(gdf, shape, layer)
             file = output_path / f'prediction_l{layer}.tif'
-            tifffile.imwrite(
-                file,
-                mask
-            )
-            np.save(
-                file.with_suffix('.npy'),
-                mask
-            )
+            file_aics = output_path / f'for_aics_l{layer}.tif'
+            tifffile.imwrite(file, mask)
+            tifffile.imwrite(file_aics, mask_aics)
+            np.save(file.with_suffix('.npy'), mask)
+            np.save(file_aics.with_suffix('.npy'), mask_aics)
+
     except KeyError:
-        mask = polygon_to_mask(gdf, shape, layer=None)
+        mask, mask_aics = polygon_to_mask(gdf, shape, layer=None)
         if mode:
             file = output_path / f'prediction_{mode}.tif'
+            file_aics = output_path / f'for_aics_{mode}.tif'
         else:
             file = output_path / 'prediction.tif'
-        np.save(
-            file.with_suffix('.npy'),
-            mask
-        )
-        tifffile.imwrite(
-            file,
-            mask
-        )
+            file_aics = output_path / f'for_aics.tif'
+
+        tifffile.imwrite(file, mask)
+        tifffile.imwrite(file_aics, mask_aics)
+        np.save(file.with_suffix('.npy'), mask)
+        np.save(file_aics.with_suffix('.npy'), mask_aics)
 
 
 def pixelate(

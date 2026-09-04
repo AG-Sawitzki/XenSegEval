@@ -219,7 +219,6 @@ if __name__ == '__main__':
                         )
                     )
                 if (PCA and method in PCA_CAPABLE):
-                    # sbatch_kwargs['gpu'] = gpu
                     for section in sections:
                         cmd = (
                             f'pixi run -e free'
@@ -233,9 +232,9 @@ if __name__ == '__main__':
                                 shell=True
                             )
                         )
-                    # del sbatch_kwargs['gpu']
         if CROSS:
             sbatch_kwargs['gpu'] = gpu
+            sbatch_kwargs['mem'] = mem*2
             cmd = (
                 f'pixi run -e eval'
                 f' python -m XenSegEval.eval.cross.cross'
@@ -248,6 +247,7 @@ if __name__ == '__main__':
                     shell=True
                 )
             )
+            del sbatch_kwargs['gpu']
 
         for p in evl:
             p.wait()

@@ -223,8 +223,9 @@ def eval_mask(
     dts: list,
     arr: ArrayLike,
     metric: str = 'f1',
-    benchmark: str = 'dv',
     threshold: float = 0.5,
+    results: Union[str, os.PathLike, PosixPath] = None,
+    section: str = None
 ) -> ArrayLike:
     """
     Evaluate a single mask against all other masks.
@@ -241,12 +242,12 @@ def eval_mask(
              Array the metric is appended to.
         metric : str, optional
             if benchmark = "dc":
-                "f1" | "seg" | "jaccard" | "dice" | "PQ"
+                "f1" | "seg" | "jaccard" | "dice"
             if benchmark = "u4n":
                 "F1" | "Jaccard"
             Default is `f1`
         threshold : float, optional
-            Threshold for u4n. elem(0.5, 0.95)
+            Threshold for u4n. elem(0.5, 1)
             Default is `0.5`
     Retruns
     -------
@@ -255,17 +256,25 @@ def eval_mask(
     """
     if str(metric).istitle():
         for dt in dts:
-            results, _, __ = wrapper_u4n(dt, gt)
-            # print(results)
-            metric_val = results[np.round(results['Threshold'], 2) == threshold][metric]
+            res, _, __ = wrapper_u4n(dt, gt)
+            # print(res)
+            metric_val = res[np.round(res['Threshold'], 2) == threshold][metric]
             # print(metric_val)
             arr = np.append(arr, metric_val)
+        return arr
     else:
-        results = wrapper_dc(dts, gt)
-        metric_val = results[metric]
-        arr = np.append(arr, metric_val)
-
-    return arr
+        res = wrapper_dc(dts, gt)
+        # metric_val = res[metric]
+        # file = f'{results}/{section}_DC-TOOLS_CROSS.csv'
+        # # if Path(file).is_file():
+        # #     mode = 'a'
+        # #     header = False
+        # # else:
+        # #     mode = 'w'
+        # #     header = True
+        # # res.to_csv(file, mode=mode, header=header)
+        # arr = np.append(arr, metric_val)
+        return res
 
 
 def cross_eval(
@@ -338,11 +347,17 @@ def cross_eval(
             dts=gts,
             arr=arr,
             metric=metric,
-            threshold=threshold
+            threshold=threshold,
+            results=results,
+            section=section
         ), gts)
         pool.close()
         pool.join()
-    res = np.vstack(res, dtype=float)
+    if str(metric).istitle():
+        res = np.vstack(res, dtype=float)
+    else:
+        res = pd.concat(res, ignore_index=True)
+        res.to_csv(f'{results}/{section}_DC-TOOLS_CROSS.csv')
     return res, labels
 
 

@@ -143,10 +143,9 @@ if __name__ == '__main__':
 
 
     mask_path = Path(f'{results}/{method}/output/{section}/')
-    mask_path.mkdir(parents=True, exist_ok=True)
 
-    files = sorted(mask_path.glob('prediction*.tif'))
     if method in ['segger', 'xenium']:
+        files = sorted(mask_path.glob('for_aics*.tif'))
         masks = [tifffile.imread(mask) for mask in files]
         masks = [np.array([masks])]
     elif method == 'GT':
@@ -157,6 +156,7 @@ if __name__ == '__main__':
         masks = [np.array([masks])]
         files = [Path(f'{home}/labels/TMA2_13-3_nucleus_labels_.tif')]
     else:
+        files = sorted(mask_path.glob('prediction*.tif'))
         masks = [tifffile.imread(mask) for mask in files]
 
     #if PCA['use'] and method in PCA_CAPABLE:

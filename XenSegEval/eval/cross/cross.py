@@ -9,6 +9,7 @@ import argparse
 from pathlib import Path
 
 import tomlkit
+import polars as pl
 import numpy as np
 
 
@@ -56,11 +57,24 @@ if __name__ == '__main__':
             # )
 
             # print(cross_with_avg)
-
-            path = (
-                f'{results}/{CROSS["metric"]}_cross_evaluation_{section}'
-            )
-            np.save(path + '.npy', res)
-            # np.save(path + '_avg.npy', cross_with_avg)
-            with open(path, 'w') as f: 
-                f.write(' '.join(labels))
+            if metric.istitle():
+                path = (
+                    f'{results}/{metric}_u4n_cross_evaluation_{section}'
+                )
+                np.save(path + '.npy', res)
+                # np.save(path + '_avg.npy', cross_with_avg)
+                with open(path + '_labels', 'w') as f: 
+                    f.write(' '.join(labels))
+            else:
+                with open(results / f'{section}_DC-TOOLS_labels', 'w') as f:
+                    f.write(' '.join(labels))
+                df = pl.read_csv(f'{results}/{section}_DC-TOOLS_CROSS.csv')
+                for metric in ['f1', 'seg', 'jaccard', 'dice']:
+                    arr = []
+                    idx = 0
+                    for label in labels:
+                        res = df[metric][idx:idx+len(labels)]
+                        idx+=len(labels)
+                        arr.append(np.array(res))
+                    arr = np.vstack(arr)
+                    np.save(f'{results}/{section}_{metric}_CROSS.npy', arr)

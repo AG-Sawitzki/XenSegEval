@@ -81,16 +81,18 @@ if __name__ == '__main__':
     for metric in metrics:
         if metric.istitle():
             benchmark = 'u4n'
+            path = f'{results}/{metric}_u4n_cross_evaluation_{section}'
+            label_path = path + '_labels'
+            arr_path = path + '.npy'
         else:
             benchmark = 'dc'
+            arr_path = f'{results}/{section}_{metric}_CROSS.npy'
+            label_path = f'{results}/{section}_DC-TOOLS_labels'
+
         print(benchmark)
-        path = Path(
-            f'{results}/{metric}_cross_evaluation_{section}'
-        )
-        arr_path = Path(str(path) + '.npy')
-        if arr_path.is_file():
+        if Path(arr_path).is_file():
             cross_res = np.load(arr_path, allow_pickle=True)
-            with open(path, 'r') as f:
+            with open(label_path, 'r') as f:
                 labels = f.read()
                 labels = labels.split(' ')
             # labels.append('avg')
